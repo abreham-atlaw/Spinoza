@@ -26,6 +26,7 @@ class TimeSeriesDataPreparer(ABC):
 			trim_extra_gran: bool = False,
 			process_batch_size: int = None,
 			trim_incomplete_batch: bool = False,
+			clean_df: bool = True,
 
 			X_dir: str = "X",
 			y_dir: str = "y",
@@ -35,7 +36,10 @@ class TimeSeriesDataPreparer(ABC):
 
 			transformations: typing.List[Transformation] = None
 	):
-		self.__df = DataPrepUtils.clean_df(df)
+		if clean_df:
+			df = DataPrepUtils.clean_df(df)
+
+		self.__df = df
 		self.__block_size = block_size
 		self.__granularity = granularity
 		self.__batch_size = batch_size

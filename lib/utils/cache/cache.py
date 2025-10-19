@@ -42,3 +42,9 @@ class Cache:
 	def clear(self):
 		self.__store = {}
 		self.__order.clear()  # Clear the order tracking as well
+
+	def __setitem__(self, key, value):
+		self.store(key, value)
+
+	def __getitem__(self, key):
+		return self.retrieve(key)
