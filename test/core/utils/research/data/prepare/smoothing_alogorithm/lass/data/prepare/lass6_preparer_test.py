@@ -18,23 +18,19 @@ from lib.utils.logger import Logger
 class Lass6PreparerTest(unittest.TestCase):
 
 	def setUp(self):
-		self.output_path = os.path.join(Config.BASE_DIR, "temp/Data/lass/10")
+		self.output_path = os.path.join(Config.BASE_DIR, "temp/Data/lass/13")
 		Logger.info(f"Cleaning {self.output_path}")
 		os.system(f"rm -fr \"{self.output_path}\"")
 		self.preparer = Lass6Preparer(
 			output_path=self.output_path,
 
-			seq_size=int(1e3),
+			seq_size=int(2e3),
 			block_size=128,
 			batch_size=1024,
 			splitter=SequentialSplitter(test_size=0.2),
 
 			transformations=[
-				VerticalShiftTransformation(shift=0.1),
-				VerticalStretchTransformation(alpha=1.1),
-				VerticalStretchTransformation(alpha=0.9),
-				TimeStretchTransformation(),
-				GaussianNoiseTransformation()
+				VerticalShiftTransformation(shift=1.5),
 			],
 
 			c_x=int(1e3),
@@ -49,17 +45,23 @@ class Lass6PreparerTest(unittest.TestCase):
 	def test_functionality(self):
 		self.preparer.start()
 
-		filename = random.choice(os.listdir(os.path.join(self.output_path, "train/X")))
-		X, y = [
-			np.load(os.path.join(self.output_path, f"train/{axis}/{filename}"))
+		container_path = os.path.join(self.output_path, "train")
+
+		X_FILES, Y_FILES = [
+			[
+				os.path.join(container_path, axis, filename)
+				for filename in sorted(os.listdir(os.path.join(os.path.join(container_path, axis))))
+			]
 			for axis in ["X", "y"]
 		]
 
-		for i in np.random.randint(0, X.shape[0], 10):
-			plt.figure()
-			plt.plot(X[i, 0], label="X-Encoder")
-			plt.plot(X[i, 1][X[i, 1] > 0], label="X-Decoder")
-			plt.scatter([np.sum(X[i, 1] > 0)], [y[i]], label="Y", c="red")
-			plt.legend()
-		plt.show()
+		for f in np.random.randint(0, len(X_FILES), 10):
+			plt.figure(figsize=(20, 10))
+			X, y = [np.load(files[f]) for files in [X_FILES, Y_FILES]]
+			for idx, i in enumerate(np.argsort(np.mean(X[:, 0], axis=1))[:4]):
+				plt.subplot(2, 2, idx + 1)
+				plt.plot(X[i, 0], label="X-Encoder")
+				plt.plot(X[i, 1][X[i, 1] > 0], label="X-Decoder")
+				plt.scatter([np.sum(X[i, 1] > 0)], [y[i]], label="Y", c="red")
+			plt.show()
 

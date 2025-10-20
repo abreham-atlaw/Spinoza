@@ -82,7 +82,7 @@ class TimeSeriesDataPreparer(ABC):
 	def _prepare_sequence(self, sequence: np.ndarray) -> np.ndarray:
 		return sequence
 
-	def __apply_transformations(self, x: np.ndarray) -> np.ndarray:
+	def _apply_transformations(self, x: np.ndarray) -> np.ndarray:
 		y = np.concatenate([x] + [
 			transformation(x)
 			for transformation in self.__transformations
@@ -95,7 +95,7 @@ class TimeSeriesDataPreparer(ABC):
 	def __process_sequence(self, sequence: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
 		stacked_sequence = DataPrepUtils.stack(sequence, self.__block_size)
 
-		stacked_sequence = self.__apply_transformations(stacked_sequence)
+		stacked_sequence = self._apply_transformations(stacked_sequence)
 
 		stacked_sequence = self._prepare_sequence_stack(stacked_sequence)
 
