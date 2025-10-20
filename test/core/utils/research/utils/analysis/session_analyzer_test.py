@@ -43,4 +43,8 @@ class SessionAnalyzerTest(unittest.TestCase):
 
 	def test_plot_timestep_output(self):
 		for i in range(10):
-			self.session_analyzer.plot_timestep_output(i)
+			self.session_analyzer.plot_timestep_output(
+				i,
+				h=1.0,
+				max_depth=5
+			)

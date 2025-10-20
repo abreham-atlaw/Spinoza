@@ -14,6 +14,7 @@ from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgori
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import SpinozaLoss
 from core.utils.research.model.model.savable import SpinozaModule
+from core.utils.research.model.model.utils import HorizonModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.rl.agent import Node
 from lib.utils.cache import Cache
@@ -48,7 +49,7 @@ class SessionAnalyzer:
 		self.__dtype = dtype
 
 		if bounds is None:
-			bounds = DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND)
+			bounds = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 		self.__bounds = bounds
 
 		self.__softmax = nn.Softmax(dim=-1)
@@ -214,27 +215,38 @@ class SessionAnalyzer:
 		return X, y[:, :-1]
 
 	@CacheDecorators.cached_method()
-	def __get_y_hat(self, X: np.ndarray) -> np.ndarray:
-		y_hat = self.__softmax(self.__model(torch.from_numpy(X))[:, :-1]).detach().numpy()
+	def __get_y_hat(self, X: np.ndarray, h: float, max_depth: int) -> np.ndarray:
+		model = self.__model
+		if h > 0 and max_depth > 0:
+			model = HorizonModel(
+				model=self.__model,
+				h=h,
+				max_depth=max_depth,
+				bounds=self.__bounds
+			)
+		y_hat = self.__softmax(model(torch.from_numpy(X))[:, :-1]).detach().numpy()
 		return y_hat
 
 	def __get_yv(self, y: np.ndarray) -> np.ndarray:
-		bounds = (self.__bounds[1:] + self.__bounds[:-1])/2
+		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds)
+		bounds = (bounds[1:] + bounds[:-1])/2
 		return np.sum(y[:, :-1] * bounds, axis=1)
 
 	def plot_timestep_output(
 			self,
 			i: int,
+			h: float = 0.0,
+			max_depth: int = 0,
 	):
 		X, y = self.__load_output_data()
-		y_hat = self.__get_y_hat(X)
+		y_hat = self.__get_y_hat(X, h=h, max_depth=max_depth)
 
 		y_v, y_hat_v = [self.__get_yv(_y) for _y in [y, y_hat]]
 
 		plt.figure(figsize=self.__fig_size)
 
 		plt.subplot(1, 2, 1)
-		plt.title(f"Timestep Output - i={i}")
+		plt.title(f"Timestep Output - i={i}, h={h}, max_depth={max_depth}")
 		plt.plot(X[i, :-124])
 
 		plt.subplot(1, 2, 2)
