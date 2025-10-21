@@ -50,4 +50,4 @@ class SessionAnalyzerTest(unittest.TestCase):
 			)
 
 	def test_plot_node_prediction(self):
-		self.session_analyzer.plot_node_prediction(0, path=[0, 0])
+		self.session_analyzer.plot_node_prediction(0, path=[1, 0]*1)

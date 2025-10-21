@@ -283,8 +283,11 @@ y_hat: {y_hat_v[i]}
 
 		plt.figure(figsize=self.__fig_size)
 		plt.subplot(1, 2, 1)
-		plt.title(f"Node Prediction - idx={idx}, path={path}")
+		plt.title(f"Node Prediction - idx={idx}, path={path}, depth={len(path)//2}")
 		plt.plot(seq)
+		if len(path) > 0:
+			plt.axvline(x=len(seq) - (len(path)//2) - 1, color="red")
+		plt.grid()
 
 		plt.subplot(1, 2, 2)
 		plt.title(f"y_hat={self.__get_yv(y_hat)[0]}")
