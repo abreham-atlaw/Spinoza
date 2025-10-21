@@ -39,7 +39,7 @@ class SessionAnalyzerTest(unittest.TestCase):
 		print("Loss:", loss)
 
 	def test_plot_node(self):
-		self.session_analyzer.plot_node(idx=0, depth=5, path=[0, 0])
+		self.session_analyzer.plot_node(idx=0, depth=5, path=[])
 
 	def test_plot_timestep_output(self):
 		for i in range(10):
@@ -48,3 +48,6 @@ class SessionAnalyzerTest(unittest.TestCase):
 				h=1.0,
 				max_depth=5
 			)
+
+	def test_plot_node_prediction(self):
+		self.session_analyzer.plot_node_prediction(0, path=[0, 0])
