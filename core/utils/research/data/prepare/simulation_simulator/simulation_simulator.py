@@ -4,6 +4,7 @@ import numpy as np
 
 from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, MovingAverage
 from core.utils.research.data.prepare.time_series_data_preparer import TimeSeriesDataPreparer
+from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from lib.utils.logger import Logger
 
 
@@ -35,16 +36,15 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 			**kwargs
 		)
 
-		# simulator-specific parameters
 		self.__bounds = bounds
 		self.__extra_len = extra_len
 
-		self.__smoothing_algorithm = smoothing_algorithm
-		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
+		self._smoothing_algorithm = smoothing_algorithm
+		Logger.info(f"Using Smoothing Algorithm: {self._smoothing_algorithm}")
 
 	def _prepare_sequence_stack(self, x: np.ndarray) -> np.ndarray:
-		if self.__smoothing_algorithm is not None:
-			x = self.__smoothing_algorithm.apply_on_batch(x)
+		if self._smoothing_algorithm is not None:
+			x = self._smoothing_algorithm.apply_on_batch(x)
 		return x
 
 	def _prepare_x(self, sequences: np.ndarray) -> np.ndarray:
@@ -80,3 +80,19 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 		for i in range(classes.shape[0]):
 			encoding[i, classes[i]] = 1
 		return encoding
+
+	def _batch_df(self, df: pd.DataFrame) -> typing.List[pd.DataFrame]:
+		instruments = DataPrepUtils.get_instruments(df)
+		Logger.info(f"Found {len(instruments)} instruments: {instruments}")
+		if len(instruments) == 1:
+			return super()._batch_df(df)
+
+		Logger.info(f"Using instrument batching...")
+		dfs = [
+			df[(df["base_currency"] == base_currency) & (df["quote_currency"] == quote_currency)]
+			for base_currency, quote_currency in instruments
+		]
+
+		Logger.info("Instrument Sizes: \n {}".format("\n".join([f"{base_currency}-{quote_currency}: {i_df.shape[0]}" for (base_currency, quote_currency), i_df in zip(instruments, dfs)])))
+
+		return dfs

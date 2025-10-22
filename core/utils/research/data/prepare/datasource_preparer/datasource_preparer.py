@@ -16,14 +16,16 @@ class DatasourcePreparer:
 	):
 		self.__export_path = export_path
 
-	def __load_df(self, path):
+	@staticmethod
+	def _load_df(path):
 		df = pd.read_csv(path)
 		df["time"] = pd.to_datetime(df["time"])
 		df = df.drop_duplicates(subset="time")
 		df = df.sort_values(by="time")
 		return df
 
-	def __correct_time(self, df):
+	@staticmethod
+	def _correct_time(df):
 		final_time = df["time"].max()
 		time_col = list(reversed([final_time - timedelta(minutes=i) for i in range(df.shape[0])]))
 		df["time"] = time_col
@@ -35,10 +37,16 @@ class DatasourcePreparer:
 
 		return self.__export_path
 
-	def __export_df(self, df, import_path):
+	def _export_df(self, df, import_path):
 		path = self.__generate_export_path(import_path)
 		Logger.info(f"[+]Exporting {path} ...")
 		df.to_csv(path, index=False)
+
+	@staticmethod
+	def _filter_time(df: pd.DataFrame, time_range: typing.Tuple[datetime, datetime]) -> pd.DataFrame:
+		if isinstance(time_range[0], datetime):
+			time_range = tuple([pd.to_datetime(dt) for dt in time_range])
+		return df[(df["time"] >= time_range[0]) & (df["time"] <= time_range[1])]
 
 	def prepare(
 			self,
@@ -46,7 +54,7 @@ class DatasourcePreparer:
 			time_range: typing.Tuple[datetime, datetime]
 	):
 
-		df = self.__load_df(path)
-		df = df[(df["time"] >= time_range[0]) & (df["time"] <= time_range[1])]
-		df = self.__correct_time(df)
-		self.__export_df(df, path)
+		df = self._load_df(path)
+		df = self._filter_time(df, time_range)
+		df = self._correct_time(df)
+		self._export_df(df, path)

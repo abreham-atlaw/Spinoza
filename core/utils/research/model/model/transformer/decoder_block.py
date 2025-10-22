@@ -7,6 +7,7 @@ from core.utils.research.model.layers import AddAndNorm
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 from core.utils.research.model.model.transformer.teb import TransformerEmbeddingBlock
+from lib.utils.cache import Cache
 
 
 class DecoderBlock(SpinozaModule):
@@ -33,6 +34,7 @@ class DecoderBlock(SpinozaModule):
 		self.norm_1 = AddAndNorm(norm_layer=norm_1) if norm_1 is not None else nn.Identity()
 		self.norm_2 = AddAndNorm(norm_layer=norm_2) if norm_2 is not None else nn.Identity()
 		self.ff_block = ff_block if ff_block is not None else nn.Identity()
+		self.cache = Cache()
 
 	def self_attention(self, x: torch.Tensor) -> torch.Tensor:
 		if self.self_attention_layer is None:

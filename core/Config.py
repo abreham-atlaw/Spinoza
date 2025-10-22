@@ -56,7 +56,7 @@ PCLOUD_TOKENS = [
 	# "aCT8vkZxDks7ZYpOYIhqlahkcknASzvkHKLR8Ai3y",  # abrehamatlaw@outlook.com -
 	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
-	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
+	"LrbFxZnvzs7ZBsXhKl0AR3plxs3YDDjYMy7x35pV",  # abreham_atlaw@outlook.com +
 	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
 	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
@@ -172,6 +172,8 @@ AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 32
+AGENT_USE_LASS = False
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -315,9 +317,25 @@ class RunnerStatsBranches:
 	it_48_6 = "it_48_6"
 
 	it_49_6 = "it_49_6"
+	it_50_6 = "it_50_6"
 
 	it_51_6 = "it_51_6"
 	it_52_6 = "it_52_6"
+
+	it_53_6 = "it_53_6"
+
+	it_54_6 = "it-54_6"
+
+	it_56_6 = "it_56_6"
+	it_56_7 = "it_56_7"
+	it_57_6 = "it_57_6"
+	it_57_8 = "it_57_8"
+
+	it_58_6 = "it_58_6"
+
+	it_60_6 = "it_60_6"
+	it_60_7 = "it_60_7"
+	it_61_6 = "it_61_6"
 
 	all = [
 		main,
@@ -359,8 +377,19 @@ class RunnerStatsBranches:
 		it_47_6,
 		it_48_6,
 		it_49_6,
+		it_50_6,
 		it_51_6,
-		it_52_6
+		it_52_6,
+		it_53_6,
+		it_54_6,
+		it_56_6,
+		it_56_7,
+		it_57_6,
+		it_57_8,
+		it_58_6,
+		it_60_6,
+		it_60_7,
+		it_61_6
 	]
 
 	default = it_42_2
@@ -409,6 +438,10 @@ class RunnerStatsLossesBranches:
 	it_47_0 = "it_47_0"
 	it_49_0 = "it_49_0"
 	it_51_0 = "it_51_0"
+	it_54_0 = "it_54_0"
+	it_56_0 = "it_56_0"
+	it_58_0 = "it_58_0"
+	it_60_0 = "it_60_0"
 
 	all = [
 		main,
@@ -450,7 +483,11 @@ class RunnerStatsLossesBranches:
 		it_45_0,
 		it_47_0,
 		it_49_0,
-		it_51_0
+		it_51_0,
+		it_54_0,
+		it_56_0,
+		it_58_0,
+		it_60_0
 	]
 
 	default = it_42

@@ -312,6 +312,7 @@ class RunnerStatsPopulater:
 		print(f"[+]Cleaning Junk...")
 		for path in self.__junk:
 			os.system(f"rm {os.path.abspath(path)}")
+		self.__junk = set([])
 
 	@staticmethod
 	def __generate_id(file_path: str, temperature: float) -> str:
@@ -386,6 +387,15 @@ class RunnerStatsPopulater:
 
 		return self.__blacklist_repo.is_blacklisted(stat_id) or (stat is not None and 0.0 not in stat.model_losses)
 
+	def __is_all_complete(self,) -> bool:
+		files = self.__in_filestorage.listdir(self.__in_path)
+		for file in files:
+			for temperature in self.__temperatures:
+				if not self.__is_processed(file, temperature):
+					return False
+
+		return True
+
 	def start(self, replace_existing: bool = False):
 		files = self.__in_filestorage.listdir(self.__in_path)
 		if self.__shuffle_order:
@@ -409,3 +419,7 @@ class RunnerStatsPopulater:
 			print(f"{(i+1)*100/len(files) :.2f}", end="\r")
 
 		self.__clean_junk()
+
+		if not self.__is_all_complete():
+			Logger.info(f"Found incomplete files. Restarting...")
+			self.start(replace_existing)

@@ -26,6 +26,7 @@ class TimeSeriesDataPreparer(ABC):
 			trim_extra_gran: bool = False,
 			process_batch_size: int = None,
 			trim_incomplete_batch: bool = False,
+			clean_df: bool = True,
 
 			X_dir: str = "X",
 			y_dir: str = "y",
@@ -35,7 +36,10 @@ class TimeSeriesDataPreparer(ABC):
 
 			transformations: typing.List[Transformation] = None
 	):
-		self.__df = DataPrepUtils.clean_df(df)
+		if clean_df:
+			df = DataPrepUtils.clean_df(df)
+
+		self.__df = df
 		self.__block_size = block_size
 		self.__granularity = granularity
 		self.__batch_size = batch_size
@@ -78,7 +82,7 @@ class TimeSeriesDataPreparer(ABC):
 	def _prepare_sequence(self, sequence: np.ndarray) -> np.ndarray:
 		return sequence
 
-	def __apply_transformations(self, x: np.ndarray) -> np.ndarray:
+	def _apply_transformations(self, x: np.ndarray) -> np.ndarray:
 		y = np.concatenate([x] + [
 			transformation(x)
 			for transformation in self.__transformations
@@ -91,7 +95,7 @@ class TimeSeriesDataPreparer(ABC):
 	def __process_sequence(self, sequence: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
 		stacked_sequence = DataPrepUtils.stack(sequence, self.__block_size)
 
-		stacked_sequence = self.__apply_transformations(stacked_sequence)
+		stacked_sequence = self._apply_transformations(stacked_sequence)
 
 		stacked_sequence = self._prepare_sequence_stack(stacked_sequence)
 
@@ -197,7 +201,7 @@ class TimeSeriesDataPreparer(ABC):
 				continue
 			self.__batch_and_save(X, y, purpose_dir)
 
-	def __batch_df(self, df: pd.DataFrame) -> typing.List[pd.DataFrame]:
+	def _batch_df(self, df: pd.DataFrame) -> typing.List[pd.DataFrame]:
 		if self.__process_batch_size is None:
 			return [df]
 		return [
@@ -208,7 +212,7 @@ class TimeSeriesDataPreparer(ABC):
 	def start(self, start_date: datetime = None, end_date: datetime = None):
 		df = self.__filter_df(start_date, end_date)
 
-		dfs = self.__batch_df(df)
+		dfs = self._batch_df(df)
 		for i, df in enumerate(dfs):
 			self.__process_df_batch(df)
 			Logger.info(f"Processed {i}/{len(dfs)} batches ...")
