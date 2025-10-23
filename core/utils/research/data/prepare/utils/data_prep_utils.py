@@ -38,7 +38,7 @@ class DataPrepUtils:
 			Logger.info(f"Found {len(instruments)} instruments: {instruments}")
 			cleaned_dfs = []
 			for base_currency, quote_currency in instruments:
-				df_instrument = df[(df["base_currency"] == base_currency) & (df["quote_currency"] == quote_currency)]
+				df_instrument = df[(df["base_currency"] == base_currency) & (df["quote_currency"] == quote_currency)].copy()
 				cleaned_dfs.append(DataPrepUtils.clean_df(df_instrument))
 			return pd.concat(cleaned_dfs)
 
