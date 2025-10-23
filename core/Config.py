@@ -252,7 +252,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-57/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-63/"
 
 
 class ResourceCategories:
@@ -388,7 +388,7 @@ class RunnerStatsBranches:
 		it_63_6
 	]
 
-	default = it_57_6
+	default = it_63_6
 
 
 class RunnerStatsLossesBranches:
