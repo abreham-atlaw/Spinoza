@@ -15,7 +15,7 @@ class ProximalMaskedLoss(SpinozaLoss):
 			*args,
 			p: int = 1,
 			e: float = 1,
-			r: float = 1,
+			lr: float = 1,
 			weights: typing.Optional[typing.Union[torch.Tensor, typing.List[float], np.ndarray]] = None,
 			softmax=True,
 			epsilon=1e-9,
@@ -26,7 +26,7 @@ class ProximalMaskedLoss(SpinozaLoss):
 		self.n = n
 		self.p = p
 		self.e = e
-		self.r = r
+		self.lr = lr
 		self.activation = nn.Softmax(dim=1) if softmax else nn.Identity()
 		self.mask = self._generate_mask().to(device)
 		self.epsilon = epsilon
@@ -65,7 +65,7 @@ class ProximalMaskedLoss(SpinozaLoss):
 			dim=1
 		)
 
-		loss = self._loss(y_mask, y_hat)**(1/self.r)
+		loss = self._loss(y_mask, y_hat)**(1/self.lr)
 		w = torch.sum(self.w * y, dim=1)
 		loss = loss*w
 
