@@ -7,6 +7,7 @@ import random
 from collections import OrderedDict
 import os
 
+from core.utils.research.data.prepare.swg.abstract_swg import AbstractSampleWeightGenerator
 from lib.utils.logger import Logger
 
 
@@ -35,7 +36,8 @@ class BaseDataset(Dataset):
 			check_last_file: bool = False,
 			check_file_sizes: bool = False,
 			load_weights: bool = False,
-			return_weights: bool = True
+			return_weights: bool = True,
+			swg: AbstractSampleWeightGenerator = None
 	):
 		self.__device = device
 		self.__dtype = out_dtypes
@@ -43,6 +45,7 @@ class BaseDataset(Dataset):
 		self.__X_dir = X_dir
 		self.__y_dir = y_dir
 		self.__w_dir = w_dir
+		self.__swg = swg
 		self.random_state = None
 
 		self.__files, self.__root_dir_map = self.__get_files(size=num_files)
@@ -65,6 +68,10 @@ class BaseDataset(Dataset):
 		if self.random_state is None:
 			return None
 		return np.random.default_rng(self.random_state)
+
+	@property
+	def __use_swg(self) -> bool:
+		return self.__swg is not None
 
 	def set_device(self, device: torch.device):
 		self.__device = device
@@ -147,6 +154,9 @@ class BaseDataset(Dataset):
 
 		return self.__load_array(os.path.join(root_dir, self.__w_dir, filename))
 
+	def __generate_weight(self, X: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+		return torch.from_numpy(self.__swg(X.numpy(), y.numpy()))
+
 	def __load_files(self, idx: int) -> torch.Tensor:
 		if idx in self.cache:
 			return self.cache[idx]
@@ -159,7 +169,10 @@ class BaseDataset(Dataset):
 
 		X = self.__load_array(os.path.join(root_dir, self.__X_dir, file_name))
 		y = self.__load_array(os.path.join(root_dir, self.__y_dir, file_name))
-		w = self.__load_w(root_dir, file_name)
+		if self.__use_swg:
+			w = self.__generate_weight(X, y)
+		else:
+			w = self.__load_w(root_dir, file_name)
 
 		self.cache[idx] = (X, y, w)
 

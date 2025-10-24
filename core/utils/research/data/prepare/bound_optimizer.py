@@ -25,7 +25,8 @@ class BoundGenerator:
 			granularity=5,
 			tmp_path="/tmp",
 			smoothing_algorithm=None,
-			prep_block_size: int = 10
+			prep_block_size: int = 10,
+			dataprep_class: typing.Type = SimulationSimulator
 	):
 		self.__start = start
 		self.__end = end
@@ -38,6 +39,7 @@ class BoundGenerator:
 			smoothing_algorithm = MovingAverage(average_window)
 		self.__smoothing_algorithm = smoothing_algorithm
 		self.__granularity = granularity
+		self.__dataprep_class = dataprep_class
 
 	def __prepare_tmp_path(self):
 		path = os.path.join(self.__tmp_path, f"{uuid.uuid4()}.bo")
@@ -63,7 +65,7 @@ class BoundGenerator:
 	def get_frequencies(self, bounds):
 		path = self.__prepare_tmp_path()
 
-		data_preparer = SimulationSimulator(
+		data_preparer = self.__dataprep_class(
 			df=self.__df,
 			bounds=bounds,
 			seq_len=self.__prep_block_size,
