@@ -104,7 +104,7 @@ OANDA_TRADING_URL = "https://api-fxpractice.oanda.com/v3"
 OANDA_TRADING_ACCOUNT_ID = "101-001-19229086-002"
 OANDA_TEST_ACCOUNT_ID = "101-001-19229086-002"
 
-OANDA_SIM_DELTA_MULTIPLIER = 10
+OANDA_SIM_DELTA_MULTIPLIER = 1
 OANDA_SIM_MARGIN_RATE = 0.01
 OANDA_SIM_BALANCE = 100
 OANDA_SIM_ALIAS = "Sim Account 0"
@@ -256,7 +256,6 @@ MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-57/"
 
 CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
-OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
 TIMEZONE = timezone("UTC")
 MARKET_STATE_GRANULARITY = "M30"
 UPDATE_AGENT = True
@@ -414,7 +413,7 @@ class RunnerStatsBranches:
 		it_63_6
 	]
 
-	default = it_57_8
+	default = it_57_9
 
 
 class RunnerStatsLossesBranches:
