@@ -41,7 +41,7 @@ class Trainer:
             clip_value: typing.Optional[float] = None,
             log_gradient_stats: bool = False,
             trackers: typing.List[TorchTracker] = None,
-            dtype: torch.dtype = torch.float32,
+            dtype: torch.dtype = torch.float64,
             skip_nan: bool = True
     ):
         self.device = self.get_device()
@@ -51,6 +51,7 @@ class Trainer:
             model = torch.nn.DataParallel(model)
         if callbacks is None:
             callbacks = []
+        self.__dtype = dtype
         self.model = self.__initialize_model(model)
         self.cls_loss_function = cls_loss_function
         self.reg_loss_function = reg_loss_function
@@ -60,7 +61,6 @@ class Trainer:
         self.__max_norm = max_norm
         self.__clip_value = clip_value
         self.__log_gradient_stats = log_gradient_stats
-        self.__dtype = dtype
         self.__skip_nan = skip_nan
         self.__trackers = trackers if trackers is not None \
             else (ResearchProvider.provide_default_trackers(model_name=ModelHandler.generate_signature(model)))
@@ -112,11 +112,12 @@ class Trainer:
         )
 
     def __initialize_model(self, model: nn.Module) -> nn.Module:
-        init_data = torch.rand((1,) + model.input_size[1:])
+        model = model.to(self.__dtype)
+        init_data = torch.rand((1,) + model.input_size[1:]).to(self.__dtype)
         model = model.to(torch.device("cpu"))
         model.eval()
         model(init_data)
-        return model.to(self.device).float()
+        return model.to(self.device).to(self.__dtype)
 
     @staticmethod
     def __split_y(y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
@@ -203,7 +204,7 @@ class Trainer:
             for callback in self.callbacks:
                 callback.on_epoch_start(self.model, epoch)
             self.model.train()
-            self.model = self.model.to(self.device).float()
+            self.model = self.model.to(self.device).to(self.__dtype)
             running_loss, running_size = torch.zeros((3,)), 0
             pbar = tqdm(dataloader) if progress else dataloader
             for i, data in enumerate(pbar):

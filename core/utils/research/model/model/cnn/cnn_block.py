@@ -47,12 +47,12 @@ class CNNBlock(SpinozaModule):
 		stride = self.__prepare_arg_stride(stride, kernel_sizes)
 		hidden_activation = self.__prepare_arg_hidden_activation(hidden_activation, kernel_sizes)
 		self.norm_layers = self.__prepare_arg_norm(norm, kernel_sizes)
+		self.paddings = self.__prepare_arg_padding(padding, kernel_sizes)
 
 		self.layers = nn.ModuleList(self._build_conv_layers(
 			channels=conv_channels,
 			kernel_sizes=kernel_sizes,
 			stride=stride,
-			padding=padding
 		))
 		self.pool_layers = nn.ModuleList()
 
@@ -143,12 +143,30 @@ class CNNBlock(SpinozaModule):
 			raise ValueError("Dropout size doesn't match layers size")
 		return dropout_rate
 
+	@staticmethod
+	def __prepare_arg_padding(
+			padding: typing.Union[str, int, nn.Module, typing.List[nn.Module]],
+			kernel_sizes: typing.List[int]
+	):
+		if padding is None:
+			padding = nn.Identity()
+		if isinstance(padding, str):
+			if padding.lower() == 'same':
+				padding = [nn.ZeroPad1d(ks//2) for ks in kernel_sizes]
+		if isinstance(padding, int):
+			padding = nn.ZeroPad1d(padding) if padding > 0 else nn.Identity()
+		if isinstance(padding, nn.Module):
+			padding = [padding for _ in kernel_sizes]
+
+		assert isinstance(padding, list)
+
+		return padding
+
 	def _build_conv_layers(
 			self,
 			channels: typing.List[int],
 			kernel_sizes: typing.List[int],
 			stride: typing.List[int],
-			padding: int
 	) -> typing.List[nn.Module]:
 		return [
 			nn.Conv1d(
@@ -156,7 +174,6 @@ class CNNBlock(SpinozaModule):
 				out_channels=channels[i + 1],
 				kernel_size=kernel_sizes[i],
 				stride=stride[i],
-				padding=padding,
 			)
 			for i in range(len(channels) - 1)
 		]
@@ -164,12 +181,13 @@ class CNNBlock(SpinozaModule):
 	def call(self, x: torch.Tensor) -> torch.Tensor:
 		out = x
 		for (
-				layer, pool_layer, norm, dropout, hidden_activation
+				layer, pool_layer, norm, dropout, hidden_activation, padding
 		) in zip(
-			self.layers, self.pool_layers, self.norm_layers, self.dropouts, self.hidden_activations
+			self.layers, self.pool_layers, self.norm_layers, self.dropouts, self.hidden_activations, self.paddings
 		):
 			out = norm(out)
 			out = layer(out)
+			out = padding(out)
 			out = hidden_activation(out)
 			out = pool_layer(out)
 			out = dropout(out)

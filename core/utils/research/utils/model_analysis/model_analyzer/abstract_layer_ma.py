@@ -122,7 +122,7 @@ class AbstractLayerModelAnalyzer(ModelAnalyzer, ABC):
 		for name, layer in self.__layers.items():
 			try:
 				self._analyze_layer(model, name, layer, X, y, w)
-			except (ValueError, RuntimeError) as ex:
+			except (ValueError, RuntimeError, TypeError) as ex:
 				Logger.error(f"Failed to analyze \"{name}\": {ex}")
 
 		if self.__plot:

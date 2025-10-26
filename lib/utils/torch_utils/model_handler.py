@@ -191,7 +191,7 @@ class ModelHandler:
 		os.rmdir(cwd)
 
 	@staticmethod
-	def load(path, dtype=torch.float32, load_state=True):
+	def load(path, dtype=None, load_state=True):
 		dirname = f"{os.path.basename(path).replace('.', '_')} - {uuid4()}"
 
 		try:
@@ -227,7 +227,9 @@ class ModelHandler:
 
 		shutil.rmtree(dirname, ignore_errors=True)
 
-		return model.type(dtype)
+		if dtype is not None:
+			model = model.to(dtype)
+		return model
 
 	@staticmethod
 	def generate_signature(model: SpinozaModule) -> str:

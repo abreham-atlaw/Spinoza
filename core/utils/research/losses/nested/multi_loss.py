@@ -46,6 +46,9 @@ class MultiLoss(SpinozaLoss):
 			dim=1
 		)
 
+	def __str__(self):
+		return "{}[{}]".format(super().__str__(), ', '.join([str(loss) for loss in self.losses]))
+
 
 class MSCECrossEntropyLoss(MultiLoss):
 

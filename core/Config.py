@@ -56,7 +56,7 @@ PCLOUD_TOKENS = [
 	# "aCT8vkZxDks7ZYpOYIhqlahkcknASzvkHKLR8Ai3y",  # abrehamatlaw@outlook.com -
 	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
-	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
+	"LrbFxZnvzs7ZBsXhKl0AR3plxs3YDDjYMy7x35pV",  # abreham_atlaw@outlook.com +
 	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
 	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
@@ -121,7 +121,7 @@ UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 1024
 MARKET_STATE_SMOOTHING = True
-MARKET_STATE_GRANULARITY = "M30"
+MARKET_STATE_GRANULARITY = "M5"
 MARKET_STATE_USE_ANCHOR = False
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
@@ -172,6 +172,8 @@ AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 32
+AGENT_USE_LASS = False
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -192,7 +194,7 @@ AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
-with open(os.path.join(BASE_DIR, "res/weights/02.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
 TPU_OS_KEY = "COLAB_TPU_ADDR"
@@ -312,6 +314,34 @@ class RunnerStatsBranches:
 	it_45_6 = "it_45_6"
 	it_46_6 = "it_46_6"
 
+	it_47_6 = "it_47_6"
+
+	it_48_6 = "it_48_6"
+
+	it_49_6 = "it_49_6"
+	it_50_6 = "it_50_6"
+
+	it_51_6 = "it_51_6"
+	it_52_6 = "it_52_6"
+
+	it_53_6 = "it_53_6"
+
+	it_54_6 = "it-54_6"
+
+	it_56_6 = "it_56_6"
+	it_56_7 = "it_56_7"
+	it_57_6 = "it_57_6"
+	it_57_8 = "it_57_8"
+	it_57_9 = "it_57_9"
+
+	it_58_6 = "it_58_6"
+
+	it_60_6 = "it_60_6"
+	it_60_7 = "it_60_7"
+	it_61_6 = "it_61_6"
+
+	it_63_6 = "it_63_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -340,13 +370,33 @@ class RunnerStatsBranches:
 		it_39_2,
 		it_40_2,
 		it_41_2,
+		it_41_6,
 		it_42_2,
 		it_42_4,
 		it_42_5,
+		it_42_6,
 		it_43_2,
 		it_44_2,
 		it_45_6,
-		it_46_6
+		it_46_6,
+		it_47_6,
+		it_48_6,
+		it_49_6,
+		it_50_6,
+		it_51_6,
+		it_52_6,
+		it_53_6,
+		it_54_6,
+		it_56_6,
+		it_56_7,
+		it_57_6,
+		it_57_8,
+		it_57_9,
+		it_58_6,
+		it_60_6,
+		it_60_7,
+		it_61_6,
+		it_63_6
 	]
 
 	default = it_42_2
@@ -392,6 +442,13 @@ class RunnerStatsLossesBranches:
 	it_43_1 = "it_43_1"
 	it_44_1 = "it_44_1"
 	it_45_0 = "it_45_0"
+	it_47_0 = "it_47_0"
+	it_49_0 = "it_49_0"
+	it_51_0 = "it_51_0",
+	it_54_0 = "it_54_0"
+	it_56_0 = "it_56_0"
+	it_58_0 = "it_58_0"
+	it_60_0 = "it_60_0"
 
 	all = [
 		main,
@@ -430,7 +487,14 @@ class RunnerStatsLossesBranches:
 		it_42,
 		it_43_1,
 		it_44_1,
-		it_45_0
+		it_45_0,
+		it_47_0,
+		it_49_0,
+		it_51_0,
+		it_54_0,
+		it_56_0,
+		it_58_0,
+		it_60_0
 	]
 
 	default = it_41_1

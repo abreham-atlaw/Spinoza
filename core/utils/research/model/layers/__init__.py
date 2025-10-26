@@ -22,4 +22,5 @@ from .reverse_softmax import ReverseSoftmax
 from .add import Add
 from .add_and_norm import AddAndNorm
 from .pe import PositionalEncoding
-
+from .identity import Identity
+from .pad_overlay_combiner import PadOverlayCombiner

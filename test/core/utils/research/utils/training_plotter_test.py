@@ -10,7 +10,7 @@ class TrainingPlotterTest(unittest.TestCase):
 
 	def test_plot(self):
 		self.plotter.plot(
-			"abrehamalemu-rtrader-training-exp-0-cnn-71-cum-0-it-27-sw12-tot"
+			"abrehamalemu-spinoza-lass-training-cnn-18-it-5-tot"
 		)
 
 	def test_plot_multiple(self):

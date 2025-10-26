@@ -1,0 +1,5 @@
+cattrs
+positional-encodings
+dropbox
+pymongo==4.3.3
+dependency-injector

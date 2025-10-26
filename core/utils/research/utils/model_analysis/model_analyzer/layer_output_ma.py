@@ -13,7 +13,7 @@ class LayerOutputModelAnalyzer(AbstractLayerModelAnalyzer):
 	def __init__(
 			self,
 			*args,
-			plot_samples: int = 1,
+			plot_samples: int = 2,
 			plot_samples_random_state: int = 42,
 			**kwargs
 	):

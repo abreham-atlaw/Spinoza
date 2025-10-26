@@ -9,12 +9,8 @@ def share_notebooks():
 
 	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/abrehamalemu/spinoza-training-cnn-{i}-it-42-tot/'
-		# for i in [23, 27]
-		# for j in [8]
-		# for i in range(40)
-		# for i in [39, 40, 41, 42, 43, 44]
-		for i in [2, 3, 4]
+		f'https://www.kaggle.com/code/abrehamalemu/spinoza-lass-training-cnn-{i}-it-5-tot/'
+		for i in [29, 30]
 	]
 	random.shuffle(notebook_urls)
 	threads = len(notebook_urls)

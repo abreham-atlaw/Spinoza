@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from core.utils.research.data.prepare import DataPreparer, SimulationSimulator
+from core.utils.research.data.prepare import DataPreparer, SimulationSimulator, SimulationSimulator2
 from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
 from lib.utils.decorators import retry
 from lib.utils.logger import Logger
@@ -24,18 +24,22 @@ class BoundGenerator:
 			average_window=10,
 			granularity=5,
 			tmp_path="/tmp",
-			smoothing_algorithm=None
+			smoothing_algorithm=None,
+			prep_block_size: int = 10,
+			dataprep_class: typing.Type = SimulationSimulator
 	):
 		self.__start = start
 		self.__end = end
 		self.__threshold = threshold
 		self.__df = pd.read_csv(csv_path)
 		self.__tmp_path = tmp_path
+		self.__prep_block_size = prep_block_size
 
 		if smoothing_algorithm is None:
 			smoothing_algorithm = MovingAverage(average_window)
 		self.__smoothing_algorithm = smoothing_algorithm
 		self.__granularity = granularity
+		self.__dataprep_class = dataprep_class
 
 	def __prepare_tmp_path(self):
 		path = os.path.join(self.__tmp_path, f"{uuid.uuid4()}.bo")
@@ -61,10 +65,10 @@ class BoundGenerator:
 	def get_frequencies(self, bounds):
 		path = self.__prepare_tmp_path()
 
-		data_preparer = SimulationSimulator(
+		data_preparer = self.__dataprep_class(
 			df=self.__df,
 			bounds=bounds,
-			seq_len=10,
+			seq_len=self.__prep_block_size,
 			extra_len=1,
 			batch_size=int(1e9),
 			output_path=path,
@@ -76,8 +80,8 @@ class BoundGenerator:
 		data_preparer.start()
 
 		y = np.concatenate([
-			np.load(os.path.join(path, "y", f))
-			for f in sorted(os.listdir(os.path.join(path, "y")))
+			np.load(os.path.join(path, "train/y", f))
+			for f in sorted(os.listdir(os.path.join(path, "train/y")))
 		])[:, :-1]
 
 		y_classes = np.argmax(y, axis=1)

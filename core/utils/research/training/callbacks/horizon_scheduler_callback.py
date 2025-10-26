@@ -1,7 +1,7 @@
 from lib.utils.logger import Logger
 from .callback import Callback
 from ...data.prepare.smoothing_algorithm.lass.model.model import LassHorizonModel
-from ...model.model.utils import HorizonModel
+from ...model.model.utils import HorizonModel, AbstractHorizonModel
 
 
 class HorizonSchedulerCallback(Callback):
@@ -16,11 +16,10 @@ class HorizonSchedulerCallback(Callback):
 		Logger.info(f"HorizonSchedulerCallback: Using step {self.__step}@{self.__epoch_step} epochs")
 
 	def on_epoch_end(self, model: HorizonModel, epoch: int, losses, logs=None):
-		if not isinstance(model, (HorizonModel, LassHorizonModel)):
+		if not isinstance(model, (HorizonModel, LassHorizonModel, AbstractHorizonModel)):
 			Logger.warning(f"HorizonSchedulerCallback can only be used with HorizonModel. Got {type(model)}")
 			return
-		if epoch % self.__epoch_step != 0:
-			return
+		epoch = (epoch // self.__epoch_step) * self.__epoch_step
 		h = min(self.__end, self.__start + self.__step * epoch)
-		Logger.info(f"HorizonSchedulerCallback: Setting horizon to {h}")
+		Logger.info(f"HorizonSchedulerCallback: Setting horizon from {model.h} to {h}")
 		model.set_h(h)

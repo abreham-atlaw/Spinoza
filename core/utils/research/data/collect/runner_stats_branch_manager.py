@@ -95,13 +95,15 @@ class RunnerStatsBranchManager:
 					new_stat.real_profits,
 					new_stat.duration,
 					new_stat.branch,
-					new_stat.simulated_timestamps
+					new_stat.simulated_timestamps,
+					new_stat.session_model_losses
 				) = (
 					[],
 					[],
 					[],
 					0,
 					target_branch,
+					[],
 					[]
 				)
 				self.__get_repository(target_branch).store(new_stat)

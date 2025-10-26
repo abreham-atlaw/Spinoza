@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 import torch
+from matplotlib import pyplot as plt
 
 from core import Config
 from core.utils.research.eval.mlpl_evaluator.losses.unbatched_pml_loss import UnbatchedProximalMaskedLoss
@@ -9,6 +10,9 @@ from core.utils.research.losses import ProximalMaskedLoss
 
 
 class ProximalMaskedLossTest(unittest.TestCase):
+
+	def setUp(self):
+		self.loss = ProximalMaskedLoss(n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1, softmax=True)
 
 	def test_functionality(self):
 		classes = (np.arange(5) + 10).astype(np.float32)
@@ -136,3 +140,15 @@ class ProximalMaskedLossTest(unittest.TestCase):
 		loss = loss_fn(predictions, y, w)
 
 		print(loss)
+
+	def test_plot_mask(self):
+
+		SAMPLES = 5
+		idxs = torch.randint(self.loss.mask.shape[0], (SAMPLES,))
+		idxs = np.array([34, 45, 21, 8, 54])
+		for i in idxs:
+			plt.figure()
+			plt.grid(True)
+			plt.plot(self.loss.mask[i].numpy())
+			plt.title(f"i={i}")
+		plt.show()

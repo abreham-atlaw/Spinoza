@@ -13,14 +13,12 @@ class ResNetBlock(CNNBlock):
 			channels: typing.List[int],
 			kernel_sizes: typing.List[int],
 			stride: typing.List[int],
-			padding: int
 	) -> typing.List[nn.Module]:
 		return [
 			ResidualBlock(
 				in_channels=channels[i],
 				out_channels=channels[i + 1],
 				kernel_size=kernel_sizes[i],
-				padding=padding,
 				init_fn=None,
 				norm=False
 			)

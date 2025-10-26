@@ -16,14 +16,16 @@ class EmbeddingBlock(SpinozaModule):
 			positional_encoding: bool = False,
 			norm_positional_encoding: bool = False,
 			input_norm: nn.Module = None,
-			input_dropout: typing.Union[float, nn.Module] = 0
+			input_dropout: typing.Union[float, nn.Module] = 0,
+			padding: nn.Module = None
 	):
 		self.args = {
 			"indicators": indicators,
 			"positional_encoding": positional_encoding,
 			"norm_positional_encoding": norm_positional_encoding,
 			"input_norm": input_norm,
-			"input_dropout": input_dropout
+			"input_dropout": input_dropout,
+			"padding": padding
 		}
 		super().__init__(auto_build=False)
 		self.indicators = indicators if indicators is not None else Indicators()
@@ -35,8 +37,10 @@ class EmbeddingBlock(SpinozaModule):
 		self.input_norm = input_norm if input_norm is not None else nn.Identity()
 
 		self.input_dropout = self.__prepare_dropout_args(input_dropout)
+		self.padding = padding if padding is not None else nn.Identity()
 
-	def __prepare_dropout_args(self, input_dropout: typing.Union[float, nn.Module]):
+	@staticmethod
+	def __prepare_dropout_args(input_dropout: typing.Union[float, nn.Module]):
 		if isinstance(input_dropout, nn.Module):
 			return input_dropout
 		return nn.Dropout(input_dropout) if input_dropout > 0 else nn.Identity()
@@ -52,6 +56,7 @@ class EmbeddingBlock(SpinozaModule):
 		out = self.input_norm(out)
 		out = self.indicators(out)
 		out = self.pos(out)
+		out = self.padding(out)
 		return out
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:

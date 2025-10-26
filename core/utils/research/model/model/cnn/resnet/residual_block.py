@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class ResidualBlock(nn.Module):
-	def __init__(self, in_channels, out_channels, kernel_size, padding, init_fn=None, norm=False, hidden_activation=None):
+	def __init__(self, in_channels, out_channels, kernel_size, padding=0, init_fn=None, norm=False, hidden_activation=None):
 		super(ResidualBlock, self).__init__()
 		self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size, padding=padding)
 		self.norm1 = nn.BatchNorm1d(out_channels) if norm else nn.Identity()

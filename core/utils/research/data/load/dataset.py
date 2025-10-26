@@ -5,24 +5,22 @@ from torch.utils.data import Dataset
 
 import random
 from collections import OrderedDict
-import threading
 import os
 
-from lib.utils.decorators.thread_decorator import thread_method
+from core.utils.research.data.prepare.swg.abstract_swg import AbstractSampleWeightGenerator
 from lib.utils.logger import Logger
 
 
 class BaseDataset(Dataset):
 
 	__NUMPY_TORCH_TYPE_MAP = {
-		np.dtype('int8'): torch.int8,
-		np.dtype('int32'): torch.int32,
-		np.dtype('int64'): torch.int64,
-		np.dtype('uint8'): torch.uint8,
-		np.dtype('float16'): torch.float16,
-		np.dtype('float32'): torch.float32,
+		np.int8: torch.int8,
+		np.int32: torch.int32,
+		np.int64: torch.int64,
+		np.uint8: torch.uint8,
+		np.float16: torch.float16,
 		np.float32: torch.float32,
-		np.dtype('float64'): torch.float64,
+		np.float64: torch.float64,
 	}
 
 	def __init__(
@@ -32,13 +30,14 @@ class BaseDataset(Dataset):
 			X_dir: str = "X",
 			y_dir: str = "y",
 			w_dir: str = "w",
-			out_dtypes: typing.Type = np.float32,
+			out_dtypes: typing.Type = np.float64,
 			num_files: typing.Optional[int] = None,
 			device=torch.device("cpu"),
 			check_last_file: bool = False,
 			check_file_sizes: bool = False,
 			load_weights: bool = False,
-			return_weights: bool = True
+			return_weights: bool = True,
+			swg: AbstractSampleWeightGenerator = None
 	):
 		self.__device = device
 		self.__dtype = out_dtypes
@@ -46,6 +45,7 @@ class BaseDataset(Dataset):
 		self.__X_dir = X_dir
 		self.__y_dir = y_dir
 		self.__w_dir = w_dir
+		self.__swg = swg
 		self.random_state = None
 
 		self.__files, self.__root_dir_map = self.__get_files(size=num_files)
@@ -68,6 +68,10 @@ class BaseDataset(Dataset):
 		if self.random_state is None:
 			return None
 		return np.random.default_rng(self.random_state)
+
+	@property
+	def __use_swg(self) -> bool:
+		return self.__swg is not None
 
 	def set_device(self, device: torch.device):
 		self.__device = device
@@ -140,8 +144,6 @@ class BaseDataset(Dataset):
 		# torch.from_numpy(dp[data_idx]).type(self.__NUMPY_TORCH_TYPE_MAP[dp.dtype])
 		return torch.from_numpy(
 			out[indexes]
-		).type(
-			self.__NUMPY_TORCH_TYPE_MAP[out.dtype]
 		).to(self.__device).type(
 			self.__NUMPY_TORCH_TYPE_MAP[self.__dtype]
 		)
@@ -151,6 +153,9 @@ class BaseDataset(Dataset):
 			return torch.Tensor([torch.nan for _ in range(self.data_points_per_file)])
 
 		return self.__load_array(os.path.join(root_dir, self.__w_dir, filename))
+
+	def __generate_weight(self, X: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+		return torch.from_numpy(self.__swg(X.numpy(), y.numpy()))
 
 	def __load_files(self, idx: int) -> torch.Tensor:
 		if idx in self.cache:
@@ -164,7 +169,10 @@ class BaseDataset(Dataset):
 
 		X = self.__load_array(os.path.join(root_dir, self.__X_dir, file_name))
 		y = self.__load_array(os.path.join(root_dir, self.__y_dir, file_name))
-		w = self.__load_w(root_dir, file_name)
+		if self.__use_swg:
+			w = self.__generate_weight(X, y)
+		else:
+			w = self.__load_w(root_dir, file_name)
 
 		self.cache[idx] = (X, y, w)
 

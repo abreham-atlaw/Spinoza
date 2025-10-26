@@ -1,10 +1,17 @@
+import typing
+
 import torch
 from torch import nn
 
+from core.utils.research.model.model.savable import SpinozaModule
 
-class DynamicLayerNorm(nn.Module):
+
+class DynamicLayerNorm(SpinozaModule):
 
 	def __init__(self, *args, elementwise_affine: bool = True, **kwargs):
+		self.args = {
+			"elementwise_affine": elementwise_affine
+		}
 		super().__init__(*args, **kwargs)
 		self.norm_layer = None
 		self.elementwise_affine = elementwise_affine
@@ -14,5 +21,8 @@ class DynamicLayerNorm(nn.Module):
 			self.norm_layer = nn.LayerNorm(x.size()[-1:], elementwise_affine=self.elementwise_affine)
 		return self.norm_layer(x)
 
-	def forward(self, x: torch.Tensor) -> torch.Tensor:
+	def call(self, x: torch.Tensor) -> torch.Tensor:
 		return self.norm(x)
+
+	def export_config(self) -> typing.Dict[str, typing.Any]:
+		return self.args

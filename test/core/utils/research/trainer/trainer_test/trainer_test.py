@@ -12,7 +12,7 @@ from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
 	ProximalMaskedPenaltyLoss2
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
-	LayerStack
+	LayerStack, Identity
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
@@ -55,9 +55,9 @@ class TrainerTest(unittest.TestCase):
 
 	def _get_root_dirs(self):
 		return [
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
+				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/02/train"
 		], [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/7/train"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/02/test"
 		]
 
 	def __init_dataloader(self):
@@ -68,6 +68,8 @@ class TrainerTest(unittest.TestCase):
 			train_dirs,
 			check_file_sizes=True,
 			load_weights=False,
+			out_dtypes=self.np_dtype,
+			num_files=2
 		)
 		dataloader = DataLoader(dataset, batch_size=64)
 
@@ -75,6 +77,8 @@ class TrainerTest(unittest.TestCase):
 			test_dirs,
 			check_file_sizes=True,
 			load_weights=False,
+			out_dtypes=self.np_dtype,
+			num_files=2
 		)
 		test_dataloader = DataLoader(test_dataset, batch_size=64)
 
@@ -189,48 +193,42 @@ class TrainerTest(unittest.TestCase):
 
 	def _create_cnn2(self):
 
-		EMBEDDING_SIZE = 128
+		EXTRA_LEN = 124
+		BLOCK_SIZE = 256 + EXTRA_LEN
+		VOCAB_SIZE = len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1
 
-		CHANNELS = [EMBEDDING_SIZE for _ in range(4)]
-		EXTRA_LEN = self._get_extra_len()
+		HORIZON_MODE = True
+		HORIZON_BOUNDS = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+		HORIZON_RANGE = (0.0, 0.99)
+		HORIZON_EPOCHS = 40
+		HORIZON_STEP = 5
+		HORIZON_MAX_DEPTH = 50
+
+		CHANNELS = [128 for _ in range(8)]
 		KERNEL_SIZES = [3 for _ in CHANNELS]
-		VOCAB_SIZE = self._get_vocab_size()
-		POOL_SIZES = [(0, 0.5, 3, 1) for _ in CHANNELS]
-		DROPOUT_RATE = [0 for _ in CHANNELS]
-		ACTIVATION = [nn.Identity(), nn.Identity(), nn.LeakyReLU(), nn.Identity()]
-		BLOCK_SIZE = self._get_sequence_length() + EXTRA_LEN
+		POOL_SIZES = [(0, 0.5, 3, 2) for _ in CHANNELS[:2]] + [0 for _ in CHANNELS[2:]]
+		DROPOUT_RATE = [0] * 2 + [0.2] * len(CHANNELS[2:])
+		ACTIVATION = [nn.Identity() for _ in range(2)] + [nn.LeakyReLU() for _ in CHANNELS[2:-2]] + [nn.Identity() for _
+																									 in range(2)]
 		PADDING = 0
-		NORM = [DynamicLayerNorm()] + [nn.Identity() for _ in CHANNELS[1:]]
+		LINEAR_COLLAPSE = True
+		AVG_POOL = True
+		NORM = [DynamicLayerNorm(elementwise_affine=False)] + [Identity() for _ in CHANNELS[1:]]
 
-		INDICATORS_DELTA = [1, 2, 4, 8]
+		INDICATORS_DELTA = True
 		INDICATORS_SO = []
 		INDICATORS_RSI = []
-		INPUT_NORM = DynamicLayerNorm()
 
-		BRIDGE_FF_LINEAR_LAYERS = [128, 32, 1]
-		BRIDGE_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in BRIDGE_FF_LINEAR_LAYERS]
-		BRIDGE_FF_LINEAR_NORM = [DynamicLayerNorm() for _ in BRIDGE_FF_LINEAR_LAYERS]
-		BRIDGE_FF_LINEAR_DROPOUT = 0
+		INPUT_NORM = nn.Identity()
 
-		COLLAPSE_INPUT_NORM = DynamicBatchNorm()
-		DROPOUT_BRIDGE = 0.2
-		COLLAPSE_GLOBAL_AVG_POOL = True
+		DROPOUT_BRIDGE = 0.7
 
-		TRANSFORMER_DECODER_HEADS = 2
-		TRANSFORMER_DECODER_NORM_1 = DynamicLayerNorm()
-		TRANSFORMER_DECODER_NORM_2 = DynamicLayerNorm()
-		TRANSFORMER_DECODER_FF_LAYERS = [64, EMBEDDING_SIZE]
-
-		TRANSFORMER_ENCODER_HEADS = 2
-		TRANSFORMER_ENCODER_NORM_1 = DynamicLayerNorm()
-		TRANSFORMER_ENCODER_NORM_2 = DynamicLayerNorm()
-		TRANSFORMER_ENCODER_FF_LAYERS = [64, EMBEDDING_SIZE]
-
-		FF_LINEAR_LAYERS = [64, 16] + [VOCAB_SIZE + 1]
-		FF_LINEAR_ACTIVATION = [nn.Identity(), nn.LeakyReLU()]
+		USE_FF = True
+		FF_LINEAR_LAYERS = [128] * 4 + [VOCAB_SIZE + 1]
+		FF_LINEAR_ACTIVATION = [nn.Identity() for _ in range(2)] + [nn.LeakyReLU() for _ in FF_LINEAR_LAYERS[2:-1]]
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [MinMaxNorm()] + [nn.Identity() for _ in FF_LINEAR_LAYERS[:-1]]
-		FF_DROPOUT = 0
+		FF_LINEAR_NORM = [nn.Identity() for _ in FF_LINEAR_LAYERS[:]]
+		FF_DROPOUT = [0.3 for _ in FF_LINEAR_LAYERS[:-1]]
 
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
@@ -238,7 +236,7 @@ class TrainerTest(unittest.TestCase):
 			rsi=INDICATORS_RSI
 		)
 
-		return CNN2(
+		model = CNN2(
 			extra_len=EXTRA_LEN,
 			input_size=BLOCK_SIZE,
 
@@ -258,50 +256,8 @@ class TrainerTest(unittest.TestCase):
 				padding=PADDING
 			),
 
-			# bridge_block=BridgeBlock(
-			# 	ff_block=LayerStack(
-			# 		layers=[
-			# 			LinearModel(
-			# 				dropout_rate=BRIDGE_FF_LINEAR_DROPOUT,
-			# 				layer_sizes=BRIDGE_FF_LINEAR_LAYERS,
-			# 				hidden_activation=BRIDGE_FF_LINEAR_ACTIVATION,
-			# 				norm=BRIDGE_FF_LINEAR_NORM
-			# 			)
-			# 			for _ in range(CHANNELS[-1])
-			# 		]
-			# 	),
-			#
-			# 	transformer_block=TransformerBlock(
-			# 		transformer_embedding_block=TransformerEmbeddingBlock(
-			# 			pe_norm=DynamicLayerNorm()
-			# 		),
-			#
-			# 		decoder_block=DecoderBlock(
-			# 			num_heads=TRANSFORMER_DECODER_HEADS,
-			# 			norm_1=TRANSFORMER_DECODER_NORM_1,
-			# 			norm_2=TRANSFORMER_DECODER_NORM_2,
-			# 			ff_block=LinearModel(
-			# 				layer_sizes=TRANSFORMER_DECODER_FF_LAYERS,
-			# 			)
-			# 		),
-			#
-			# 		encoder_block=DecoderBlock(
-			# 			num_heads=TRANSFORMER_ENCODER_HEADS,
-			# 			norm_1=TRANSFORMER_ENCODER_NORM_1,
-			# 			norm_2=TRANSFORMER_ENCODER_NORM_2,
-			# 			ff_block=LinearModel(
-			# 				layer_sizes=TRANSFORMER_ENCODER_FF_LAYERS,
-			# 			)
-			# 		)
-			# 	),
-			#
-			#
-			# ),
-
 			collapse_block=CollapseBlock(
 				dropout=DROPOUT_BRIDGE,
-				input_norm=COLLAPSE_INPUT_NORM,
-				global_avg_pool=COLLAPSE_GLOBAL_AVG_POOL,
 				ff_block=LinearModel(
 					dropout_rate=FF_DROPOUT,
 					layer_sizes=FF_LINEAR_LAYERS,
@@ -312,6 +268,15 @@ class TrainerTest(unittest.TestCase):
 			)
 
 		)
+
+		if HORIZON_MODE:
+			model = HorizonModel(
+				model=model,
+				bounds=HORIZON_BOUNDS,
+				h=HORIZON_RANGE[0],
+				max_depth=HORIZON_MAX_DEPTH
+			)
+		return model
 
 	def _create_transformer(self):
 
@@ -428,7 +393,7 @@ class TrainerTest(unittest.TestCase):
 				step=2
 			)
 		]
-		trainer = Trainer(model, callbacks=callbacks, skip_nan=True)
+		trainer = Trainer(model, callbacks=callbacks, skip_nan=True, dtype=self.dtype)
 		trainer.cls_loss_function, trainer.reg_loss_function = self._create_losses()
 		trainer.optimizer = Adam(trainer.model.parameters())
 		return trainer
@@ -437,6 +402,8 @@ class TrainerTest(unittest.TestCase):
 		return False
 
 	def setUp(self):
+		self.dtype = torch.float32
+		self.np_dtype = np.float32
 		self.model = self._create_model()
 		self.dataloader, self.test_dataloader = self.__init_dataloader()
 		self.trainer = self.__init_trainer(self.model)
@@ -462,7 +429,7 @@ class TrainerTest(unittest.TestCase):
 		for X, y, w in self.test_dataloader:
 			break
 
-		loaded_model = ModelHandler.load(SAVE_PATH)
+		loaded_model = ModelHandler.load(SAVE_PATH).to(self.dtype)
 		loaded_model.eval()
 
 		original_y = model(X)

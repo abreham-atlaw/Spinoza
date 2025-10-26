@@ -7,29 +7,50 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from core import Config
+from core.di import ServiceProvider
 from core.utils.research.data.prepare.smoothing_algorithm import Lass, MovingAverage
-from core.utils.research.data.prepare.smoothing_algorithm.lass.models import Lass2DModel
+from core.utils.research.data.prepare.smoothing_algorithm.lass.executors import Lass2Executor, Lass3Executor, \
+	Lass4Executor, Lass5PlainExecutor
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class LassTest(unittest.TestCase):
 
 	def setUp(self):
-		self.lass = Lass(
-			Lass2DModel(
-				model=ModelHandler.load(
-					"/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-0-it-3-tot.zip"
-				)
-			)
-		)
+		self.lass = ServiceProvider.provide_lass()
 		self.df = pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-50k.csv"))
-		self.sequence = self.df["c"].to_numpy()[-int(1e5):]
-		self.gran = 1
+		self.sequence = self.df["c"].to_numpy()[-int(3e4):]
+		self.gran = 30
 
-	def test_functionality(self):
-		y = self.lass.apply(self.sequence[::self.gran])
+	def test_mock(self):
+		x = (np.arange(1024) + 5) * ((np.random.rand(1024) * 0) + 1)
+		y = self.lass.apply(x)
 		self.assertIsInstance(y, np.ndarray)
 		print(y)
+		plt.plot(x)
+		plt.plot(y)
+		plt.show()
+
+	def test_functionality(self):
+		x = self.sequence[::self.gran]
+		y = self.lass.apply(x)
+		self.assertIsInstance(y, np.ndarray)
+		plt.plot(np.arange(len(x)), x)
+		plt.plot(y)
+		plt.show()
+
+	def test_batch(self):
+		batch_size = 128
+		x = self.sequence
+		x = np.stack([
+			x[i*batch_size: (i+1)*batch_size]
+			for i in range(batch_size)
+		])
+		y = self.lass.apply(x)
+		self.assertIsInstance(y, np.ndarray)
+		plt.plot(np.arange(len(x)), x)
+		plt.plot(y)
+		plt.show()
 
 	def test_plot_output(self):
 		ma = MovingAverage(32)
@@ -45,7 +66,7 @@ class LassTest(unittest.TestCase):
 			for arr in [x, y_ma]
 		]
 
-		view_window = 512
+		view_window = 128
 		samples = 6
 		cols = 3
 		rows = int(np.ceil(samples/cols))
