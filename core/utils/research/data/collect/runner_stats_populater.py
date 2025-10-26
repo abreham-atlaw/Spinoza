@@ -91,216 +91,216 @@ class RunnerStatsPopulater:
 	@staticmethod
 	def get_evaluation_loss_functions() -> typing.List[SpinozaLoss]:
 		return [
-				CrossEntropyLoss(),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-				),
-				ReverseMAWeightLoss(window_size=10, softmax=True),
-				PredictionConfidenceScore(softmax=True),
-				ProximalMaskedLoss(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					softmax=True,
-					weighted_sample=True,
-				),
-				MultiLoss(
-					losses=[
-						ProximalMaskedLoss(
-							n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-							p=1,
+			CrossEntropyLoss(),
+			ProximalMaskedLoss(
+				n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+				softmax=True,
+			),
+			ReverseMAWeightLoss(window_size=10, softmax=True),
+			PredictionConfidenceScore(softmax=True),
+			ProximalMaskedLoss(
+				n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+				softmax=True,
+				weighted_sample=True,
+			),
+			MultiLoss(
+				losses=[
+					ProximalMaskedLoss(
+						n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+						p=1,
+						softmax=True,
+						collapsed=False
+					),
+					ScoreLoss(
+						SoftConfidenceScore(
 							softmax=True,
 							collapsed=False
-						),
-						ScoreLoss(
-							SoftConfidenceScore(
-								softmax=True,
-								collapsed=False
-							)
 						)
-					],
-					weights=[1, 1],
-					weighted_sample=True
-				),
-				MultiLoss(
-					losses=[
-						ProximalMaskedLoss(
-							n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-							p=1,
+					)
+				],
+				weights=[1, 1],
+				weighted_sample=True
+			),
+			MultiLoss(
+				losses=[
+					ProximalMaskedLoss(
+						n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+						p=1,
+						softmax=True,
+						collapsed=False
+					),
+					ScoreLoss(
+						SoftConfidenceScore(
 							softmax=True,
 							collapsed=False
-						),
-						ScoreLoss(
-							SoftConfidenceScore(
-								softmax=True,
-								collapsed=False
-							)
 						)
-					],
-					weights=[1, 1],
-					weighted_sample=False
-				),
-				ProximalMaskedLoss2(
-					n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-					w=1.0,
-					h=5.0,
-					softmax=True
-				),
-				MultiLoss(
-					losses=[
-						ProximalMaskedLoss(
-							n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-							p=1,
-							softmax=True,
-							collapsed=False,
-							weights=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
-						),
-						ScoreLoss(
-							SoftConfidenceScore(
-								softmax=True,
-								collapsed=False
-							)
-						)
-					],
-					weights=[1, 1],
-					weighted_sample=False
-				),
-
-				MultiLoss(
-					losses=[
-						ProximalMaskedLoss(
-							n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-							p=1,
-							softmax=True,
-							collapsed=False,
-							weights=load_json(os.path.join(BASE_DIR, "res/weights/06.json"))
-						),
-						ScoreLoss(
-							SoftConfidenceScore(
-								softmax=True,
-								collapsed=False
-							)
-						)
-					],
-					weights=[1, 1],
-					weighted_sample=False
-				),
-
-				MultiLoss(
-					losses=[
-						ProximalMaskedLoss3(
-							bounds=DataPrepUtils.apply_bound_epsilon(
-								Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
-							),
-							softmax=True,
-							collapsed=False,
-							h=5,
-							c=0,
-							w=1,
-							d=10,
-							m=2.6
-						),
-						ScoreLoss(
-							SoftConfidenceScore(
-								softmax=True,
-								collapsed=False
-							)
-						)
-					],
-					weights=[1, 1],
-					weighted_sample=False
-				),
-
-				MultiLoss(
-					losses=[
-						ProximalMaskedLoss3(
-							bounds=DataPrepUtils.apply_bound_epsilon(
-								Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
-							),
-							softmax=True,
-							collapsed=False,
-						),
-						ScoreLoss(
-							SoftConfidenceScore(
-								softmax=True,
-								collapsed=False
-							)
-						)
-					],
-					weights=[1, 1],
-					weighted_sample=False
-				),
-
-				MultiLoss(
-					losses=[
-						ProximalMaskedLoss3(
-							bounds=DataPrepUtils.apply_bound_epsilon(
-								Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
-							),
-							softmax=True,
-							collapsed=False,
-							h=5,
-							c=0,
-							w=1,
-							d=10,
-							m=2.6,
-							b=1e-4,
-							e=2
-						),
-						ScoreLoss(
-							SoftConfidenceScore(
-								softmax=True,
-								collapsed=False
-							)
-						)
-					],
-					weights=[1, 1],
-					weighted_sample=False
-				),
-
-				ProximalMaskedLoss3(
-					bounds=DataPrepUtils.apply_bound_epsilon(
-						Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+					)
+				],
+				weights=[1, 1],
+				weighted_sample=False
+			),
+			ProximalMaskedLoss2(
+				n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+				w=1.0,
+				h=5.0,
+				softmax=True
+			),
+			MultiLoss(
+				losses=[
+					ProximalMaskedLoss(
+						n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+						p=1,
+						softmax=True,
+						collapsed=False,
+						weights=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS
 					),
-					softmax=True,
-					collapsed=True,
-					h=5,
-					c=0,
-					w=1,
-					d=10,
-					m=2.3,
-					b=1e-2,
-					e=3
-				),
+					ScoreLoss(
+						SoftConfidenceScore(
+							softmax=True,
+							collapsed=False
+						)
+					)
+				],
+				weights=[1, 1],
+				weighted_sample=False
+			),
 
-				ProximalMaskedLoss3(
-					bounds=DataPrepUtils.apply_bound_epsilon(
-						Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+			MultiLoss(
+				losses=[
+					ProximalMaskedLoss(
+						n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+						p=1,
+						softmax=True,
+						collapsed=False,
+						weights=load_json(os.path.join(BASE_DIR, "res/weights/06.json"))
 					),
-					softmax=True,
-					collapsed=True,
-					h=5,
-					c=0,
-					w=1,
-					d=10,
-					m=2.3,
-					b=1e-4,
-					e=3
-				),
+					ScoreLoss(
+						SoftConfidenceScore(
+							softmax=True,
+							collapsed=False
+						)
+					)
+				],
+				weights=[1, 1],
+				weighted_sample=False
+			),
 
-				ProximalMaskedLoss3(
-					bounds=DataPrepUtils.apply_bound_epsilon(
-						Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+			MultiLoss(
+				losses=[
+					ProximalMaskedLoss3(
+						bounds=DataPrepUtils.apply_bound_epsilon(
+							Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+						),
+						softmax=True,
+						collapsed=False,
+						h=5,
+						c=0,
+						w=1,
+						d=10,
+						m=2.6
 					),
-					softmax=True,
-					collapsed=True,
-					h=-1.8,
-					c=1.94,
-					w=0.12,
-					d=25,
-					m=3.2,
-					b=1e-2,
-					e=1
-				)
+					ScoreLoss(
+						SoftConfidenceScore(
+							softmax=True,
+							collapsed=False
+						)
+					)
+				],
+				weights=[1, 1],
+				weighted_sample=False
+			),
+
+			MultiLoss(
+				losses=[
+					ProximalMaskedLoss3(
+						bounds=DataPrepUtils.apply_bound_epsilon(
+							Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+						),
+						softmax=True,
+						collapsed=False,
+					),
+					ScoreLoss(
+						SoftConfidenceScore(
+							softmax=True,
+							collapsed=False
+						)
+					)
+				],
+				weights=[1, 1],
+				weighted_sample=False
+			),
+
+			MultiLoss(
+				losses=[
+					ProximalMaskedLoss3(
+						bounds=DataPrepUtils.apply_bound_epsilon(
+							Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+						),
+						softmax=True,
+						collapsed=False,
+						h=5,
+						c=0,
+						w=1,
+						d=10,
+						m=2.6,
+						b=1e-4,
+						e=2
+					),
+					ScoreLoss(
+						SoftConfidenceScore(
+							softmax=True,
+							collapsed=False
+						)
+					)
+				],
+				weights=[1, 1],
+				weighted_sample=False
+			),
+
+			ProximalMaskedLoss3(
+				bounds=DataPrepUtils.apply_bound_epsilon(
+					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+				),
+				softmax=True,
+				collapsed=True,
+				h=5,
+				c=0,
+				w=1,
+				d=10,
+				m=2.3,
+				b=1e-2,
+				e=3
+			),
+
+			ProximalMaskedLoss3(
+				bounds=DataPrepUtils.apply_bound_epsilon(
+					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+				),
+				softmax=True,
+				collapsed=True,
+				h=5,
+				c=0,
+				w=1,
+				d=10,
+				m=2.3,
+				b=1e-4,
+				e=3
+			),
+
+			ProximalMaskedLoss3(
+				bounds=DataPrepUtils.apply_bound_epsilon(
+					Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+				),
+				softmax=True,
+				collapsed=True,
+				h=-1.8,
+				c=1.94,
+				w=0.12,
+				d=25,
+				m=3.2,
+				b=1e-2,
+				e=1
+			)
 		]
 
 	def __evaluate_model(self, model: nn.Module, current_losses) -> typing.Tuple[float, ...]:
