@@ -53,10 +53,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		if isinstance(state_change_delta_bounds, list):
 			state_change_delta_bounds = np.array(state_change_delta_bounds, dtype=np.float32)
 		self._state_change_delta_bounds = state_change_delta_bounds
-		# self._simulation_state_change_delta_bounds = np.concatenate(
-		# 	(state_change_delta_bounds, [state_change_delta_bounds[-1] + state_change_delta_bounds_epsilon]),
-		# 	dtype=np.float32
-		# )
 		self._simulation_state_change_delta_bounds = DataPrepUtils.apply_bound_epsilon(self._state_change_delta_bounds)
 		self.__depth_mode = depth_mode
 		self.environment: TradeEnvironment
@@ -80,7 +76,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				self.__delta_model = KerasModelHandler.load_model(Config.DELTA_MODEL_CONFIG.path)
 
 		self.__state_change_delta_cache = {}
+
+		Logger.info(f"Using discount function: {discount_function}")
 		self.__discount_function = discount_function
+
 		self.__use_softmax = use_softmax
 		self.__dta_output_cache = Cache()
 

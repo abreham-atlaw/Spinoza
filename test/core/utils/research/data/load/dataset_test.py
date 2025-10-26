@@ -7,6 +7,10 @@ from torch.utils.data import DataLoader
 
 from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
+from core.utils.research.data.prepare.smoothing_algorithm.lass.data.prepare.swg import \
+	CompletenessLassSampleWeightGenerator
+from core.utils.research.data.prepare.swg.manipulate import StandardizeSampleWeightManipulator
+from core.utils.research.data.prepare.swg.swg_pipeline import SampleWeightGeneratorPipeline
 
 
 class BaseDatasetTest(unittest.TestCase):
@@ -67,12 +71,25 @@ class BaseDatasetTest(unittest.TestCase):
 	def test_lass_load(self):
 		dataset = BaseDataset(
 			root_dirs=[
-				os.path.join(Config.BASE_DIR, "temp/Data/lass/0/train")
+				os.path.join(Config.BASE_DIR, "temp/Data/lass/6/train")
 			],
-			load_weights=False
+			load_weights=False,
+			swg=SampleWeightGeneratorPipeline(
+				generators=[
+					CompletenessLassSampleWeightGenerator(),
+					StandardizeSampleWeightManipulator(
+						current_mean=0.0427,
+						current_std=0.10,
+						target_mean=1.0,
+						target_std=0.3
+					)
+				]
+			)
 		)
 
 		X, y, w = dataset[0]
 
 		self.assertEqual(X.shape[0], 32)
 		self.assertEqual(y.shape[0], 1)
+		self.assertEqual(w.shape[0], 1)
+
