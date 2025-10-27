@@ -10,7 +10,7 @@ class DiskResourceManager(MCResourceManager):
 
 	def __init__(self, min_remaining_space=0.1, min_abs_remaining_space: float = None, path: str = "./"):
 		super().__init__()
-		Logger.info(f"Initializing Disk Resource Manager with min_remaining_space={min_remaining_space}, path={path}")
+		Logger.info(f"Initializing Disk Resource Manager with min_remaining_space={min_remaining_space}, path={path}, min_abs_remaining_space={min_abs_remaining_space}")
 		self.__min_remaining_space = min_remaining_space
 		self.__min_abs_remaining_space = min_abs_remaining_space
 		self.__path = path
