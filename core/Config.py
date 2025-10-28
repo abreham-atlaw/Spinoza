@@ -396,7 +396,7 @@ class RunnerStatsBranches:
 		it_63_6
 	]
 
-	default = it_58_6
+	default = it_64_6
 
 
 class RunnerStatsLossesBranches:
