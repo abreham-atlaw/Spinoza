@@ -155,6 +155,18 @@ class PCloudClient(FileStorage):
 
 			raise FileSystemException(f"Failed to get metadata of path={self.__path}. {response}")
 
+	class GetQuotaUsage(Request):
+
+		def __init__(self):
+			super().__init__(
+				"/userinfo",
+				method=Request.Method.GET,
+				output_class=float
+			)
+
+		def _filter_response(self, response):
+			return float(response["usedquota"])/float(response["quota"])
+
 	def __init__(self, token, folder, pcloud_base_url="https://api.pcloud.com/"):
 		self.__base_path = folder
 		self.__client = PCloudClient.PCloudNetworkClient(token=token, url=pcloud_base_url)
@@ -220,4 +232,9 @@ class PCloudClient(FileStorage):
 		data = self.get_metadata_raw(path)
 		return MetaData(
 			size=data["size"]
+		)
+
+	def get_quota_usage(self) -> float:
+		return self.__client.execute(
+			PCloudClient.GetQuotaUsage()
 		)
