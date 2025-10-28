@@ -3,6 +3,7 @@ import typing
 import numpy as np
 
 from core.utils.research.model.model.savable import SpinozaModule
+from lib.utils.logger import Logger
 from .lass_executor import LassExecutor
 
 
@@ -13,12 +14,14 @@ class Lass3Executor(LassExecutor):
 			*args,
 			padding: int = 0,
 			left_align: bool = False,
+			verbose_threshold: int = int(1e4),
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
 		self._padding = padding
 		self.__target_size = None
 		self._left_align = left_align
+		self.__verbose_threshold = verbose_threshold
 
 	def set_model(self, model: SpinozaModule):
 		super().set_model(model)
@@ -64,6 +67,10 @@ class Lass3Executor(LassExecutor):
 			inputs = self.__construct_input(x, y, i)
 			prediction = self._model.predict(inputs)
 			y[:, i] = self._process_prediction(inputs, prediction)
+
+			if self.__verbose_threshold is not None and x.shape[0] >= self.__verbose_threshold:
+				Logger.info(f"Executed Block({x.shape[0]}, {start}-{y.shape[1]}) {(i+1)*100/x.shape[1] :.2f}%...", end="\r")
+
 		return y
 
 	def _init_y(self, X: np.ndarray) -> np.ndarray:
@@ -88,6 +95,7 @@ class Lass3Executor(LassExecutor):
 				target[0]-source[0]
 			)
 			y[:, target[0]:target[1]] = self.__extract_target(y_block, target, source)
+
 
 		if is_flat:
 			y = y.flatten()

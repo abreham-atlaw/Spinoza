@@ -3,12 +3,27 @@ import typing
 
 import numpy as np
 import pandas as pd
+import torch
 from matplotlib import pyplot as plt
+from torch import nn
+from torch.utils.data import DataLoader
 
+from core import Config
+from core.environment.trade_state import TradeState
+from core.utils.research.data.load import BaseDataset
 from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm
+from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
+from core.utils.research.losses import SpinozaLoss
+from core.utils.research.model.model.savable import SpinozaModule
+from core.utils.research.model.model.utils import HorizonModel
+from core.utils.research.utils.model_evaluator import ModelEvaluator
+from lib.rl.agent import Node
 from lib.utils.cache import Cache
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.logger import Logger
+from lib.utils.staterepository import StateRepository
+from lib.utils.torch_utils.model_handler import ModelHandler
+from temp import stats
 
 
 class SessionAnalyzer:
@@ -20,6 +35,10 @@ class SessionAnalyzer:
 			instruments: typing.List[typing.Tuple[str, str]],
 			fig_size: typing.Tuple[int, int] = (20, 10),
 			plt_y_grid_count: int = 100,
+			model: typing.Optional[SpinozaModule] = None,
+			dtype: typing.Type = np.float32,
+			model_key: str = "spinoza-training",
+			bounds: typing.Iterable[float] = None
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -27,6 +46,25 @@ class SessionAnalyzer:
 		self.__plt_y_grid_count = plt_y_grid_count
 		self.__cache = Cache()
 		self.__instruments = instruments
+		self.__model = model or self.__load_session_model(model_key)
+		self.__dtype = dtype
+
+		if bounds is None:
+			bounds = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+		self.__bounds = bounds
+
+		self.__softmax = nn.Softmax(dim=-1)
+
+	def __load_session_model(self, model_key: str) -> SpinozaModule:
+		model_path = os.path.join(
+			self.__sessions_path,
+			next(filter(
+				lambda filename: filename.endswith(".zip") and model_key in filename,
+				os.listdir(self.__sessions_path)
+			))
+		)
+		Logger.info(f"Using session model: {os.path.basename(model_path)}")
+		return ModelHandler.load(model_path)
 
 	@property
 	def __candlesticks_path(self) -> str:
@@ -35,6 +73,10 @@ class SessionAnalyzer:
 	@property
 	def __graphs_path(self) -> str:
 		return os.path.join(self.__sessions_path, "graph_dumps")
+
+	@property
+	def __data_path(self) -> str:
+		return os.path.join(self.__sessions_path, "outs")
 
 	def __get_df_files(self, instrument: typing.Tuple[str, str]) -> typing.List[str]:
 
@@ -125,7 +167,7 @@ class SessionAnalyzer:
 		]
 
 		plt.figure(figsize=self.__fig_size)
-		plt.title(f"i={i}")
+		plt.title(f"{instrument[0]} / {instrument[1]}  -  i={i}")
 		plt.grid()
 
 		plt.plot(x, label="Clean")
@@ -133,4 +175,137 @@ class SessionAnalyzer:
 			plt.plot(x_sa[i], label=str(self.__smoothing_algorithms[i]))
 
 		plt.legend()
+		plt.show()
+
+	def evaluate_loss(self, loss: SpinozaLoss) -> float:
+		evaluator = ModelEvaluator(
+			data_path=self.__data_path,
+			cls_loss_fn=loss,
+		)
+		return evaluator(self.__model)[0]
+
+	def load_node(self, idx) -> typing.Tuple[Node, StateRepository]:
+		return stats.load_node_repo(os.path.join(self.__graphs_path, sorted(os.listdir(self.__graphs_path))[idx]))
+
+	@staticmethod
+	def get_node(root: Node, path: typing.List[int]):
+		path = path.copy()
+		node = root
+		while len(path) > 0:
+			node = node.get_children()[path.pop(0)]
+		return node
+
+	def plot_node(self, idx: int, path: typing.List[int] = None, depth: int = None):
+		node, repo = self.load_node(idx)
+		if path is not None:
+			node = self.get_node(node, path)
+		print(f"Max Depth: {stats.get_max_depth(node)}")
+		plt.figure(figsize=self.__fig_size)
+		stats.draw_graph_live(node, visited=True, state_repository=repo, depth=depth)
+		plt.show()
+
+	@CacheDecorators.cached_method()
+	def __load_output_data(self) -> typing.Tuple[np.ndarray, np.ndarray]:
+		X, y = [
+			np.concatenate([
+				np.load(os.path.join(self.__data_path, axis, filename)).astype(self.__dtype)
+				for filename in sorted(os.listdir(os.path.join(self.__data_path, axis)))
+			]).astype(self.__dtype)
+			for axis in ["X", "y"]
+		]
+		return X, y[:, :-1]
+
+	@CacheDecorators.cached_method()
+	def __get_y_hat(self, X: np.ndarray, h: float, max_depth: int) -> np.ndarray:
+		model = self.__model
+		if h > 0 and max_depth > 0:
+			model = HorizonModel(
+				model=self.__model,
+				h=h,
+				max_depth=max_depth,
+				bounds=self.__bounds
+			)
+		y_hat = self.__softmax(model(torch.from_numpy(X))[:, :-1]).detach().numpy()
+		return y_hat
+
+	def __get_yv(self, y: np.ndarray) -> np.ndarray:
+		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds)
+		bounds = (bounds[1:] + bounds[:-1])/2
+		return np.sum(y[:, :-1] * bounds, axis=1)
+
+	@staticmethod
+	def __evaluate_samples_loss(y_hat: np.ndarray, y: np.ndarray, loss_fn: SpinozaLoss) -> np.ndarray:
+		if loss_fn.collapsed:
+			Logger.error("Calling SessionAnalyzer.__evaluate_samples_loss with collapsed loss function")
+
+		loss = loss_fn(*[
+			torch.from_numpy(arr)
+			for arr in [y_hat, y]
+		])
+		return loss.detach().numpy()
+
+	def plot_timestep_output(
+			self,
+			i: int,
+			h: float = 0.0,
+			max_depth: int = 0,
+			loss: SpinozaLoss = None
+	):
+		X, y = self.__load_output_data()
+		y_hat = self.__get_y_hat(X, h=h, max_depth=max_depth)
+
+		l = self.__evaluate_samples_loss(y_hat=y_hat, y=y, loss_fn=loss) if loss is not None else None
+
+		y_v, y_hat_v = [self.__get_yv(_y) for _y in [y, y_hat]]
+
+		plt.figure(figsize=self.__fig_size)
+
+		plt.subplot(1, 2, 1)
+		plt.title(f"Timestep Output - i={i}, h={h}, max_depth={max_depth}")
+		plt.plot(X[i, :-124])
+
+		plt.subplot(1, 2, 2)
+		plt.title(f"""y: {y_v[i]}
+y_hat: {y_hat_v[i]}
+loss: {l[i] if l is not None else "N/A"}
+""")
+		plt.plot(y[i, :-1], label="Y")
+		plt.plot(y_hat[i, :-1], label="Y-hat")
+		plt.legend()
+		plt.show()
+
+	def __prepare_node_input_data(self, seq: np.ndarray) -> torch.Tensor:
+		extra_len = self.__model.input_size[-1] - seq.shape[-1]
+		dtype = next(self.__model.parameters()).dtype
+
+		X = np.expand_dims(
+			np.concatenate((seq, np.zeros(extra_len))),
+			axis=0
+		)
+
+		return torch.from_numpy(X).type(dtype)
+
+	def plot_node_prediction(self, idx: int, path: typing.List[int] = None):
+		if path is None:
+			path = []
+		node, repo = self.load_node(idx)
+		node = self.get_node(node, path)
+
+		state = repo.retrieve(node.id)
+		seq = state.get_market_state().get_state_of(*self.__instruments[0])
+		X = self.__prepare_node_input_data(seq)
+		y_hat = self.__softmax(self.__model(X)[:, :-1]).detach().numpy()
+
+		plt.figure(figsize=self.__fig_size)
+		plt.subplot(1, 2, 1)
+		plt.title(f"Node Prediction - idx={idx}, path={path}, depth={len(path)//2}")
+		plt.plot(seq)
+		if len(path) > 0:
+			plt.axvline(x=len(seq) - (len(path)//2) - 1, color="red")
+		plt.grid()
+
+		plt.subplot(1, 2, 2)
+		plt.title(f"y_hat={self.__get_yv(y_hat)[0]}")
+		plt.plot(y_hat[0])
+
 		plt.show()
