@@ -42,11 +42,16 @@ class SessionAnalyzerTest(unittest.TestCase):
 		self.session_analyzer.plot_node(idx=0, depth=5, path=[])
 
 	def test_plot_timestep_output(self):
-		for i in range(10):
+		for i in range(5):
 			self.session_analyzer.plot_timestep_output(
 				i,
 				h=1.0,
-				max_depth=5
+				max_depth=5,
+				loss=ProximalMaskedLoss(
+					n=len(DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND)),
+					softmax=False,
+					collapsed=False
+				)
 			)
 
 	def test_plot_node_prediction(self):

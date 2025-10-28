@@ -233,14 +233,28 @@ class SessionAnalyzer:
 		bounds = (bounds[1:] + bounds[:-1])/2
 		return np.sum(y[:, :-1] * bounds, axis=1)
 
+	@staticmethod
+	def __evaluate_samples_loss(y_hat: np.ndarray, y: np.ndarray, loss_fn: SpinozaLoss) -> np.ndarray:
+		if loss_fn.collapsed:
+			Logger.error("Calling SessionAnalyzer.__evaluate_samples_loss with collapsed loss function")
+
+		loss = loss_fn(*[
+			torch.from_numpy(arr)
+			for arr in [y_hat, y]
+		])
+		return loss.detach().numpy()
+
 	def plot_timestep_output(
 			self,
 			i: int,
 			h: float = 0.0,
 			max_depth: int = 0,
+			loss: SpinozaLoss = None
 	):
 		X, y = self.__load_output_data()
 		y_hat = self.__get_y_hat(X, h=h, max_depth=max_depth)
+
+		l = self.__evaluate_samples_loss(y_hat=y_hat, y=y, loss_fn=loss) if loss is not None else None
 
 		y_v, y_hat_v = [self.__get_yv(_y) for _y in [y, y_hat]]
 
@@ -253,6 +267,7 @@ class SessionAnalyzer:
 		plt.subplot(1, 2, 2)
 		plt.title(f"""y: {y_v[i]}
 y_hat: {y_hat_v[i]}
+loss: {l[i] if l is not None else "N/A"}
 """)
 		plt.plot(y[i, :-1], label="Y")
 		plt.plot(y_hat[i, :-1], label="Y-hat")
