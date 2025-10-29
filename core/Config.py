@@ -144,6 +144,7 @@ AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
+	("USD", "ZAR")
 ]
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
@@ -171,8 +172,8 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 64
-AGENT_USE_LASS = True
+AGENT_MA_WINDOW_SIZE = 32
+AGENT_USE_LASS = False
 AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
@@ -193,7 +194,7 @@ AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/09.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/10.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -259,7 +260,7 @@ try:
 except ImportError:
 	TIMEOUT = 11*60*60
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-57/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-64/"
 
 
 class ResourceCategories:
@@ -331,8 +332,10 @@ class RunnerStatsBranches:
 	it_57_6 = "it_57_6"
 	it_57_8 = "it_57_8"
 	it_57_9 = "it_57_9"
+	it_57_10 = "it_57_10"
 
 	it_58_6 = "it_58_6"
+	it_64_6 = "it_64_6"
 
 	it_60_6 = "it_60_6"
 	it_60_7 = "it_60_7"
@@ -390,14 +393,16 @@ class RunnerStatsBranches:
 		it_57_6,
 		it_57_8,
 		it_57_9,
+		it_57_10,
 		it_58_6,
+		it_64_6,
 		it_60_6,
 		it_60_7,
 		it_61_6,
 		it_63_6
 	]
 
-	default = it_57_6
+	default = it_64_6
 
 
 class RunnerStatsLossesBranches:
@@ -495,4 +500,4 @@ class RunnerStatsLossesBranches:
 		it_60_0
 	]
 
-	default = it_56_0
+	default = it_58_0
