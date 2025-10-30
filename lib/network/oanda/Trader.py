@@ -187,8 +187,9 @@ class Trader:
 	@Logger.logged_method
 	def trade(self, instrument: Tuple, action: int, margin: float, time_in_force="FOK") -> CreateOrderResponse:
 		instrument, action = self.__get_proper_instrument_action_pair(instrument, action)
-		if self.get_margin_available() < margin:
-			raise InsufficientMarginException()
+		available_margin = self.get_margin_available()
+		if available_margin < margin:
+			raise InsufficientMarginException(available_margin, margin)
 		units = self.__get_units(
 			action,
 			self.__get_units_for_margin_used(instrument, margin)
