@@ -11,6 +11,7 @@ from core.di import EnvironmentUtilsProvider, ServiceProvider
 from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, KalmanFilter, MovingAverage
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
+from lib.network.oanda.exceptions import InsufficientMarginException
 from lib.utils.logger import Logger
 from core import Config
 from core.environment.trade_state import TradeState, AgentState, MarketState
@@ -192,12 +193,16 @@ class LiveEnvironment(TradeEnvironment):
 
 	def _open_trade(self, action: TraderAction):
 		super()._open_trade(action)
-		self.__trader.trade(
-			(action.base_currency, action.quote_currency),
-			self.__to_oanda_action(action.action),
-			action.margin_used,
-			time_in_force=Config.DEFAULT_TIME_IN_FORCE
-		)
+		try:
+			self.__trader.trade(
+				(action.base_currency, action.quote_currency),
+				self.__to_oanda_action(action.action),
+				action.margin_used,
+				time_in_force=Config.DEFAULT_TIME_IN_FORCE
+			)
+		except InsufficientMarginException as ex:
+			Logger.error(f"Insufficient margin requested for trade: {str(ex)}")
+			return
 
 	def _close_trades(self, base_currency, quote_currency):
 		super()._close_trades(base_currency, quote_currency)
