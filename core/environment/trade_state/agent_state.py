@@ -3,7 +3,7 @@ from typing import *
 
 import math
 
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction
 from core import Config
 from .market_state import MarketState
 from .exceptions import InsufficientFundsException

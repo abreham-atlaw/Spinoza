@@ -8,14 +8,14 @@ import pandas as pd
 from datetime import datetime
 
 from core.di import EnvironmentUtilsProvider, ServiceProvider
-from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, KalmanFilter, MovingAverage
+from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
 from lib.network.oanda.exceptions import InsufficientMarginException
 from lib.utils.logger import Logger
 from core import Config
 from core.environment.trade_state import TradeState, AgentState, MarketState
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction
 from core.environment.trade_environment import TradeEnvironment
 
 

@@ -2,7 +2,7 @@ from typing import *
 
 from lib.concurrency.mc.data.serializers import NodeSerializer
 from lib.network.rest_interface import Serializer, NumpySerializer
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction, Action, ActionSequence
 from core.environment.trade_state import TradeState, MarketState, AgentState
 
 
@@ -24,10 +24,45 @@ class TraderActionSerializer(Serializer):
 		return action
 
 
+class ActionSequenceSerializer(Serializer):
+
+	def __init__(self):
+		super().__init__(ActionSequence)
+		self.__trader_action_serializer = TraderActionSerializer()
+
+	def serialize(self, data: ActionSequence) -> Dict:
+		return {
+			"actions": self.__trader_action_serializer.serialize_many(data.actions)
+		}
+
+	def deserialize(self, json_: Dict) -> object:
+		return ActionSequence(
+			actions=self.__trader_action_serializer.deserialize_many(json_["actions"])
+		)
+
+class ActionSerializer(Serializer):
+
+	def __init__(self):
+		super().__init__(Action)
+		self.__trader_action_serializer = TraderActionSerializer()
+		self.__action_sequence_serializer = ActionSequenceSerializer()
+
+
+	def serialize(self, data: object) -> Dict:
+		if isinstance(data, ActionSequence):
+			return self.__action_sequence_serializer.serialize(data)
+		return self.__trader_action_serializer.serialize(data)
+
+	def deserialize(self, json_: Dict) -> object:
+		if "actions" in json_:
+			return self.__action_sequence_serializer.deserialize(json_)
+		return self.__trader_action_serializer.deserialize(json_)
+
+
 class TraderNodeSerializer(NodeSerializer):
 
 	def _init_action_serializer(self) -> Serializer:
-		return TraderActionSerializer()
+		return ActionSerializer()
 
 
 class MarketStateSerializer(Serializer):
