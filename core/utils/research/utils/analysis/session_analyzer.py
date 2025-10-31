@@ -9,11 +9,13 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from core import Config
+from core.environment.trade_state import TradeState
 from core.utils.research.data.load import BaseDataset
 from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import SpinozaLoss
 from core.utils.research.model.model.savable import SpinozaModule
+from core.utils.research.model.model.utils import HorizonModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.rl.agent import Node
 from lib.utils.cache import Cache
@@ -48,7 +50,7 @@ class SessionAnalyzer:
 		self.__dtype = dtype
 
 		if bounds is None:
-			bounds = DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND)
+			bounds = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 		self.__bounds = bounds
 
 		self.__softmax = nn.Softmax(dim=-1)
@@ -214,34 +216,96 @@ class SessionAnalyzer:
 		return X, y[:, :-1]
 
 	@CacheDecorators.cached_method()
-	def __get_y_hat(self, X: np.ndarray) -> np.ndarray:
-		y_hat = self.__softmax(self.__model(torch.from_numpy(X))[:, :-1]).detach().numpy()
+	def __get_y_hat(self, X: np.ndarray, h: float, max_depth: int) -> np.ndarray:
+		model = self.__model
+		if h > 0 and max_depth > 0:
+			model = HorizonModel(
+				model=self.__model,
+				h=h,
+				max_depth=max_depth,
+				bounds=self.__bounds
+			)
+		y_hat = self.__softmax(model(torch.from_numpy(X))[:, :-1]).detach().numpy()
 		return y_hat
 
 	def __get_yv(self, y: np.ndarray) -> np.ndarray:
-		bounds = (self.__bounds[1:] + self.__bounds[:-1])/2
+		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds)
+		bounds = (bounds[1:] + bounds[:-1])/2
 		return np.sum(y[:, :-1] * bounds, axis=1)
+
+	@staticmethod
+	def __evaluate_samples_loss(y_hat: np.ndarray, y: np.ndarray, loss_fn: SpinozaLoss) -> np.ndarray:
+		if loss_fn.collapsed:
+			Logger.error("Calling SessionAnalyzer.__evaluate_samples_loss with collapsed loss function")
+
+		loss = loss_fn(*[
+			torch.from_numpy(arr)
+			for arr in [y_hat, y]
+		])
+		return loss.detach().numpy()
 
 	def plot_timestep_output(
 			self,
 			i: int,
+			h: float = 0.0,
+			max_depth: int = 0,
+			loss: SpinozaLoss = None
 	):
 		X, y = self.__load_output_data()
-		y_hat = self.__get_y_hat(X)
+		y_hat = self.__get_y_hat(X, h=h, max_depth=max_depth)
+
+		l = self.__evaluate_samples_loss(y_hat=y_hat, y=y, loss_fn=loss) if loss is not None else None
 
 		y_v, y_hat_v = [self.__get_yv(_y) for _y in [y, y_hat]]
 
 		plt.figure(figsize=self.__fig_size)
 
 		plt.subplot(1, 2, 1)
-		plt.title(f"Timestep Output - i={i}")
+		plt.title(f"Timestep Output - i={i}, h={h}, max_depth={max_depth}")
 		plt.plot(X[i, :-124])
 
 		plt.subplot(1, 2, 2)
 		plt.title(f"""y: {y_v[i]}
 y_hat: {y_hat_v[i]}
+loss: {l[i] if l is not None else "N/A"}
 """)
 		plt.plot(y[i, :-1], label="Y")
 		plt.plot(y_hat[i, :-1], label="Y-hat")
 		plt.legend()
+		plt.show()
+
+	def __prepare_node_input_data(self, seq: np.ndarray) -> torch.Tensor:
+		extra_len = self.__model.input_size[-1] - seq.shape[-1]
+		dtype = next(self.__model.parameters()).dtype
+
+		X = np.expand_dims(
+			np.concatenate((seq, np.zeros(extra_len))),
+			axis=0
+		)
+
+		return torch.from_numpy(X).type(dtype)
+
+	def plot_node_prediction(self, idx: int, path: typing.List[int] = None):
+		if path is None:
+			path = []
+		node, repo = self.load_node(idx)
+		node = self.get_node(node, path)
+
+		state = repo.retrieve(node.id)
+		seq = state.get_market_state().get_state_of(*self.__instruments[0])
+		X = self.__prepare_node_input_data(seq)
+		y_hat = self.__softmax(self.__model(X)[:, :-1]).detach().numpy()
+
+		plt.figure(figsize=self.__fig_size)
+		plt.subplot(1, 2, 1)
+		plt.title(f"Node Prediction - idx={idx}, path={path}, depth={len(path)//2}")
+		plt.plot(seq)
+		if len(path) > 0:
+			plt.axvline(x=len(seq) - (len(path)//2) - 1, color="red")
+		plt.grid()
+
+		plt.subplot(1, 2, 2)
+		plt.title(f"y_hat={self.__get_yv(y_hat)[0]}")
+		plt.plot(y_hat[0])
+
 		plt.show()

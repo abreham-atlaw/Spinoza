@@ -27,7 +27,7 @@ class HorizonModel(SpinozaModule):
 			"max_depth": max_depth
 		}
 		super().__init__(input_size=model.input_size, output_size=model.output_size, auto_build=False)
-		Logger.info(f"Initializing HorizonModel(h={h})...")
+		Logger.info(f"Initializing HorizonModel(h={h}, max_depth={max_depth})...")
 		self.h = h
 		self.model = model
 		self.X_extra_len = X_extra_len
