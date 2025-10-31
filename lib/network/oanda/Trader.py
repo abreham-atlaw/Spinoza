@@ -147,7 +147,7 @@ class Trader:
 				from_=from_,
 				to=to,
 				granularity=granularity,
-				count=count+1
+				count=count+1 if count is not None else None
 			)
 		)
 
