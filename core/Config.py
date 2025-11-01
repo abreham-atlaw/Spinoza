@@ -61,7 +61,7 @@ PCLOUD_TOKENS = [
 	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"zkfNekZPR4s7ZtNbg8OCFr75xqmxaiqVxxBix9UHk",  # abreham_a@outlook.com +
 	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
-	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
+	"3dcxNVZXe7s7ZGu7OsbG6K1pvDWdl9b7TGmRDdwJ7",  # abrehamatlaw321@gmail.com -
 	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
 	# "lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
 ]
@@ -129,6 +129,7 @@ AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
 AGENT_TRADE_MIN_SIZE = 50
 AGENT_TRADE_SIZE_USE_PERCENTAGE = False
+AGENT_SUPPORT_MULTI_ACTION = False
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
@@ -173,7 +174,7 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = True
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-3-it-11-tot.2.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -259,7 +260,7 @@ try:
 except ImportError:
 	TIMEOUT = 11*60*60
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-57/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-66/"
 
 
 class ResourceCategories:
@@ -332,6 +333,8 @@ class RunnerStatsBranches:
 	it_57_8 = "it_57_8"
 	it_57_9 = "it_57_9"
 	it_57_10 = "it_57_10"
+	it_57_11 = "it_57_11"
+	it_57_12 = "it_57_12"
 
 	it_58_6 = "it_58_6"
 	it_64_6 = "it_64_6"
@@ -341,6 +344,9 @@ class RunnerStatsBranches:
 	it_61_6 = "it_61_6"
 
 	it_63_6 = "it_63_6"
+
+	it_65_6 = "it_65_6"
+	it_66_6 = "it_66_6"
 
 	all = [
 		main,
@@ -393,15 +399,19 @@ class RunnerStatsBranches:
 		it_57_8,
 		it_57_9,
 		it_57_10,
+		it_57_11,
+		it_57_12,
 		it_58_6,
 		it_64_6,
 		it_60_6,
 		it_60_7,
 		it_61_6,
-		it_63_6
+		it_63_6,
+		it_65_6,
+		it_66_6
 	]
 
-	default = it_57_6
+	default = it_66_6
 
 
 class RunnerStatsLossesBranches:
@@ -451,6 +461,7 @@ class RunnerStatsLossesBranches:
 	it_56_0 = "it_56_0"
 	it_58_0 = "it_58_0"
 	it_60_0 = "it_60_0"
+	it_65_0 = "it_65_0"
 
 	all = [
 		main,
@@ -496,7 +507,8 @@ class RunnerStatsLossesBranches:
 		it_54_0,
 		it_56_0,
 		it_58_0,
-		it_60_0
+		it_60_0,
+		it_65_0
 	]
 
-	default = it_56_0
+	default = it_65_0
