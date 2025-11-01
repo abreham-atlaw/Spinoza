@@ -62,7 +62,7 @@ class PCloudClient(FileStorage):
 
 	class GetUrlRequest(Request):
 
-		def __init__(self, code: str):
+		def __init__(self, code: str, path: str):
 			super().__init__(
 				"/getpublinkdownload",
 				method=Request.Method.GET,
@@ -71,10 +71,11 @@ class PCloudClient(FileStorage):
 				},
 				output_class=str
 			)
+			self.__path = path
 
 		def _filter_response(self, response):
 			if isinstance(response, dict) and response.get("result") == 7001:
-				raise FileNotFoundException()
+				raise FileNotFoundException(self.__path)
 			return f"{response.get('hosts')[0]}{response.get('path')}".replace('\/', '/')
 
 	class ListDirRequest(Request):
@@ -115,7 +116,7 @@ class PCloudClient(FileStorage):
 				return response
 
 			if response["result"] == 2009:
-				raise FileNotFoundException()
+				raise FileNotFoundException(self.__path)
 
 			raise FileSystemException(f"Failed to delete file of path={self.__path}. {response}")
 
@@ -155,6 +156,18 @@ class PCloudClient(FileStorage):
 
 			raise FileSystemException(f"Failed to get metadata of path={self.__path}. {response}")
 
+	class GetQuotaUsage(Request):
+
+		def __init__(self):
+			super().__init__(
+				"/userinfo",
+				method=Request.Method.GET,
+				output_class=float
+			)
+
+		def _filter_response(self, response):
+			return float(response["usedquota"])/float(response["quota"])
+
 	def __init__(self, token, folder, pcloud_base_url="https://api.pcloud.com/"):
 		self.__base_path = folder
 		self.__client = PCloudClient.PCloudNetworkClient(token=token, url=pcloud_base_url)
@@ -170,7 +183,8 @@ class PCloudClient(FileStorage):
 		)
 		return self.__client.execute(
 			PCloudClient.GetUrlRequest(
-				code
+				code,
+				path
 			)
 		)
 
@@ -193,7 +207,7 @@ class PCloudClient(FileStorage):
 				)
 			)
 		except KeyError as ex:
-			raise FileNotFoundException()
+			raise FileNotFoundException(path)
 
 	def delete(self, path: str):
 		self.__client.execute(
@@ -220,4 +234,9 @@ class PCloudClient(FileStorage):
 		data = self.get_metadata_raw(path)
 		return MetaData(
 			size=data["size"]
+		)
+
+	def get_quota_usage(self) -> float:
+		return self.__client.execute(
+			PCloudClient.GetQuotaUsage()
 		)
