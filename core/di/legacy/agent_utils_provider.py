@@ -34,6 +34,7 @@ class AgentUtilsProvider:
 	def provide_disk_resource_manager() -> DiskResourceManager:
 		return DiskResourceManager(
 			min_remaining_space=Config.AGENT_MIN_DISK_SPACE,
+			min_abs_remaining_space=Config.AGENT_MIN_ABS_DISK_SPACE,
 			path=Config.AGENT_FILESYSTEM_STATE_REPOSITORY_PATH
 		)
 

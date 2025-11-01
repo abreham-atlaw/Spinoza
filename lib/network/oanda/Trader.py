@@ -147,7 +147,7 @@ class Trader:
 				from_=from_,
 				to=to,
 				granularity=granularity,
-				count=count+1
+				count=count+1 if count is not None else None
 			)
 		)
 
@@ -157,7 +157,9 @@ class Trader:
 				candlesticks
 			))
 
-		return candlesticks[-count:]
+		if count is not None:
+			candlesticks = candlesticks[-count:]
+		return candlesticks
 
 	def get_spread_price(self, instrument: Tuple[str, str]) -> SpreadPrice:
 		return self.__client.execute(
@@ -187,8 +189,9 @@ class Trader:
 	@Logger.logged_method
 	def trade(self, instrument: Tuple, action: int, margin: float, time_in_force="FOK") -> CreateOrderResponse:
 		instrument, action = self.__get_proper_instrument_action_pair(instrument, action)
-		if self.get_margin_available() < margin:
-			raise InsufficientMarginException()
+		available_margin = self.get_margin_available()
+		if available_margin < margin:
+			raise InsufficientMarginException(available_margin, margin)
 		units = self.__get_units(
 			action,
 			self.__get_units_for_margin_used(instrument, margin)
