@@ -3,7 +3,7 @@ from abc import abstractmethod, ABC
 
 from core import Config
 from .trade_state import TradeState
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction, Action, ActionSequence
 from lib.rl.environment import Environment
 
 
@@ -47,8 +47,17 @@ class TradeEnvironment(Environment, ABC):
 
 		return state.get_recent_balance_change() + self.__time_penalty
 
-	def perform_action(self, action: TraderAction):
+	def perform_action(self, action: Action):
+
+		if isinstance(action, ActionSequence):
+			for action in action.actions:
+				self.perform_action(action)
+			return
+
+		assert action is None or isinstance(action, TraderAction)
+
 		recent_balance = self.get_state().get_agent_state().get_balance()
+
 		if action is None:
 			pass
 
@@ -69,7 +78,24 @@ class TradeEnvironment(Environment, ABC):
 	def check_is_running(self) -> bool:
 		return True
 
+	def __is_action_sequence_valid(self, sequence: ActionSequence, state: TradeState) -> bool:
+
+		margin_available = state.get_agent_state().get_margin_available()
+
+		for action in sequence.actions:
+			if action.action == TraderAction.Action.CLOSE:
+				margin_available += sum([trade.get_trade().margin_used for trade in state.get_agent_state().get_open_trades(action.base_currency, action.quote_currency)])
+			else:
+				margin_available -= action.margin_used
+				if margin_available < 0:
+					return False
+
+		return True
+
 	def is_action_valid(self, action: TraderAction, state: TradeState) -> bool:
+		if isinstance(action, ActionSequence):
+			return self.__is_action_sequence_valid(action, state)
+
 		if action is not None and action.action != TraderAction.Action.CLOSE and state.get_agent_state().get_margin_available() < action.margin_used:
 			return False
 		return True  # TODO: MORE VALIDATIONS
