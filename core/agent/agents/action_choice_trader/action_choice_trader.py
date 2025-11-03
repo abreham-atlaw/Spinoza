@@ -1,8 +1,9 @@
 import typing
-from abc import ABC
+from abc import ABC, abstractmethod
+from copy import deepcopy
 
 from core.agent.action import TraderAction, Action, ActionSequence
-from core.environment.trade_state import TradeState
+from core.environment.trade_state import TradeState, AgentState
 from lib.rl.agent import ActionChoiceAgent
 from core import Config
 from lib.utils.logger import Logger
@@ -27,31 +28,11 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 
 		Logger.info(f"[ActionChoiceTrader]: Multi Action Support={multi_actions}")
 
-	@staticmethod
-	def __generate_action_sequences(state: TradeState) -> typing.List[ActionSequence]:
-		if len(state.get_agent_state().get_open_trades()) == 0:
-			return []
+	@abstractmethod
+	def _simulate_action(self, state: TradeState, action: Action):
+		pass
 
-		return [
-			ActionSequence(
-				actions=tuple([
-					TraderAction(
-						trade.get_trade().base_currency,
-						trade.get_trade().quote_currency,
-						TraderAction.Action.CLOSE,
-					),
-					TraderAction(
-						trade.get_trade().base_currency,
-						trade.get_trade().quote_currency,
-						TraderAction.Action.BUY if trade.get_trade().action == TraderAction.Action.SELL else TraderAction.Action.SELL,
-						margin_used=trade.get_trade().margin_used
-					)
-				])
-			)
-			for trade in state.get_agent_state().get_open_trades()
-		]
-
-	def _generate_actions(self, state: TradeState) -> typing.List[typing.Optional[Action]]:
+	def _generate_lone_actions(self, state: TradeState) -> typing.List[TraderAction]:
 		pairs = state.get_market_state().get_tradable_pairs()
 
 		gap = self.__trade_size_gap * state.get_agent_state().get_margin_available() if self.__trade_size_use_percentage \
@@ -67,7 +48,7 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 			]
 		))
 
-		actions: typing.List[typing.Optional[Action]] = [
+		actions: typing.List[typing.Optional[TraderAction]] = [
 			TraderAction(
 				pair[0],
 				pair[1],
@@ -83,6 +64,46 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 			TraderAction(trade.get_trade().base_currency, trade.get_trade().quote_currency, TraderAction.Action.CLOSE)
 			for trade in state.get_agent_state().get_open_trades()
 		]
+
+		return actions
+
+	def __generate_reversal_actions(self, trade: AgentState.OpenTrade, state: TradeState) -> typing.List[ActionSequence]:
+		state = deepcopy(state)
+
+		close_action = TraderAction(
+			trade.get_trade().base_currency,
+			trade.get_trade().quote_currency,
+			TraderAction.Action.CLOSE
+		)
+
+		self._simulate_action(state, close_action)
+
+		return [
+			ActionSequence(
+				actions=(
+					close_action,
+					action
+				)
+			)
+			for action in self._generate_lone_actions(state)
+			if action.action not in [
+				trade.get_trade().action,
+				TraderAction.Action.CLOSE
+			]
+		]
+
+	def __generate_action_sequences(self, state: TradeState) -> typing.List[ActionSequence]:
+		if len(state.get_agent_state().get_open_trades()) == 0:
+			return []
+
+		actions = []
+		for trade in state.get_agent_state().get_open_trades():
+			actions.extend(self.__generate_reversal_actions(trade, state))
+
+		return actions
+
+	def _generate_actions(self, state: TradeState) -> typing.List[typing.Optional[Action]]:
+		actions = self._generate_lone_actions(state)
 
 		actions.append(None)
 
