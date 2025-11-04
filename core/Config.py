@@ -56,12 +56,12 @@ PCLOUD_TOKENS = [
 	# "aCT8vkZxDks7ZYpOYIhqlahkcknASzvkHKLR8Ai3y",  # abrehamatlaw@outlook.com -
 	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
-	"DRXANZnvzs7ZGqCBT2413kpfuw8RJb59UFmOm0O7",  # abreham_atlaw@outlook.com +
+	"LrbFxZnvzs7ZBsXhKl0AR3plxs3YDDjYMy7x35pV",  # abreham_atlaw@outlook.com +
 	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
 	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
-	"6N4GVXZPR4s7ZjEv2OReNaEhk1nwv75EbcpehPvnk",  # abreham_a@outlook.com +
+	"zkfNekZPR4s7ZtNbg8OCFr75xqmxaiqVxxBix9UHk",  # abreham_a@outlook.com +
 	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
-	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
+	"3dcxNVZXe7s7ZGu7OsbG6K1pvDWdl9b7TGmRDdwJ7",  # abrehamatlaw321@gmail.com -
 	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
 	# "lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
 ]
@@ -129,6 +129,7 @@ AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
 AGENT_TRADE_MIN_SIZE = 50
 AGENT_TRADE_SIZE_USE_PERCENTAGE = False
+AGENT_SUPPORT_MULTI_ACTION = False
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
@@ -187,6 +188,7 @@ AGENT_USE_AUTO_STATE_REPOSITORY = False
 AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e5)
 AGENT_FILESYSTEM_STATE_REPOSITORY_PATH = BASE_DIR
 AGENT_MIN_DISK_SPACE = 0.1
+AGENT_MIN_ABS_DISK_SPACE = None
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
@@ -310,6 +312,7 @@ class RunnerStatsBranches:
 	it_48_6 = "it_48_6"
 
 	it_49_6 = "it_49_6"
+	it_50_6 = "it_50_6"
 
 	it_51_6 = "it_51_6"
 	it_52_6 = "it_52_6"
@@ -319,7 +322,25 @@ class RunnerStatsBranches:
 	it_54_6 = "it-54_6"
 
 	it_56_6 = "it_56_6"
+	it_56_7 = "it_56_7"
 	it_57_6 = "it_57_6"
+	it_57_8 = "it_57_8"
+	it_57_9 = "it_57_9"
+	it_57_10 = "it_57_10"
+	it_57_11 = "it_57_11"
+	it_57_12 = "it_57_12"
+
+	it_58_6 = "it_58_6"
+	it_64_6 = "it_64_6"
+
+	it_60_6 = "it_60_6"
+	it_60_7 = "it_60_7"
+	it_61_6 = "it_61_6"
+
+	it_63_6 = "it_63_6"
+
+	it_65_6 = "it_65_6"
+	it_66_6 = "it_66_6"
 
 	all = [
 		main,
@@ -361,12 +382,27 @@ class RunnerStatsBranches:
 		it_47_6,
 		it_48_6,
 		it_49_6,
+		it_50_6,
 		it_51_6,
 		it_52_6,
 		it_53_6,
 		it_54_6,
 		it_56_6,
-		it_57_6
+		it_56_7,
+		it_57_6,
+		it_57_8,
+		it_57_9,
+		it_57_10,
+		it_57_11,
+		it_57_12,
+		it_58_6,
+		it_64_6,
+		it_60_6,
+		it_60_7,
+		it_61_6,
+		it_63_6,
+		it_65_6,
+		it_66_6
 	]
 
 	default = it_56_6
@@ -417,6 +453,9 @@ class RunnerStatsLossesBranches:
 	it_51_0 = "it_51_0",
 	it_54_0 = "it_54_0"
 	it_56_0 = "it_56_0"
+	it_58_0 = "it_58_0"
+	it_60_0 = "it_60_0"
+	it_65_0 = "it_65_0"
 
 	all = [
 		main,
@@ -460,7 +499,10 @@ class RunnerStatsLossesBranches:
 		it_49_0,
 		it_51_0,
 		it_54_0,
-		it_56_0
+		it_56_0,
+		it_58_0,
+		it_60_0,
+		it_65_0
 	]
 
 	default = it_56_0
