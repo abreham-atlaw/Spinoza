@@ -1,11 +1,9 @@
-from typing import *
-
 import unittest
 from unittest import mock
 
 from core.environment import TradeEnvironment
 from core.environment.trade_state import TradeState
-from core.agent.trader_action import TraderAction
+from core.agent.action.trader_action import TraderAction
 
 
 class TradeEnvironmentTest(unittest.TestCase):

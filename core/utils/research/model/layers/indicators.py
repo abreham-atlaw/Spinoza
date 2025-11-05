@@ -19,7 +19,8 @@ class Indicators(SpinozaModule):
             rsi: typing.Optional[typing.List[int]] = None,
             so: typing.Optional[typing.List[int]] = None,
             identities: int = 0,
-            input_channels: int = 1
+            input_channels: int = 1,
+            combiner: SpinozaModule = None
     ):
         super().__init__()
         self.__args = {
@@ -31,17 +32,18 @@ class Indicators(SpinozaModule):
             "rsi": rsi,
             "so": so,
             "identities": identities,
-            "input_channels": input_channels
+            "input_channels": input_channels,
+            "combiner": combiner
         }
         self.delta = self.__prepare_arg_delta(delta)
         self.ksf = [KalmanStaticFilter(alpha, beta) for alpha, beta in ksf] if ksf else None
-        self.mma = MultipleMovingAverages(mma) if mma else None
+        self.mma = [MovingAverage(w) for w in mma] if mma else None
         self.msa = [MovingAverage(size) for size in msa] if msa else None
         self.msd = [MovingStandardDeviation(size) for size in msd] if msd else None
         self.rsi = [RelativeStrengthIndex(size) for size in rsi] if rsi else None
         self.so = [StochasticOscillator(size) for size in so] if so else None
         self.identities = [nn.Identity() for _ in range(identities)]
-        self.combiner = OverlaysCombiner()
+        self.combiner = OverlaysCombiner() if combiner is None else combiner
         self.input_channels = input_channels
 
     @staticmethod
@@ -50,7 +52,7 @@ class Indicators(SpinozaModule):
             delta = 1 if delta else 0
         if isinstance(delta, int):
             delta = [delta]
-        return [Delta(n=n) for n in delta]
+        return [Delta(n=n) for n in delta if n > 0]
 
     @property
     def indicators_len(self):

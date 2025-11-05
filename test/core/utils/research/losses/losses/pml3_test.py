@@ -66,3 +66,34 @@ class ProximalMaskedLoss3Test(unittest.TestCase):
 			plt.legend()
 			plt.title(f"i={i}")
 		plt.show()
+
+	def test_save_and_load(self):
+		loss = ProximalMaskedLoss3(
+			bounds=DataPrepUtils.apply_bound_epsilon(
+				Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+			),
+			softmax=True,
+			collapsed=False,
+			h=-1.8,
+			c=1.94,
+			w=0.12,
+			d=25,
+			m=3.2,
+			b=1e-2,
+			e=4
+		)
+
+		loss_loaded = ProximalMaskedLoss3.load(
+			os.path.join(Config.BASE_DIR, "res/losses/pml3_0.json"),
+			bounds=DataPrepUtils.apply_bound_epsilon(
+				Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+			),
+			softmax=True,
+			collapsed=False,
+		)
+
+		print(loss)
+		print(loss_loaded)
+
+		for i in range(len(loss.mask)):
+			self.assertTrue(torch.all(loss.mask[i] == loss_loaded.mask[i]))

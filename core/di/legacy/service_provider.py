@@ -1,3 +1,4 @@
+import torch
 from pymongo import MongoClient
 
 from core import Config
@@ -39,14 +40,15 @@ class ServiceProvider:
 		)
 
 	@staticmethod
-	def provide_lass() -> Lass:
+	def provide_lass(device: torch.device = None, fs_path: str = None, *args, **kwargs) -> Lass:
 		from core.utils.research.utils.model_utils import ModelUtils
-		model = ModelUtils.load_from_fs(Config.AGENT_LASS_MODEL_FS_PATH)
+		path = fs_path or Config.AGENT_LASS_MODEL_FS_PATH
+		model = ModelUtils.load_from_fs(path).to(device=device)
 		if isinstance(model, AbstractHorizonModel):
 			model.set_h(0.0)
 		return Lass(
 			model=model,
-			executor=Lass3Executor()
+			executor=Lass3Executor(*args, **kwargs)
 		)
 
 	@staticmethod

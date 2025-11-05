@@ -6,7 +6,7 @@ from tensorflow.keras import models
 
 from lib.rl.agent import ActionRecommendationAgent
 from lib.utils.logger import Logger
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction
 from core.environment.trade_state import TradeState, AgentState
 from core import Config
 from core.agent.utils.dnn_models import KerasModelHandler

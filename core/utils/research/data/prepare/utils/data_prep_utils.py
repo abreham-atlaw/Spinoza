@@ -50,7 +50,7 @@ class DataPrepUtils:
 
 	@staticmethod
 	def stack(sequence: np.ndarray, length) -> np.ndarray:
-		stack = np.zeros((sequence.shape[0] - length + 1, length))
+		stack = np.zeros((sequence.shape[-1] - length + 1,) + sequence.shape[:-1] + (length, ))
 		for i in range(stack.shape[0]):
-			stack[i] = sequence[i: i + length]
+			stack[i] = sequence[..., i: i + length]
 		return stack

@@ -2,7 +2,7 @@ import typing
 from abc import ABC
 
 from core.environment.trade_state import TradeState
-from core.agent.trader_action import TraderAction
+from core.agent.action import Action
 from core import Config
 
 from .action_choice_trader import ActionChoiceTrader
@@ -20,20 +20,20 @@ class ActionChoiceBalancerTrader(ActionChoiceTrader, ActionRecommendationTrader,
 	):
 		super().__init__(*args, num_actions=int(num_actions*recommendation_percent))
 
-	def __generate_static_actions(self, state: TradeState) -> typing.List[TraderAction]:
+	def __generate_static_actions(self, state: TradeState) -> typing.List[Action]:
 		return ActionChoiceTrader._generate_actions(self, state)
 
-	def __generate_recommended_actions(self, state: TradeState) -> typing.List[TraderAction]:
+	def __generate_recommended_actions(self, state: TradeState) -> typing.List[Action]:
 		return ActionRecommendationTrader._generate_actions(self, state)
 
 	def __select_actions(
 			self,
-			static: typing.List[TraderAction],
-			recommended: typing.List[TraderAction]
-	) -> typing.List[TraderAction]:
+			static: typing.List[Action],
+			recommended: typing.List[Action]
+	) -> typing.List[Action]:
 		return recommended + static[:self._num_actions - len(recommended)]
 
-	def _generate_actions(self, state: TradeState) -> typing.List[typing.Optional[TraderAction]]:
+	def _generate_actions(self, state: TradeState) -> typing.List[typing.Optional[Action]]:
 		return self.__select_actions(
 			self.__generate_static_actions(state),
 			self.__generate_recommended_actions(state)

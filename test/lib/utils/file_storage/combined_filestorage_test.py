@@ -10,8 +10,12 @@ class FileStorageTest(unittest.TestCase):
 		self.fs = ServiceProvider.provide_file_storage(path="/")
 
 	def test_listdir(self):
-		files = self.fs.listdir("/")
+		files = self.fs.listdir("/Apps/RTrader")
 		self.assertTrue(len(files) > 0)
+		print(list(filter(
+			lambda file: "it-11" in file,
+			files
+		)))
 
 	def test_delete(self):
 		FILES = [
@@ -38,3 +42,8 @@ class FileStorageTest(unittest.TestCase):
 		metadata = self.fs.get_metadata("/test/0.txt")
 		print(metadata)
 		self.assertIsNotNone(metadata.size)
+
+	def test_get_url(self):
+		file = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-2-it-11-tot.zip"
+		print(self.fs.get_url(file))
+

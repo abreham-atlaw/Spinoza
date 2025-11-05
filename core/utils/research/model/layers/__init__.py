@@ -23,3 +23,5 @@ from .add import Add
 from .add_and_norm import AddAndNorm
 from .pe import PositionalEncoding
 from .identity import Identity
+from .pad_overlay_combiner import PadOverlayCombiner
+from .noise_injection_layer import NoiseInjectionLayer

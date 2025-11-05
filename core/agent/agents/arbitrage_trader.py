@@ -7,7 +7,7 @@ from core import Config
 from lib.rl.agent import Agent
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, ArbitradeTradeState
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction
 
 
 class ArbitrageTraderAgent(Agent):

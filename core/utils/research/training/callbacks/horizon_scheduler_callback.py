@@ -19,8 +19,7 @@ class HorizonSchedulerCallback(Callback):
 		if not isinstance(model, (HorizonModel, LassHorizonModel, AbstractHorizonModel)):
 			Logger.warning(f"HorizonSchedulerCallback can only be used with HorizonModel. Got {type(model)}")
 			return
-		if epoch % self.__epoch_step != 0:
-			return
+		epoch = (epoch // self.__epoch_step) * self.__epoch_step
 		h = min(self.__end, self.__start + self.__step * epoch)
 		Logger.info(f"HorizonSchedulerCallback: Setting horizon from {model.h} to {h}")
 		model.set_h(h)

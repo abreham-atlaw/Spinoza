@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 
+from .action import Action
+
 
 @dataclass
-class TraderAction:
+class TraderAction(Action):
 	class Action:
 		BUY = 1
 		CLOSE = 2

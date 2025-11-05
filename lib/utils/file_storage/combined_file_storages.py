@@ -21,7 +21,7 @@ class CombinedFileStorage(FileStorage):
 				return child
 			except FileNotFoundException:
 				pass
-		raise FileNotFoundException
+		raise FileNotFoundException(path)
 
 	def _choose_storage(self, file_path: str, upload_path: typing.Union[str, None] = None):
 		try:

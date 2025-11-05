@@ -37,7 +37,7 @@ class TimeSeriesDataPreparer(ABC):
 			transformations: typing.List[Transformation] = None
 	):
 		if clean_df:
-			df = DataPrepUtils.clean_df(df)
+			df = self._setup_df(df)
 
 		self.__df = df
 		self.__block_size = block_size
@@ -58,6 +58,10 @@ class TimeSeriesDataPreparer(ABC):
 			transformations = []
 		self.__transformations = transformations
 		Logger.info(f"Using transformations({len(self.__transformations)}): {', '.join(map(lambda t: str(t), self.__transformations))}")
+
+	@staticmethod
+	def _setup_df(df: pd.DataFrame) -> pd.DataFrame:
+		return DataPrepUtils.clean_df(df)
 
 	@staticmethod
 	def __generate_filename() -> np.ndarray:
@@ -82,7 +86,7 @@ class TimeSeriesDataPreparer(ABC):
 	def _prepare_sequence(self, sequence: np.ndarray) -> np.ndarray:
 		return sequence
 
-	def __apply_transformations(self, x: np.ndarray) -> np.ndarray:
+	def _apply_transformations(self, x: np.ndarray) -> np.ndarray:
 		y = np.concatenate([x] + [
 			transformation(x)
 			for transformation in self.__transformations
@@ -92,10 +96,13 @@ class TimeSeriesDataPreparer(ABC):
 	def _prepare_sequence_stack(self, x: np.ndarray) -> np.ndarray:
 		return x
 
+	def _extract_columns(self, df: pd.DataFrame) -> np.ndarray:
+		return df["c"].to_numpy()
+
 	def __process_sequence(self, sequence: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
 		stacked_sequence = DataPrepUtils.stack(sequence, self.__block_size)
 
-		stacked_sequence = self.__apply_transformations(stacked_sequence)
+		stacked_sequence = self._apply_transformations(stacked_sequence)
 
 		stacked_sequence = self._prepare_sequence_stack(stacked_sequence)
 
@@ -129,8 +136,10 @@ class TimeSeriesDataPreparer(ABC):
 
 		Xs, ys = [], []
 
+		data = self._extract_columns(df)
+
 		for i in range(self.__granularity):
-			gran_sequence = df["c"].to_numpy()[i::self.__granularity]
+			gran_sequence = data[..., i::self.__granularity]
 			gran_sequence = self._prepare_sequence(gran_sequence)
 			gran_X, gran_y = self.__process_sequence(gran_sequence)
 

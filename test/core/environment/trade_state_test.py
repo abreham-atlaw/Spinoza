@@ -1,13 +1,12 @@
 from copy import deepcopy
-from typing import *
 
 import unittest
 from unittest import mock
 
 import numpy as np
 
-from core.environment.trade_state import MarketState, AgentState, TradeState
-from core.agent.trader_action import TraderAction
+from core.environment.trade_state import MarketState, AgentState
+from core.agent.action.trader_action import TraderAction
 from lib.utils.logger import Logger
 
 

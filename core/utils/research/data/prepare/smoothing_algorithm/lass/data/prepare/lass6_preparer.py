@@ -3,6 +3,8 @@ import pandas as pd
 
 from core.utils.research.data.prepare.smoothing_algorithm import IdentitySA
 from core.utils.research.data.prepare.smoothing_algorithm.lass.data.prepare.lass3_preparer import Lass3Preparer
+from lib.utils.cache import Cache
+from lib.utils.cache.decorators import CacheDecorators
 
 
 class Lass6Preparer(Lass3Preparer):
@@ -36,6 +38,7 @@ class Lass6Preparer(Lass3Preparer):
 		self.__f = np.reshape(self._init_frequencies(c_x, f), (1, -1, 1)) * np.pi
 		self.__noise = noise
 		self.__tm, self.__ts = target_mean, target_std
+		self.__stack_cache = Cache(cache_size=1, key_func=lambda x: x.tobytes())
 
 	@staticmethod
 	def __generate_df(size: int, start: int = 0) -> pd.DataFrame:
@@ -61,7 +64,14 @@ class Lass6Preparer(Lass3Preparer):
 	def _generate_noise(self, x: np.ndarray) -> np.ndarray:
 		return self.__noise * 2 * (np.random.random((x.shape[0], x.shape[-1])) - 0.5)
 
+	def _apply_transformations(self, x: np.ndarray) -> np.ndarray:
+		return x
+
 	def _stack_noisy_and_smoothed(self, sequences: np.ndarray) -> np.ndarray:
+
+		cached = self.__stack_cache.retrieve(sequences)
+		if cached is not None:
+			return cached
 		s = np.reshape(self._generate_shift(sequences), (-1, self.__c_x, 1))
 		xs = self.__a * np.sin(
 			s + self.__f*np.expand_dims(sequences/sequences.shape[1], axis=1)
@@ -70,5 +80,9 @@ class Lass6Preparer(Lass3Preparer):
 		x = self.__norm(np.sum(xs, axis=1) + self._generate_noise(sequences))
 		y = self.__norm(np.sum(xs[:, :self.__c_y], axis=1))
 
-		return np.stack([x, y], axis=1)
+		stack = np.stack([x, y], axis=1)
+		stack = super()._apply_transformations(stack)
 
+		self.__stack_cache[sequences] = stack
+
+		return stack

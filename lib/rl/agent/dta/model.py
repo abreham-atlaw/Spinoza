@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -51,14 +52,29 @@ class KerasModel(Model):
 
 class TorchModel(Model):
 
-	def __init__(self, model: nn.Module):
+	def __init__(self, model: nn.Module, device: torch.device = None):
 		self.__model = model
 		self.__model.eval()
+		self.__device = None
+		self.device = next(self.__model.parameters()).device if device is None else device
+
+	@property
+	def device(self) -> torch.device:
+		return self.__device
+
+	@device.setter
+	def device(self, device: torch.device):
+		Logger.info(f"Setting device: {device}")
+		self.__device = device
+		self.__model.to(device)
 
 	def predict(self, inputs: np.ndarray) -> np.ndarray:
 		self.__model.eval()
+		self.__model.to(self.__device)
 		with torch.no_grad():
-			return self.__model(torch.from_numpy(inputs.astype(np.float32))).detach().numpy()
+			return self.__model(
+				torch.from_numpy(inputs.astype(np.float32)).to(self.__device)
+			).cpu().detach().numpy()
 
 	def fit(self, X: np.ndarray, y: np.ndarray):
 		pass

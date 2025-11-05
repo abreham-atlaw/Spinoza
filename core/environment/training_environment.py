@@ -6,7 +6,7 @@ import datetime
 from copy import deepcopy
 
 from core.environment.trade_state import TradeState, AgentState, MarketState
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction
 from core import Config
 from .trade_environment import TradeEnvironment
 

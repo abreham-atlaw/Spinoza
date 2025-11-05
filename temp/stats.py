@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import random
 
 from core import Config
+from core.agent.action import ActionSequence
 
 durations = {
 	phase: 0
@@ -267,6 +268,19 @@ def draw_graph_live(root_node, depth=None, top=None, visited=False, state_reposi
 
 	def get_node_label(node):
 
+		def get_action_label(action):
+			if isinstance(action, ActionSequence):
+				return ", ".join([get_action_label(action) for action in action.actions])
+
+			if action is None:
+				return "None"
+			elif action.action == 0:
+				return "Sell"
+			elif action.action == 1:
+				return "Buy"
+			elif action.action == 2:
+				return "Close"
+
 		if node.node_type == 0:
 			total_value = f"\n{node.get_total_value(): .4f}"
 			instant_value = f"\n{node.instant_value: .4f}"
@@ -279,15 +293,7 @@ def draw_graph_live(root_node, depth=None, top=None, visited=False, state_reposi
 			return label
 
 		action = node.action
-		label = ""
-		if action is None:
-			label = "None"
-		elif action.action == 0:
-			label = "Sell"
-		elif action.action == 1:
-			label = "Buy"
-		elif action.action == 2:
-			label = "Close"
+		label = get_action_label(action)
 
 		label = f"{label}\n{node.total_value: .4f}\n{node.visits}"
 		if uct_fn is not None:
