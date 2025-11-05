@@ -40,6 +40,7 @@ class ActionSequenceSerializer(Serializer):
 			actions=self.__trader_action_serializer.deserialize_many(json_["actions"])
 		)
 
+
 class ActionSerializer(Serializer):
 
 	def __init__(self):
@@ -54,6 +55,8 @@ class ActionSerializer(Serializer):
 		return self.__trader_action_serializer.serialize(data)
 
 	def deserialize(self, json_: Dict) -> object:
+		if json_ is None:
+			return None
 		if "actions" in json_:
 			return self.__action_sequence_serializer.deserialize(json_)
 		return self.__trader_action_serializer.deserialize(json_)
