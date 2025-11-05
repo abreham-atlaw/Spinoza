@@ -61,7 +61,7 @@ PCLOUD_TOKENS = [
 	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"zkfNekZPR4s7ZtNbg8OCFr75xqmxaiqVxxBix9UHk",  # abreham_a@outlook.com +
 	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
-	"2sgeXkZXe7s7Zx29adBJwFzV6PLXY3OOYsJNEFtok",  # abrehamatlaw321@gmail.com -
+	"3dcxNVZXe7s7ZGu7OsbG6K1pvDWdl9b7TGmRDdwJ7",  # abrehamatlaw321@gmail.com -
 	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
 	# "lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
 ]
@@ -129,6 +129,7 @@ AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
 AGENT_TRADE_SIZE_USE_PERCENTAGE = True
+AGENT_SUPPORT_MULTI_ACTION = False
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
@@ -349,14 +350,20 @@ class RunnerStatsBranches:
 	it_57_8 = "it_57_8"
 	it_57_9 = "it_57_9"
 	it_57_10 = "it_57_10"
+	it_57_11 = "it_57_11"
+	it_57_12 = "it_57_12"
 
 	it_58_6 = "it_58_6"
+	it_64_6 = "it_64_6"
 
 	it_60_6 = "it_60_6"
 	it_60_7 = "it_60_7"
 	it_61_6 = "it_61_6"
 
 	it_63_6 = "it_63_6"
+
+	it_65_6 = "it_65_6"
+	it_66_6 = "it_66_6"
 
 	all = [
 		main,
@@ -409,11 +416,16 @@ class RunnerStatsBranches:
 		it_57_8,
 		it_57_9,
 		it_57_10,
+		it_57_11,
+		it_57_12,
 		it_58_6,
+		it_64_6,
 		it_60_6,
 		it_60_7,
 		it_61_6,
-		it_63_6
+		it_63_6,
+		it_65_6,
+		it_66_6
 	]
 
 	default = it_57_10
@@ -466,6 +478,7 @@ class RunnerStatsLossesBranches:
 	it_56_0 = "it_56_0"
 	it_58_0 = "it_58_0"
 	it_60_0 = "it_60_0"
+	it_65_0 = "it_65_0"
 
 	all = [
 		main,
@@ -511,7 +524,8 @@ class RunnerStatsLossesBranches:
 		it_54_0,
 		it_56_0,
 		it_58_0,
-		it_60_0
+		it_60_0,
+		it_65_0
 	]
 
 	default = it_56_0

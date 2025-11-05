@@ -1,7 +1,11 @@
+import json
+import typing
 from abc import ABC, abstractmethod
 
 import torch
 import torch.nn as nn
+
+from lib.utils.logger import Logger
 
 
 class SpinozaLoss(nn.Module, ABC):
@@ -40,3 +44,27 @@ class SpinozaLoss(nn.Module, ABC):
 
 	def __str__(self):
 		return f"{self.__class__.__name__}(weighted_sample={self.weighted_sample}, collapsed={self.collapsed})"
+
+	def _export_configs(self) -> typing.Dict[str, typing.Any]:
+		return {
+			"weighted_sample": self.weighted_sample,
+			"collapsed": self.collapsed
+		}
+
+	def save(self, path: str):
+		Logger.info(f"Saving {self} to \"{path}\"")
+		configs = self._export_configs()
+		with open(path, "w") as file:
+			json.dump(configs, file)
+
+	@classmethod
+	def _import_configs(cls, configs: typing.Dict[str, typing.Any]) -> typing.Dict[str, typing.Any]:
+		return configs
+
+	@classmethod
+	def load(cls, path: str, *args, **kwargs) -> 'SpinozaLoss':
+		Logger.info(f"Loading {cls} from \"{path}\"")
+		with open(path, "r") as file:
+			configs = json.load(file)
+		configs = cls._import_configs(configs)
+		return cls(*args, **kwargs, **configs)
