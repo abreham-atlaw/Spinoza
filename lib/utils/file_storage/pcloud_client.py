@@ -62,7 +62,7 @@ class PCloudClient(FileStorage):
 
 	class GetUrlRequest(Request):
 
-		def __init__(self, code: str):
+		def __init__(self, code: str, path: str):
 			super().__init__(
 				"/getpublinkdownload",
 				method=Request.Method.GET,
@@ -71,10 +71,11 @@ class PCloudClient(FileStorage):
 				},
 				output_class=str
 			)
+			self.__path = path
 
 		def _filter_response(self, response):
 			if isinstance(response, dict) and response.get("result") == 7001:
-				raise FileNotFoundException()
+				raise FileNotFoundException(self.__path)
 			return f"{response.get('hosts')[0]}{response.get('path')}".replace('\/', '/')
 
 	class ListDirRequest(Request):
@@ -115,7 +116,7 @@ class PCloudClient(FileStorage):
 				return response
 
 			if response["result"] == 2009:
-				raise FileNotFoundException()
+				raise FileNotFoundException(self.__path)
 
 			raise FileSystemException(f"Failed to delete file of path={self.__path}. {response}")
 
@@ -182,7 +183,8 @@ class PCloudClient(FileStorage):
 		)
 		return self.__client.execute(
 			PCloudClient.GetUrlRequest(
-				code
+				code,
+				path
 			)
 		)
 
@@ -205,7 +207,7 @@ class PCloudClient(FileStorage):
 				)
 			)
 		except KeyError as ex:
-			raise FileNotFoundException()
+			raise FileNotFoundException(path)
 
 	def delete(self, path: str):
 		self.__client.execute(
