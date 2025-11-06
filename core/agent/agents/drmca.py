@@ -7,7 +7,7 @@ import numpy as np
 from core import Config
 from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
 from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction, Action, ActionSequence
 from core.agent.utils.cache import Cache
 from core.di import AgentUtilsProvider
 from core.environment.trade_state import TradeState, AgentState
@@ -123,11 +123,16 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 	def __prepare_model_input(
 			self,
 			state: TradeState,
-			action: typing.Optional[TraderAction],
+			action: typing.Optional[Action],
 			target_instrument: typing.Tuple[str, str]
 	) -> np.ndarray:
 
-		def prepare_model_input(state: TradeState, action: typing.Optional[TraderAction], target_instrument: typing.Tuple[str, str]) -> np.ndarray:
+		def prepare_model_input(state: TradeState, action: typing.Optional[Action], target_instrument: typing.Tuple[str, str]) -> np.ndarray:
+
+			# TODO: ENCODE ALL ACTIONS
+			if isinstance(action, ActionSequence):
+				action = action.actions[0]
+
 			time_series = state.get_market_state().get_state_of(target_instrument[0], target_instrument[1])
 			encoded_action = self.__encode_action(state, action)
 			open_trades = self.__encode_open_trades(state)
@@ -135,11 +140,13 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 
 		return self.__dra_input_cache.cached_or_execute((state, action, target_instrument), lambda: prepare_model_input(state, action, target_instrument))
 
-
-	def _prepare_single_dta_input(self, state: TradeState, action: TraderAction, final_state: TradeState) -> np.ndarray:
+	def _prepare_single_dta_input(self, state: TradeState, action: Action, final_state: TradeState) -> np.ndarray:
 		return self.__prepare_model_input(state, action, self._get_target_instrument(state, action, final_state))
 
-	def _prepare_dra_input(self, state: TradeState, action: TraderAction) -> np.ndarray:
+	def _prepare_dra_input(self, state: TradeState, action: Action) -> np.ndarray:
+		if isinstance(action, ActionSequence):  # TODO: ENCODE ALL ACTIONS
+			action = action.actions[0]
+
 		if action is None:
 			instrument = random.choice(state.get_market_state().get_tradable_pairs())
 		else:
@@ -152,7 +159,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		value = output[-1]
 		return probability_distribution, value
 
-	def _prepare_dra_output(self, state: TradeState, action: TraderAction, output: np.ndarray) -> float:
+	def _prepare_dra_output(self, state: TradeState, action: Action, output: np.ndarray) -> float:
 		_, value = self._parse_model_output(output)
 		return value * state.get_agent_state().get_balance()
 
@@ -168,7 +175,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 	def _prepare_dra_train_output(
 			self,
 			state: TradeState,
-			action: TraderAction,
+			action: Action,
 			final_state: TradeState,
 			value: float
 	) -> np.ndarray:

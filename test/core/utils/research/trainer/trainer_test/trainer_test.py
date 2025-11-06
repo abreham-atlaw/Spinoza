@@ -12,7 +12,7 @@ from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
 	ProximalMaskedPenaltyLoss2
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
-	LayerStack, Identity
+	LayerStack, Identity, NoiseInjectionLayer
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
@@ -220,6 +220,7 @@ class TrainerTest(unittest.TestCase):
 		INDICATORS_RSI = []
 
 		INPUT_NORM = nn.Identity()
+		INPUT_DROPOUT = NoiseInjectionLayer(noise=5e-5, frequency=0.5, bounds=(0.9, 1.0))
 
 		DROPOUT_BRIDGE = 0.7
 
@@ -242,7 +243,8 @@ class TrainerTest(unittest.TestCase):
 
 			embedding_block=EmbeddingBlock(
 				indicators=indicators,
-				input_norm=INPUT_NORM
+				input_norm=INPUT_NORM,
+				input_dropout=INPUT_DROPOUT
 			),
 
 			cnn_block=CNNBlock(
