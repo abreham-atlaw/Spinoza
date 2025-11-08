@@ -266,7 +266,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		elif isinstance(action, ActionSequence):
 			involved_instruments.extend([(action.base_currency, action.quote_currency) for action in action.actions])
 
-		else:
+		elif action is None and len(state.get_agent_state().get_open_trades()) == 0:
 			involved_instruments = state.get_market_state().get_tradable_pairs()
 
 		involved_instruments = list(set(involved_instruments))
