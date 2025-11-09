@@ -12,7 +12,7 @@ from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
 	ProximalMaskedPenaltyLoss2
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
-	LayerStack, Identity
+	LayerStack, Identity, NoiseInjectionLayer
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
@@ -194,6 +194,7 @@ class TrainerTest(unittest.TestCase):
 	def _create_cnn2(self):
 
 		EXTRA_LEN = 124
+		EMBEDDING_SIZE = 8
 		BLOCK_SIZE = 256 + EXTRA_LEN
 		VOCAB_SIZE = len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1
 
@@ -204,36 +205,62 @@ class TrainerTest(unittest.TestCase):
 		HORIZON_STEP = 5
 		HORIZON_MAX_DEPTH = 50
 
-		CHANNELS = [128 for _ in range(8)]
+		CHANNELS = [EMBEDDING_SIZE for _ in range(8)]
 		KERNEL_SIZES = [3 for _ in CHANNELS]
-		POOL_SIZES = [(0, 0.5, 3, 2) for _ in CHANNELS[:2]] + [0 for _ in CHANNELS[2:]]
-		DROPOUT_RATE = [0] * 2 + [0.2] * len(CHANNELS[2:])
+		POOL_SIZES = [0 for _ in CHANNELS]
+		DROPOUT_RATE = [0] * len(CHANNELS)
 		ACTIVATION = [nn.Identity() for _ in range(2)] + [nn.LeakyReLU() for _ in CHANNELS[2:-2]] + [nn.Identity() for _
 																									 in range(2)]
 		PADDING = 0
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
-		NORM = [DynamicLayerNorm(elementwise_affine=False)] + [Identity() for _ in CHANNELS[1:]]
+		NORM = [DynamicLayerNorm(elementwise_affine=True) for _ in CHANNELS]
 
-		INDICATORS_DELTA = True
-		INDICATORS_SO = []
-		INDICATORS_RSI = []
+		INDICATORS_DELTA = [1, 2, 4, 8, 16, 32, 64]
+		INDICATORS_SO = [16, 32, 64]
+		INDICATORS_RSI = [16, 32, 64]
+		INDICATORS_MMA = [16, 32, 64]
+		INDICATORS_MSD = [8, 16, 32, 64]
+		INDICATORS_KSF = [
+			(0.1, 0.01),
+			(0.1, 0.001),
+			(0.01, 0.001),
+			(0.001, 0.1),
+			(0.001, 0.001)
+		]
 
 		INPUT_NORM = nn.Identity()
 
-		DROPOUT_BRIDGE = 0.7
+		TRANSFORMER_HEADS = 4
+
+		TRANSFORMER_DECODER_HEADS = TRANSFORMER_HEADS
+		TRANSFORMER_DECODER_NORM_1 = DynamicLayerNorm()
+		TRANSFORMER_DECODER_NORM_2 = DynamicLayerNorm()
+		TRANSFORMER_DECODER_INPUT_NORM = DynamicLayerNorm()
+		TRANSFORMER_DECODER_FF_LAYERS = [EMBEDDING_SIZE * 2, EMBEDDING_SIZE]
+
+		TRANSFORMER_ENCODER_HEADS = TRANSFORMER_HEADS
+		TRANSFORMER_ENCODER_NORM_1 = DynamicLayerNorm()
+		TRANSFORMER_ENCODER_NORM_2 = DynamicLayerNorm()
+		TRANSFORMER_ENCODER_INPUT_NORM = DynamicLayerNorm()
+		TRANSFORMER_ENCODER_FF_LAYERS = [EMBEDDING_SIZE * 2, EMBEDDING_SIZE]
+
+		DROPOUT_BRIDGE = 0
 
 		USE_FF = True
 		FF_LINEAR_LAYERS = [128] * 4 + [VOCAB_SIZE + 1]
 		FF_LINEAR_ACTIVATION = [nn.Identity() for _ in range(2)] + [nn.LeakyReLU() for _ in FF_LINEAR_LAYERS[2:-1]]
 		FF_LINEAR_INIT = None
-		FF_LINEAR_NORM = [nn.Identity() for _ in FF_LINEAR_LAYERS[:]]
-		FF_DROPOUT = [0.3 for _ in FF_LINEAR_LAYERS[:-1]]
+		FF_LINEAR_NORM = [DynamicLayerNorm(elementwise_affine=True) for _ in FF_LINEAR_LAYERS[:]]
+		FF_DROPOUT = [0 for _ in FF_LINEAR_LAYERS[:-1]]
 
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
 			so=INDICATORS_SO,
-			rsi=INDICATORS_RSI
+			rsi=INDICATORS_RSI,
+			mma=INDICATORS_MMA,
+			msd=INDICATORS_MSD,
+			ksf=INDICATORS_KSF
 		)
 
 		model = CNN2(
@@ -254,6 +281,36 @@ class TrainerTest(unittest.TestCase):
 				dropout_rate=DROPOUT_RATE,
 				norm=NORM,
 				padding=PADDING
+			),
+
+			bridge_block=BridgeBlock(
+
+				transformer_block=TransformerBlock(
+					transformer_embedding_block=TransformerEmbeddingBlock(
+						pe_norm=DynamicLayerNorm(),
+						positional_encoding=True
+					),
+
+					decoder_block=DecoderBlock(
+						num_heads=TRANSFORMER_DECODER_HEADS,
+						norm_1=TRANSFORMER_DECODER_NORM_1,
+						norm_2=TRANSFORMER_DECODER_NORM_2,
+						input_norm=TRANSFORMER_DECODER_INPUT_NORM,
+						ff_block=LinearModel(
+							layer_sizes=TRANSFORMER_DECODER_FF_LAYERS,
+						)
+					),
+
+					encoder_block=DecoderBlock(
+						num_heads=TRANSFORMER_ENCODER_HEADS,
+						norm_1=TRANSFORMER_ENCODER_NORM_1,
+						norm_2=TRANSFORMER_ENCODER_NORM_2,
+						input_norm=TRANSFORMER_ENCODER_INPUT_NORM,
+						ff_block=LinearModel(
+							layer_sizes=TRANSFORMER_ENCODER_FF_LAYERS,
+						)
+					)
+				),
 			),
 
 			collapse_block=CollapseBlock(
