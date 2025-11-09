@@ -129,7 +129,7 @@ AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
 AGENT_TRADE_MIN_SIZE = 50
 AGENT_TRADE_SIZE_USE_PERCENTAGE = False
-AGENT_SUPPORT_MULTI_ACTION = False
+AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
@@ -173,7 +173,7 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 32
+AGENT_MA_WINDOW_SIZE = 16
 AGENT_USE_LASS = False
 AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
@@ -255,7 +255,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-58/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-70/"
 
 
 class ResourceCategories:
@@ -413,7 +413,7 @@ class RunnerStatsBranches:
 		it_71_6
 	]
 
-	default = it_58_6
+	default = it_70_6
 
 
 class RunnerStatsLossesBranches:
@@ -515,4 +515,4 @@ class RunnerStatsLossesBranches:
 		it_70_0
 	]
 
-	default = it_58_0
+	default = it_70_0
