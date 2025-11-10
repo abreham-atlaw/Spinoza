@@ -1,13 +1,9 @@
 import typing
-from datetime import datetime
 from typing import *
 from abc import ABC
 
 import tensorflow as tf
 import numpy as np
-
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
 
 from core import Config
 from core.agent.utils.cache import Cache
@@ -18,10 +14,9 @@ from lib.rl.agent.dta import TorchModel
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState
 from core.environment.trade_environment import TradeEnvironment
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction, Action, ActionSequence
 from core.agent.utils.dnn_models import KerasModelHandler
 from lib.utils.math import softmax
-from temp import stats
 
 from lib.utils.torch_utils.model_handler import ModelHandler
 
@@ -97,7 +92,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 	@staticmethod
 	def _get_target_instrument(state, action, final_state) -> typing.Tuple[str, str]:
-		if action is not None:
+		if isinstance(action, TraderAction):
 			return action.base_currency, action.quote_currency
 		for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 			if not np.all(final_state.get_market_state().get_state_of(base_currency, quote_currency) == state.get_market_state().get_state_of(base_currency, quote_currency)):
@@ -258,28 +253,28 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			]
 		))
 
-	def _get_possible_states(self, state: TradeState, action: TraderAction) -> List[TradeState]:
+	def _get_possible_states(self, state: TradeState, action: Action) -> List[TradeState]:
 
-		states = []
+		involved_instruments = []
 
 		if len(state.get_agent_state().get_open_trades()) != 0:
-			states += self.__simulate_instruments_change(
-				state,
-				self.__get_involved_instruments(state.get_agent_state().get_open_trades())
-			)
+			involved_instruments += self.__get_involved_instruments(state.get_agent_state().get_open_trades())
 
-		elif action is None or action.action == TraderAction.Action.CLOSE:
-			states += self.__simulate_instruments_change(
-				state,
-				state.get_market_state().get_tradable_pairs()
-			)
+		if isinstance(action, TraderAction):
+			involved_instruments.append((action.base_currency, action.quote_currency))
 
-		else:
-			states += self.__simulate_instrument_change(state, action.base_currency, action.quote_currency)
+		elif isinstance(action, ActionSequence):
+			involved_instruments.extend([(action.base_currency, action.quote_currency) for action in action.actions])
 
-		# states = [self.__simulate_action(mid_state, action) for mid_state in states]
+		elif action is None and len(state.get_agent_state().get_open_trades()) == 0:
+			involved_instruments = state.get_market_state().get_tradable_pairs()
+
+		involved_instruments = list(set(involved_instruments))
+
+		states = self.__simulate_instruments_change(state, involved_instruments)
+
 		for mid_state in states:
-			self.__simulate_action(mid_state, action)
+			self._simulate_action(mid_state, action)
 
 		return states
 
@@ -328,11 +323,18 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return states
 
-	def __simulate_action(self, state: TradeState, action: TraderAction):  # TODO: SETUP CACHER
+	def _simulate_action(self, state: TradeState, action: Action):  # TODO: SETUP CACHER
 		# state = copy.deepcopy(state)
 
 		if action is None:
 			return
+
+		if isinstance(action, ActionSequence):
+			for action in action.actions:
+				self._simulate_action(state, action)
+			return
+
+		assert isinstance(action, TraderAction)
 
 		if action.action == TraderAction.Action.CLOSE:
 			state.get_agent_state().close_trades(action.base_currency, action.quote_currency)

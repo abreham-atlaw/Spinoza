@@ -5,6 +5,7 @@ from core.utils.research.data.prepare.smoothing_algorithm import IdentitySA
 from core.utils.research.data.prepare.smoothing_algorithm.lass.data.prepare.lass3_preparer import Lass3Preparer
 from lib.utils.cache import Cache
 from lib.utils.cache.decorators import CacheDecorators
+from lib.utils.logger import Logger
 
 
 class Lass6Preparer(Lass3Preparer):
@@ -20,6 +21,7 @@ class Lass6Preparer(Lass3Preparer):
 			target_mean: float = 1.0,
 			target_std: float = 0.3,
 			noise: float = 0,
+			noise_p: float = 0,
 			seq_start: int = 0,
 			**kwargs
 	):
@@ -37,8 +39,12 @@ class Lass6Preparer(Lass3Preparer):
 		self.__a = np.reshape(self._init_amplitudes(c_x, a), (1, -1, 1))
 		self.__f = np.reshape(self._init_frequencies(c_x, f), (1, -1, 1)) * np.pi
 		self.__noise = noise
+		self.__noise_p = noise_p
 		self.__tm, self.__ts = target_mean, target_std
 		self.__stack_cache = Cache(cache_size=1, key_func=lambda x: x.tobytes())
+
+		if self.__noise_p % 2 == 0:
+			Logger.warning(f"Using even noise power, {noise_p}. It is recommended to use odd noise power.")
 
 	@staticmethod
 	def __generate_df(size: int, start: int = 0) -> pd.DataFrame:
@@ -62,7 +68,7 @@ class Lass6Preparer(Lass3Preparer):
 		return random.random((sequences.shape[0], self.__c_x))*2*np.pi
 
 	def _generate_noise(self, x: np.ndarray) -> np.ndarray:
-		return self.__noise * 2 * (np.random.random((x.shape[0], x.shape[-1])) - 0.5)
+		return self.__noise * ((2*(np.random.random((x.shape[0], x.shape[-1])) - 0.5)) ** self.__noise_p)
 
 	def _apply_transformations(self, x: np.ndarray) -> np.ndarray:
 		return x

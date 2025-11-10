@@ -33,9 +33,10 @@ class Lass6PreparerTest(unittest.TestCase):
 				VerticalShiftTransformation(shift=1.5),
 			],
 
-			c_x=int(1e3),
+			c_x=25,
 			c_y=25,
-			noise=0.75e-4,
+			noise=1e-1,
+			noise_p=15,
 			f=1.2,
 			a=1.0,
 			target_mean=0.7,

@@ -3,7 +3,7 @@ from typing import *
 
 import math
 
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction
 from core import Config
 from .market_state import MarketState
 from .exceptions import InsufficientFundsException
@@ -140,7 +140,10 @@ class AgentState:
 		elif action.units is None:
 			action.units = self.__units_for(action.margin_used, action.base_currency, action.quote_currency)
 		if action.margin_used > self.get_margin_available():
-			raise InsufficientFundsException
+			raise InsufficientFundsException(
+				available_margin=self.get_margin_available(),
+				requested_margin=action.margin_used
+			)
 
 		enter_value = current_value + ((action.action - 0.5) * 2) * self.__market_state.get_spread_state_of(
 			action.base_currency, action.quote_currency)
