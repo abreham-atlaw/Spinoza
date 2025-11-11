@@ -1,3 +1,5 @@
+import typing
+
 import numpy as np
 import pandas as pd
 
@@ -16,8 +18,8 @@ class Lass6Preparer(Lass3Preparer):
 			c_y: int,
 			seq_size: int,
 			*args,
-			a: float = 1,
-			f: float = 1,
+			a: typing.Union[float, np.ndarray] = 1,
+			f: typing.Union[float, np.ndarray] = 1,
 			target_mean: float = 1.0,
 			target_std: float = 0.3,
 			noise: float = 0,
@@ -34,10 +36,23 @@ class Lass6Preparer(Lass3Preparer):
 			clean_df=False,
 			**kwargs
 		)
+
+		if not isinstance(a, np.ndarray):
+			Logger.info(f"Initializing Amplitudes...")
+			a = self._init_amplitudes(c_x, a)
+
+		if not isinstance(f, np.ndarray):
+			Logger.info(f"Initializing Frequencies...")
+			f = self._init_frequencies(c_x, f)
+
+		for arr, name in zip([a, f], ["amplitudes", "frequencies"]):
+			if arr.shape[0] != c_x:
+				raise ValueError(f"Size of {name}, {arr.shape[0]}, doesn't match c_x, {c_x}.")
+
 		self.__c_x = c_x
 		self.__c_y = c_y
-		self.__a = np.reshape(self._init_amplitudes(c_x, a), (1, -1, 1))
-		self.__f = np.reshape(self._init_frequencies(c_x, f), (1, -1, 1)) * np.pi
+		self.__a = np.reshape(a, (1, -1, 1))
+		self.__f = np.reshape(f, (1, -1, 1)) * np.pi
 		self.__noise = noise
 		self.__noise_p = noise_p
 		self.__tm, self.__ts = target_mean, target_std

@@ -21,6 +21,10 @@ class Lass6PreparerTest(unittest.TestCase):
 		self.output_path = os.path.join(Config.BASE_DIR, "temp/Data/lass/13")
 		Logger.info(f"Cleaning {self.output_path}")
 		os.system(f"rm -fr \"{self.output_path}\"")
+		c_x = 100
+		f = 0.05 + (1e-4 * (np.arange(c_x)**4))
+		a = (1/f)**0.77
+
 		self.preparer = Lass6Preparer(
 			output_path=self.output_path,
 
@@ -33,14 +37,14 @@ class Lass6PreparerTest(unittest.TestCase):
 				VerticalShiftTransformation(shift=1.5),
 			],
 
-			c_x=25,
-			c_y=25,
-			noise=1e-1,
+			c_x=c_x,
+			c_y=11,
+			noise=0,
 			noise_p=15,
-			f=1.2,
-			a=1.0,
+			f=f,
+			a=a,
 			target_mean=0.7,
-			target_std=5e-3
+			target_std=7e-3
 		)
 
 	def test_functionality(self):
