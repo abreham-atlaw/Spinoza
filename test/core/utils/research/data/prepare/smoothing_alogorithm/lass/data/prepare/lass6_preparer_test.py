@@ -21,9 +21,12 @@ class Lass6PreparerTest(unittest.TestCase):
 		self.output_path = os.path.join(Config.BASE_DIR, "temp/Data/lass/13")
 		Logger.info(f"Cleaning {self.output_path}")
 		os.system(f"rm -fr \"{self.output_path}\"")
-		c_x = 100
+		c_x = int(1e3)
 		f = 0.05 + (1e-4 * (np.arange(c_x)**4))
 		a = (1/f)**0.77
+
+		f = 1.0
+		a = 1.0
 
 		self.preparer = Lass6Preparer(
 			output_path=self.output_path,
@@ -38,13 +41,14 @@ class Lass6PreparerTest(unittest.TestCase):
 			],
 
 			c_x=c_x,
-			c_y=11,
+			c_y=15,
 			noise=0,
 			noise_p=15,
 			f=f,
 			a=a,
 			target_mean=0.7,
-			target_std=7e-3
+			target_std=7e-3,
+			lag=8
 		)
 
 	def test_functionality(self):
@@ -63,7 +67,7 @@ class Lass6PreparerTest(unittest.TestCase):
 		for f in np.random.randint(0, len(X_FILES), 10):
 			plt.figure(figsize=(20, 10))
 			X, y = [np.load(files[f]) for files in [X_FILES, Y_FILES]]
-			for idx, i in enumerate(np.argsort(np.mean(X[:, 0], axis=1))[:4]):
+			for idx, i in enumerate(np.argsort(np.sum(X[:, 1,] == 0, axis=1))[:4]):
 				plt.subplot(2, 2, idx + 1)
 				plt.plot(X[i, 0], label="X-Encoder")
 				plt.plot(X[i, 1][X[i, 1] > 0], label="X-Decoder")

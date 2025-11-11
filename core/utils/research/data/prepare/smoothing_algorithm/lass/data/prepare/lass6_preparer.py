@@ -17,6 +17,7 @@ class Lass6Preparer(Lass3Preparer):
 			c_x: int,
 			c_y: int,
 			seq_size: int,
+			block_size: int,
 			*args,
 			a: typing.Union[float, np.ndarray] = 1,
 			f: typing.Union[float, np.ndarray] = 1,
@@ -25,6 +26,7 @@ class Lass6Preparer(Lass3Preparer):
 			noise: float = 0,
 			noise_p: float = 0,
 			seq_start: int = 0,
+			lag: int = 0,
 			**kwargs
 	):
 		super().__init__(
@@ -34,6 +36,7 @@ class Lass6Preparer(Lass3Preparer):
 			df=self.__generate_df(seq_size, seq_start),
 			granularity=1,
 			clean_df=False,
+			block_size=block_size + lag,
 			**kwargs
 		)
 
@@ -57,9 +60,15 @@ class Lass6Preparer(Lass3Preparer):
 		self.__noise_p = noise_p
 		self.__tm, self.__ts = target_mean, target_std
 		self.__stack_cache = Cache(cache_size=1, key_func=lambda x: x.tobytes())
+		self.__lag = lag
 
 		if self.__noise_p % 2 == 0:
 			Logger.warning(f"Using even noise power, {noise_p}. It is recommended to use odd noise power.")
+
+		Logger.info(
+			f"Initialized Lass6Preparer using lag={lag}, c_x={c_x}, c_y={c_y}, noise={noise}, noise_p={noise_p}, "
+			f"target_mean={target_mean}, target_std={target_std}"
+		)
 
 	@staticmethod
 	def __generate_df(size: int, start: int = 0) -> pd.DataFrame:
@@ -88,6 +97,14 @@ class Lass6Preparer(Lass3Preparer):
 	def _apply_transformations(self, x: np.ndarray) -> np.ndarray:
 		return x
 
+	def __apply_lag(self, x: np.ndarray) -> np.ndarray:
+		if self.__lag == 0:
+			return x
+		return np.stack([
+			x[:, 0, self.__lag:],
+			x[:, 1, :-self.__lag]
+		], axis=1)
+
 	def _stack_noisy_and_smoothed(self, sequences: np.ndarray) -> np.ndarray:
 
 		cached = self.__stack_cache.retrieve(sequences)
@@ -103,6 +120,8 @@ class Lass6Preparer(Lass3Preparer):
 
 		stack = np.stack([x, y], axis=1)
 		stack = super()._apply_transformations(stack)
+
+		stack = self.__apply_lag(stack)
 
 		self.__stack_cache[sequences] = stack
 
