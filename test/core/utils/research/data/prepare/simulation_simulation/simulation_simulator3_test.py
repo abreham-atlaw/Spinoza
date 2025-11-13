@@ -24,7 +24,7 @@ class SimulationSimulator2Test(unittest.TestCase):
 			extra_len=124,
 			batch_size=10,
 			output_path=self.output_path,
-			granularity=1,
+			granularity=5,
 			smoothing_algorithm=MovingAverage(64),
 			order_gran=True,
 			trim_extra_gran=True,

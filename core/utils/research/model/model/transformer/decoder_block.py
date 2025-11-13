@@ -3,7 +3,7 @@ import typing
 import torch
 import torch.nn as nn
 
-from core.utils.research.model.layers import AddAndNorm
+from core.utils.research.model.layers import AddAndNorm, Identity
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 from core.utils.research.model.model.transformer.teb import TransformerEmbeddingBlock
@@ -18,6 +18,7 @@ class DecoderBlock(SpinozaModule):
 			embedding_last: bool = False,
 			norm_1: nn.Module = None,
 			norm_2: nn.Module = None,
+			input_norm: nn.Module = None,
 			ff_block: LinearModel = None
 	):
 		self.args = {
@@ -25,6 +26,7 @@ class DecoderBlock(SpinozaModule):
 			"embedding_last": embedding_last,
 			"norm_1": norm_1,
 			"norm_2": norm_2,
+			"input_norm": input_norm,
 			"ff_block": ff_block
 		}
 		super().__init__()
@@ -33,6 +35,7 @@ class DecoderBlock(SpinozaModule):
 		self.embedding_last = embedding_last
 		self.norm_1 = AddAndNorm(norm_layer=norm_1) if norm_1 is not None else nn.Identity()
 		self.norm_2 = AddAndNorm(norm_layer=norm_2) if norm_2 is not None else nn.Identity()
+		self.input_norm = input_norm if input_norm is not None else Identity()
 		self.ff_block = ff_block if ff_block is not None else nn.Identity()
 		self.cache = Cache()
 
@@ -50,6 +53,8 @@ class DecoderBlock(SpinozaModule):
 		return self.self_attention(x)
 
 	def call(self, x: torch.Tensor, x_decoder: torch.Tensor = None) -> torch.Tensor:
+
+		x = self.input_norm(x)
 
 		attention = self._apply_attention(x, x_decoder)
 		attention = self.norm_1(x, attention)

@@ -129,7 +129,7 @@ AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
 AGENT_TRADE_SIZE_USE_PERCENTAGE = True
-AGENT_SUPPORT_MULTI_ACTION = False
+AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
@@ -145,6 +145,7 @@ AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
+	("USD", "ZAR")
 ]
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
@@ -172,8 +173,8 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 64
-AGENT_USE_LASS = True
+AGENT_MA_WINDOW_SIZE = 16
+AGENT_USE_LASS = False
 AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-3-it-11-tot.2.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
@@ -194,7 +195,7 @@ AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/09.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/11.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -254,7 +255,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-65/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-70/"
 
 CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
@@ -367,6 +368,12 @@ class RunnerStatsBranches:
 	it_65_6 = "it_65_6"
 	it_66_6 = "it_66_6"
 
+	it_68_6 = "it_68_6"
+	it_69_6 = "it_69_6"
+
+	it_70_6 = "it_70_6"
+	it_71_6 = "it_71_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -428,10 +435,14 @@ class RunnerStatsBranches:
 		it_61_6,
 		it_63_6,
 		it_65_6,
-		it_66_6
+		it_66_6,
+		it_68_6,
+		it_69_6,
+		it_70_6,
+		it_71_6
 	]
 
-	default = it_65_6
+	default = it_70_6
 
 
 class RunnerStatsLossesBranches:
@@ -482,6 +493,8 @@ class RunnerStatsLossesBranches:
 	it_58_0 = "it_58_0"
 	it_60_0 = "it_60_0"
 	it_65_0 = "it_65_0"
+	it_68_0 = "it_68_0"
+	it_70_0 = "it_70_0"
 
 	all = [
 		main,
@@ -528,7 +541,9 @@ class RunnerStatsLossesBranches:
 		it_56_0,
 		it_58_0,
 		it_60_0,
-		it_65_0
+		it_65_0,
+		it_68_0,
+		it_70_0
 	]
 
-	default = it_65_0
+	default = it_70_0

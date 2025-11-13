@@ -433,8 +433,8 @@ class RunnerStatsPopulater:
 
 			print(f"{(i+1)*100/len(files) :.2f}", end="\r")
 
-		self.__clean_junk()
-
 		if not self.__is_all_complete():
 			Logger.info(f"Found incomplete files. Restarting...")
 			self.start(replace_existing)
+
+		self.__clean_junk()
