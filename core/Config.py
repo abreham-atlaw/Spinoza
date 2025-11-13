@@ -108,7 +108,7 @@ OANDA_SIM_DELTA_MULTIPLIER = 10
 OANDA_SIM_MARGIN_RATE = 0.01
 OANDA_SIM_BALANCE = 100
 OANDA_SIM_ALIAS = "Sim Account 0"
-OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-5.json")
+OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-50-it-4.json")
 OANDA_SIM_MODEL_IN_PATH = "/Apps/RTrader/"
 
 DEFAULT_TIME_IN_FORCE = "FOK"
