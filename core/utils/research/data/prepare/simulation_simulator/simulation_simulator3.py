@@ -5,6 +5,7 @@ import pandas as pd
 
 from lib.utils.logger import Logger
 from .simulation_simulator import SimulationSimulator
+from ..utils.data_prep_utils import DataPrepUtils
 
 
 class SimulationSimulator3(SimulationSimulator):
@@ -70,3 +71,6 @@ class SimulationSimulator3(SimulationSimulator):
 			if self.__x_columns[i] in self.__y_columns
 		], axis=1)
 
+	def _extract_granularity(self, data: np.ndarray, g: int) -> np.ndarray:
+		df = pd.DataFrame(columns=self.__x_columns, data=data.transpose((1, 0)))
+		return self._extract_columns(DataPrepUtils.condense_granularity(df, g))
