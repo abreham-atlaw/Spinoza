@@ -344,6 +344,9 @@ class RunnerStatsBranches:
 	it_65_6 = "it_65_6"
 	it_66_6 = "it_66_6"
 
+	it_68_6 = "it_68_6"
+	it_69_6 = "it_69_6"
+
 	it_70_6 = "it_70_6"
 	it_71_6 = "it_71_6"
 
@@ -409,6 +412,8 @@ class RunnerStatsBranches:
 		it_63_6,
 		it_65_6,
 		it_66_6,
+		it_68_6,
+		it_69_6,
 		it_70_6,
 		it_71_6
 	]
@@ -464,6 +469,7 @@ class RunnerStatsLossesBranches:
 	it_58_0 = "it_58_0"
 	it_60_0 = "it_60_0"
 	it_65_0 = "it_65_0"
+	it_68_0 = "it_68_0"
 	it_70_0 = "it_70_0"
 
 	all = [
@@ -512,6 +518,7 @@ class RunnerStatsLossesBranches:
 		it_58_0,
 		it_60_0,
 		it_65_0,
+		it_68_0,
 		it_70_0
 	]
 
