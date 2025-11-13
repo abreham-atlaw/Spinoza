@@ -25,7 +25,8 @@ def share_notebooks():
 		'albertcamus0',
 		'birukay',
 		'nikolatesla0',
-		'friedrichnietzche0'
+		'friedrichnietzche0',
+		"baruchspinoza0"
 	]
 
 	scrapper_threads = []
