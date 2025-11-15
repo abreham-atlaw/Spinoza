@@ -54,3 +54,14 @@ class DataPrepUtils:
 		for i in range(stack.shape[0]):
 			stack[i] = sequence[..., i: i + length]
 		return stack
+
+	@staticmethod
+	def condense_granularity(df: pd.DataFrame, g: int) -> pd.DataFrame:
+
+		df = df.iloc[:g*(df.shape[0] // g)]
+		df_g = df.iloc[0::g].copy()
+
+		for col, condenser in zip(["l", "h"], [np.min, np.max]):
+			df_g[col] = condenser(df[col].to_numpy().reshape((-1, g)), axis=1)
+
+		return df_g
