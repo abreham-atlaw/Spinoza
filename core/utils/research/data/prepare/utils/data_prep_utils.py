@@ -65,3 +65,11 @@ class DataPrepUtils:
 			df_g[col] = condenser(df[col].to_numpy().reshape((-1, g)), axis=1)
 
 		return df_g
+
+	@staticmethod
+	def encode_timestamp(df: pd.DataFrame) -> pd.DataFrame:
+		timestamp = pd.to_datetime(df["time"].to_numpy())
+		df[["time.year", "time.month", "time.day", "time.hour", "time.minute", "time.second"]] = np.stack(
+			[timestamp.year, timestamp.month, timestamp.day, timestamp.hour, timestamp.minute, timestamp.second],
+			axis=1)
+		return df
