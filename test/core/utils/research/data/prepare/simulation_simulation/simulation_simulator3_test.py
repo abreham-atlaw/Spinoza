@@ -10,22 +10,28 @@ from core.Config import BASE_DIR
 from core.utils.research.data.prepare import SimulationSimulator3
 from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
 from core.utils.research.data.prepare.splitting import SequentialSplitter
+from lib.utils.logger import Logger
 
 
 class SimulationSimulator2Test(unittest.TestCase):
 
 	def setUp(self):
 		df = pd.read_csv(os.path.join(BASE_DIR, "temp/Data/AUD-USD.2-day.csv"))
-		self.output_path = os.path.join(BASE_DIR, "temp/Data/simulation_simulator_data/05")
+		self.output_path = os.path.join(BASE_DIR, "temp/Data/simulation_simulator_data/06")
+
+		Logger.warning(f"Cleaning output path: {self.output_path}...")
+		os.system(f"rm -fr \"{self.output_path}\"")
+
 		self.simulator = SimulationSimulator3(
 			df=df,
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			seq_len=128,
-			extra_len=124,
+			extra_len=0,
 			batch_size=10,
 			output_path=self.output_path,
-			granularity=1,
+			granularity=5,
 			smoothing_algorithm=MovingAverage(64),
+			smoothed_columns=('c',),
 			order_gran=True,
 			trim_extra_gran=True,
 			trim_incomplete_batch=True,
@@ -33,7 +39,7 @@ class SimulationSimulator2Test(unittest.TestCase):
 				test_size=0.2
 			),
 			transformations=[
-			]
+			],
 		)
 
 	def test_functionality(self):
@@ -56,6 +62,6 @@ class SimulationSimulator2Test(unittest.TestCase):
 			for idx, i in enumerate(np.argsort(np.mean(X[:, 0], axis=1))[:4]):
 				plt.subplot(2, 2, idx + 1)
 				for j in range(4):
-					plt.plot(X[i, j, :-124], label=["c", "o", "l", "h"][j])
+					plt.plot(X[i, j], label=["c", "o", "l", "h"][j])
 				plt.legend()
 			plt.show()
