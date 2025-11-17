@@ -55,6 +55,10 @@ class MarketState:
 	def is_anchored(self) -> bool:
 		return self.__anchor is not None
 
+	@property
+	def channels(self) -> int:
+		return self.__state.shape[0]
+
 	def __init_state(self, num_currencies, memory_len, channels: int) -> np.ndarray:
 
 		if self.is_anchored:
