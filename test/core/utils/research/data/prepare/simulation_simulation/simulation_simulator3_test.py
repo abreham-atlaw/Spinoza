@@ -21,6 +21,7 @@ class SimulationSimulator2Test(unittest.TestCase):
 
 		Logger.warning(f"Cleaning output path: {self.output_path}...")
 		os.system(f"rm -fr \"{self.output_path}\"")
+
 		self.simulator = SimulationSimulator3(
 			df=df,
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,

@@ -4,6 +4,7 @@ import unittest
 import numpy as np
 import torch
 import torch.nn as nn
+from deprecated.classic import deprecated
 from torch.optim import Adam
 from torch.utils.data import DataLoader, Dataset
 
@@ -98,6 +99,7 @@ class TrainerTest(unittest.TestCase):
 	def _create_model(self):
 		return self._create_cnn2()
 
+	@deprecated
 	def _create_cnn(self):
 		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
@@ -438,7 +440,10 @@ class TrainerTest(unittest.TestCase):
 
 	def _create_losses(self):
 		return (
-			ProximalMaskedLoss3(bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND), weighted_sample=False),
+			ProximalMaskedLoss3(
+				bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
+				weighted_sample=False
+			),
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)
 
