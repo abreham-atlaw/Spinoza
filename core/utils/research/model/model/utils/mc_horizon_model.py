@@ -22,7 +22,7 @@ class MCHorizonModel(HorizonModel):
 		y = torch.concatenate(
 			(
 				torch.unsqueeze(y, dim=1),
-				torch.zeros((x.shape[0], x.shape[1]-1))
+				torch.zeros((x.shape[0], x.shape[1]-1), device=x.device)
 			),
 			dim=1
 		)
