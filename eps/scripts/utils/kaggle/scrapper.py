@@ -7,9 +7,9 @@ from core.utils.kaggle.scrapper import ShareProcess, KaggleScraper
 
 def share_notebooks():
 
-	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamalemu.json'
+	cookies_path = '/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/kaggle_cookies/abrehamatlaw0.json'
 	notebook_urls = [
-		f'https://www.kaggle.com/code/abrehamalemu/spinoza-lass-training-cnn-12-it-11-tot/',
+		f'https://www.kaggle.com/code/abrehamatlaw0/spinoza-maploss-rsp-0-it-53-0/',
 		# for i in [29, 30]
 	]
 	random.shuffle(notebook_urls)
