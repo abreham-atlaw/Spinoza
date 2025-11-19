@@ -1,3 +1,4 @@
+import typing
 from typing import *
 
 import numpy as np
@@ -17,7 +18,9 @@ class MarketState:
 			spread_state=None,
 			memory_len=None,
 			tradable_pairs=None,
-			anchor: 'MarketState' = None
+			anchor: 'MarketState' = None,
+			channels: int = 1,
+			close_channel: int = 0
 	):
 		self.__anchor = anchor
 
@@ -29,7 +32,7 @@ class MarketState:
 			raise Exception("Insufficient information given on State.")
 
 		if state is None:
-			self.__state = self.__init_state(len(currencies), memory_len)
+			self.__state = self.__init_state(len(currencies), memory_len, channels=channels)
 		else:
 			self.__state = state
 
@@ -46,19 +49,25 @@ class MarketState:
 		if spread_state is None:
 			self.__spread_state = np.zeros((len(currencies), len(currencies))).astype('float64')
 
+		self.__close_channel = close_channel
+
 	@property
 	def is_anchored(self) -> bool:
 		return self.__anchor is not None
 
-	def __init_state(self, num_currencies, memory_len) -> np.ndarray:
+	@property
+	def channels(self) -> int:
+		return self.__state.shape[0]
+
+	def __init_state(self, num_currencies, memory_len, channels: int) -> np.ndarray:
 
 		if self.is_anchored:
-			state = np.zeros((num_currencies, num_currencies, 0)).astype('float64')
+			state = np.zeros((channels, num_currencies, num_currencies, 0)).astype('float64')
 		else:
-			state = np.zeros((num_currencies, num_currencies, memory_len)).astype('float64')
+			state = np.zeros((channels, num_currencies, num_currencies, memory_len)).astype('float64')
 
 		for i in range(num_currencies):
-			state[i, i] = 1
+			state[:, i, i] = 1
 
 		return state
 
@@ -71,10 +80,20 @@ class MarketState:
 		return self.__currencies.index(base_currency), self.__currencies.index(quote_currency)
 
 	def get_state_of(self, base_currency, quote_currency) -> np.ndarray:
+		return np.squeeze(
+			self.get_channels_state(base_currency, quote_currency, channels=[self.__close_channel]),
+			axis=0
+		)
+
+	def get_channels_state(self, base_currency, quote_currency, channels: typing.List[int] = None) -> np.ndarray:
+		if channels is None:
+			channels = np.arange(self.__state.shape[0])
 		bci, qci = self.__get_currencies_position(base_currency, quote_currency)
-		state = self.__state[bci, qci]
+		state = self.__state[channels, bci, qci]
 		if self.is_anchored:
-			state = np.concatenate((self.__anchor.get_state_of(base_currency, quote_currency),  state))[state.shape[0]:]
+			state = np.concatenate(
+				(self.__anchor.get_channels_state(base_currency, quote_currency, channels=channels), state)
+			)[:, state.shape[0]:]
 		return state
 
 	def get_current_price(self, base_currency, quote_currency) -> np.float32:
@@ -89,18 +108,18 @@ class MarketState:
 		return self.__spread_state[bci, qci]
 
 	def __add_empty_state_layer(self, size: int):
-		self.__state = np.concatenate((self.__state, np.zeros((self.__state.shape[0], self.__state.shape[1], size))), axis=2)
+		self.__state = np.concatenate((self.__state, np.zeros(self.__state.shape[:-1] + [size])), axis=-1)
 
 	def update_state_of(self, base_currency, quote_currency, values: np.ndarray):
 		bci, qci = self.__get_currencies_position(base_currency, quote_currency)
 
 		if self.is_anchored:
 			self.__add_empty_state_layer(len(values))
-			self.__state[bci, qci, -len(values):] = values
+			self.__state[:, bci, qci, -len(values):] = values
 		else:
-			self.__state[bci, qci] = np.concatenate((self.__state[bci, qci, len(values):], values))
+			self.__state[:, bci, qci] = np.concatenate((self.__state[:, bci, qci, values.shape[-1]:], values), axis=-1)
 
-		self.__state[qci, bci] = 1/self.__state[bci, qci]
+		self.__state[:, qci, bci] = 1/self.__state[:, bci, qci]
 
 	def update_state_layer(self, state_layer: np.ndarray):
 		for i in range(state_layer.shape[0]):
@@ -110,12 +129,12 @@ class MarketState:
 		if self.is_anchored:
 			self.__add_empty_state_layer(1)
 		else:
-			self.__state[:, :, :-1] = self.__state[:, :, 1:]
+			self.__state[...,:-1] = self.__state[..., 1:]
 
-		self.__state[:, :, -1] = state_layer
+		self.__state[..., -1] = state_layer
 
 		for i in range(len(self.__currencies)):
-			self.__state[i, i, -1] = 1
+			self.__state[:, i, i, -1] = 1
 
 	def update_spread_state_of(self, base_currency, quote_currency, value: float):
 		bci, qci = self.__get_currencies_position(base_currency, quote_currency)
@@ -133,8 +152,8 @@ class MarketState:
 
 	def get_memory_len(self) -> int:
 		if self.is_anchored:
-			return self.__anchor.get_price_matrix().shape[2]
-		return self.__state.shape[2]
+			return self.__anchor.get_price_matrix().shape[-1]
+		return self.__state.shape[-1]
 
 	def get_currencies(self) -> List[str]:
 		return self.__currencies
