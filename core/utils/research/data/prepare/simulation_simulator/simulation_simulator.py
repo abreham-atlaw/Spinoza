@@ -39,12 +39,12 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 		self.__bounds = bounds
 		self.__extra_len = extra_len
 
-		self.__smoothing_algorithm = smoothing_algorithm
-		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
+		self._smoothing_algorithm = smoothing_algorithm
+		Logger.info(f"Using Smoothing Algorithm: {self._smoothing_algorithm}")
 
 	def _prepare_sequence_stack(self, x: np.ndarray) -> np.ndarray:
-		if self.__smoothing_algorithm is not None:
-			x = self.__smoothing_algorithm.apply_on_batch(x)
+		if self._smoothing_algorithm is not None:
+			x = self._smoothing_algorithm.apply_on_batch(x)
 		return x
 
 	def _prepare_x(self, sequences: np.ndarray) -> np.ndarray:

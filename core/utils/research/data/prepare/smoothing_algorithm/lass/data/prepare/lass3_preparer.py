@@ -20,6 +20,11 @@ class Lass3Preparer(LassPreparer2):
 		self.__left_align = left_align
 		self.__decoder_samples = decoder_samples
 
+	@staticmethod
+	def _get_sequence_random(sequences: np.ndarray) -> np.random.Generator:
+		seed = hash(sequences.tobytes())
+		return np.random.default_rng(abs(seed))
+
 	def __apply_mask(self, x: np.ndarray):
 		out = np.repeat(x, x.shape[-1], axis=0)
 
@@ -40,8 +45,7 @@ class Lass3Preparer(LassPreparer2):
 	def __select_samples(self, sequences: np.ndarray, dataset: np.ndarray) -> np.ndarray:
 		if self.__decoder_samples is None:
 			return dataset
-		seed = hash(sequences.tobytes())
-		random = np.random.default_rng(abs(seed))
+		random = self._get_sequence_random(sequences)
 
 		idxs = np.concatenate([
 			random.choice(

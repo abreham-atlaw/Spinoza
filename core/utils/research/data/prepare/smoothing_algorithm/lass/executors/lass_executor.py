@@ -24,3 +24,7 @@ class LassExecutor(ABC):
 
 	def execute(self, X: np.ndarray) -> np.ndarray:
 		return self._execute(X)
+
+	@property
+	def supports_batch_execution(self) -> bool:
+		return False

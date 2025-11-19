@@ -1,10 +1,8 @@
-from typing import *
-
 import unittest
 
 from lib.network.oanda import Trader
 from core.environment import LiveEnvironment
-from core.agent.trader_action import TraderAction
+from core.agent.action.trader_action import TraderAction
 from core import Config
 
 

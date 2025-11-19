@@ -7,14 +7,15 @@ import pandas as pd
 
 from datetime import datetime
 
-from core.di import EnvironmentUtilsProvider
-from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm, KalmanFilter, MovingAverage
+from core.di import EnvironmentUtilsProvider, ServiceProvider
+from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
+from lib.network.oanda.exceptions import InsufficientMarginException
 from lib.utils.logger import Logger
 from core import Config
 from core.environment.trade_state import TradeState, AgentState, MarketState
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction
 from core.environment.trade_environment import TradeEnvironment
 
 
@@ -30,11 +31,7 @@ class LiveEnvironment(TradeEnvironment):
 			agent_use_static_instruments: bool = Config.AGENT_USE_STATIC_INSTRUMENTS,
 			market_state_granularity: str = Config.MARKET_STATE_GRANULARITY,
 			candlestick_dump_path: str = Config.DUMP_CANDLESTICKS_PATH,
-			moving_average_window: int = Config.AGENT_MA_WINDOW_SIZE,
 			use_smoothing: int = Config.MARKET_STATE_SMOOTHING,
-			use_kalman_filter: bool = Config.AGENT_USE_KALMAN_FILTER,
-			kalman_alpha: float = Config.AGENT_KALMAN_ALPHA,
-			kalman_beta: float = Config.AGENT_KALMAN_BETA,
 			**kwargs
 	):
 		super(LiveEnvironment, self).__init__(*args, **kwargs)
@@ -56,35 +53,8 @@ class LiveEnvironment(TradeEnvironment):
 		self.__all_instruments = self.__generate_all_instruments(self.__instruments, self.__agent_currency)
 		self.__candlestick_dump_path = candlestick_dump_path
 		self.__use_smoothing = use_smoothing
-		self.__smoothing_algorithm = self.__init_smoothing(
-			use_smoothing,
-			use_kalman_filter,
-			moving_average_window,
-			kalman_alpha,
-			kalman_beta
-		)
+		self.__smoothing_algorithm = None if not use_smoothing else ServiceProvider.provide_smoothing_algorithm()
 		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
-
-	@staticmethod
-	def __init_smoothing(
-			use_smoothing,
-			use_kalman_filter,
-			moving_average_window,
-			kalman_alpha,
-			kalman_beta
-	) -> SmoothingAlgorithm:
-		if not use_smoothing:
-			return None
-
-		if use_kalman_filter:
-			return KalmanFilter(
-				alpha=kalman_alpha,
-				beta=kalman_beta
-			)
-
-		return MovingAverage(
-			window_size=moving_average_window
-		)
 
 	def __generate_all_instruments(self, instruments, agent_currency) -> List[Tuple[str, str]]:
 		valid_instruments = self.__trader.get_instruments()
@@ -223,12 +193,16 @@ class LiveEnvironment(TradeEnvironment):
 
 	def _open_trade(self, action: TraderAction):
 		super()._open_trade(action)
-		self.__trader.trade(
-			(action.base_currency, action.quote_currency),
-			self.__to_oanda_action(action.action),
-			action.margin_used,
-			time_in_force=Config.DEFAULT_TIME_IN_FORCE
-		)
+		try:
+			self.__trader.trade(
+				(action.base_currency, action.quote_currency),
+				self.__to_oanda_action(action.action),
+				action.margin_used,
+				time_in_force=Config.DEFAULT_TIME_IN_FORCE
+			)
+		except InsufficientMarginException as ex:
+			Logger.error(f"Insufficient margin requested for trade: {str(ex)}")
+			return
 
 	def _close_trades(self, base_currency, quote_currency):
 		super()._close_trades(base_currency, quote_currency)

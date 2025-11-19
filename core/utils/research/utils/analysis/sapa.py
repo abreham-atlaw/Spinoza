@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 
+from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm
 from lib.utils.logger import Logger
 from lib.utils.math import delta
 
@@ -59,6 +60,26 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 	def __load_data(self):
 		x = pd.read_csv(self.__df_path)["c"].to_numpy()[::self.__granularity]
 		return x
+
+	def __select_samples(self, sequence: np.ndarray, view_size: int, stride: int) -> np.ndarray:
+		Logger.info(f"Selecting {self.__samples} Samples")
+		return np.stack([
+			sequence[
+				-(view_size + stride*i):
+				None if i == 0 else -(stride*i)
+			]
+			for i in range(self.__samples)
+		])
+
+	def __extract_samples(self, sequence: np.ndarray, sa: SmoothingAlgorithm) -> typing.Tuple[np.ndarray, np.ndarray]:
+		Logger.info(f"Selecting samples of view_size: {self.__view_size}")
+
+		x = self.__select_samples(sequence, view_size=self.__view_size + sa.reduction, stride=self.__view_size)
+		x_sa = sa.apply_on_batch(x)
+		if x.shape[1] != x_sa.shape[1]:
+			x = x[:, -x_sa.shape[1]:]
+
+		return x, x_sa
 
 	@staticmethod
 	def __extract_tps(x):
@@ -139,10 +160,11 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 
 		return optimal_profit, shaken_profit
 
-	def analyze(self, sa) -> typing.Tuple[float, float]:
+	def analyze(self, sa: SmoothingAlgorithm) -> typing.Tuple[float, float]:
 		Logger.info(f"\n\nProcessing {sa}")
-		og_x = self.__load_data()
-		og_x_sa = sa(og_x)
+		sequence = self.__load_data()
+
+		x, x_sa = self.__extract_samples(sequence, sa)
 
 		optimal_profits, shaken_profits = [], []
 		if self.__plot:
@@ -153,8 +175,7 @@ class SmoothingAlgorithmProfitabilityAnalyzer:
 			if self.__plot:
 				plt.subplot(math.ceil(self.__samples/self.__plot_cols), self.__plot_cols, i+1)
 			
-			x, x_sa = [arr[-self.__view_size*(i+1): None if i == 0 else -self.__view_size*i] for arr in [og_x, og_x_sa]]
-			optimal_profit, shaken_profit = self.__analyze_sample(x, x_sa, sa, i)
+			optimal_profit, shaken_profit = self.__analyze_sample(x[i], x_sa[i], sa, i)
 			optimal_profits.append(optimal_profit)
 			shaken_profits.append(shaken_profit)
 

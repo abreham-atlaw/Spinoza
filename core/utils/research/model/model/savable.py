@@ -5,12 +5,22 @@ from abc import ABC, abstractmethod
 import torch
 from torch import nn
 
+from core.utils.research.utils.module_cache import ModuleCache
+from lib.utils.cache import Cache
 from lib.utils.logger import Logger
 
 
 class SpinozaModule(nn.Module, ABC):
 
-	def __init__(self, *args, input_size=None, output_size=None, auto_build=True, **kwargs):
+	def __init__(
+			self,
+			*args,
+			input_size=None,
+			output_size=None,
+			auto_build=True,
+			caching: bool = False,
+			**kwargs,
+	):
 		super().__init__(*args, **kwargs)
 		self.built = False
 
@@ -24,15 +34,22 @@ class SpinozaModule(nn.Module, ABC):
 		if input_size is not None and auto_build:
 			self.init()
 		self.__state_dict_params = None
+		self.__caching = caching
+		self.__module_cache = ModuleCache(cache_size=5)
 
 	def init(self):
 		init_data = torch.rand((1,) + self.input_size[1:])
 		out = self(init_data)
-		self.output_size = (None,) + out.size()[1:]
+		self.output_size = (None,) + tuple(out.size()[1:])
+
+	def set_caching(self, caching: bool, size=None):
+		self.__caching = caching
+		if size is not None:
+			self.__module_cache = ModuleCache(cache_size=size)
 
 	def _build(self, input_size: torch.Size):
 		Logger.info(f"[{self.__class__.__name__}] Building...")
-		self.input_size = (None, ) + input_size[1:]
+		self.input_size = (None, ) + tuple(input_size[1:])
 		self.build(input_size)
 		self.built = True
 		if self.__state_dict_params is not None:
@@ -44,6 +61,14 @@ class SpinozaModule(nn.Module, ABC):
 	def _get_input_size(*args, **kwargs) -> torch.Size:
 		return args[0].size()
 
+	def __cache(self, x, y):
+		if self.__caching and not self.training:
+			self.__module_cache.store(x, y)
+
+	def __retrieve_cached(self, x):
+		if self.__caching and not self.training:
+			return self.__module_cache.retrieve(x)
+
 	def build(self, input_size: torch.Size):
 		pass
 
@@ -54,7 +79,16 @@ class SpinozaModule(nn.Module, ABC):
 	def forward(self, *args, **kwargs) -> torch.Tensor:
 		if not self.built:
 			self._build(self._get_input_size(*args, **kwargs))
-		return self.call(*args, **kwargs)
+
+		cached = self.__retrieve_cached(args)
+		if cached is not None:
+			# print(f"[{self.__class__.__name__}] Cached")
+			return cached
+
+		y = self.call(*args, **kwargs)
+
+		self.__cache(args, y)
+		return y
 
 	def load_state_dict_lazy(self, *args, **kwargs):
 		self.__state_dict_params = args, kwargs

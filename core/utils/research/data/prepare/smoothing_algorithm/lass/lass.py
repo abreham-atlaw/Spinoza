@@ -24,8 +24,17 @@ class Lass(SmoothingAlgorithm):
 		self.__executor = executor
 		self.__executor.set_model(model)
 
+	@property
+	def reduction(self) -> int:
+		return 0
+
 	def __apply(self, x: np.ndarray) -> np.ndarray:
 		return self.__executor.execute(x)
 
 	def apply(self, x: np.ndarray) -> np.ndarray:
 		return self.__apply(x)
+
+	def apply_on_batch(self, x: np.ndarray) -> np.ndarray:
+		if self.__executor.supports_batch_execution:
+			return self.__apply(x)
+		return super().apply_on_batch(x)
