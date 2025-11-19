@@ -7,6 +7,9 @@ class MCHorizonModel(HorizonModel):
 
 	def __init__(self, *args, close_channel: int = 0, **kwargs):
 		super().__init__(*args, **kwargs)
+		self.args.update({
+			"close_channel": close_channel
+		})
 		self.close_channel = close_channel
 
 	def _retrieve_recent_close(self, x: torch.Tensor):
