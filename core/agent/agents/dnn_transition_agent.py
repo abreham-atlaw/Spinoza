@@ -266,7 +266,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		elif isinstance(action, ActionSequence):
 			involved_instruments.extend([(action.base_currency, action.quote_currency) for action in action.actions])
 
-		else:
+		elif action is None and len(state.get_agent_state().get_open_trades()) == 0:
 			involved_instruments = state.get_market_state().get_tradable_pairs()
 
 		involved_instruments = list(set(involved_instruments))
@@ -274,7 +274,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		states = self.__simulate_instruments_change(state, involved_instruments)
 
 		for mid_state in states:
-			self.__simulate_action(mid_state, action)
+			self._simulate_action(mid_state, action)
 
 		return states
 
@@ -323,7 +323,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return states
 
-	def __simulate_action(self, state: TradeState, action: Action):  # TODO: SETUP CACHER
+	def _simulate_action(self, state: TradeState, action: Action):  # TODO: SETUP CACHER
 		# state = copy.deepcopy(state)
 
 		if action is None:
@@ -331,7 +331,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		if isinstance(action, ActionSequence):
 			for action in action.actions:
-				self.__simulate_action(state, action)
+				self._simulate_action(state, action)
 			return
 
 		assert isinstance(action, TraderAction)
