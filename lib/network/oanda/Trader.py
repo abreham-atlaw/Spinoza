@@ -147,7 +147,7 @@ class Trader:
 				from_=from_,
 				to=to,
 				granularity=granularity,
-				count=count+1
+				count=count+1 if count is not None else None
 			)
 		)
 
@@ -157,7 +157,9 @@ class Trader:
 				candlesticks
 			))
 
-		return candlesticks[-count:]
+		if count is not None:
+			candlesticks = candlesticks[-count:]
+		return candlesticks
 
 	def get_spread_price(self, instrument: Tuple[str, str]) -> SpreadPrice:
 		return self.__client.execute(

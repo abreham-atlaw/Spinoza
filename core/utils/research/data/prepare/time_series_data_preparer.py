@@ -131,6 +131,9 @@ class TimeSeriesDataPreparer(ABC):
 			new_arr[p(i, np.arange(arrays[i].shape[0]), len(arrays))] = arrays[i]
 		return new_arr
 
+	def _extract_granularity(self, data: np.ndarray, g: int) -> np.ndarray:
+		return data[..., ::g]
+
 	def __prepare_data(self, df: pd.DataFrame) -> typing.Tuple[np.ndarray, np.ndarray]:
 		Logger.info(f"Preparing Data...")
 
@@ -139,7 +142,7 @@ class TimeSeriesDataPreparer(ABC):
 		data = self._extract_columns(df)
 
 		for i in range(self.__granularity):
-			gran_sequence = data[..., i::self.__granularity]
+			gran_sequence = self._extract_granularity(data[..., i:], self.__granularity)
 			gran_sequence = self._prepare_sequence(gran_sequence)
 			gran_X, gran_y = self.__process_sequence(gran_sequence)
 

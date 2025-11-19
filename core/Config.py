@@ -129,6 +129,7 @@ AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
 AGENT_TRADE_MIN_SIZE = 50
 AGENT_TRADE_SIZE_USE_PERCENTAGE = False
+AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
@@ -171,9 +172,9 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 64
+AGENT_MA_WINDOW_SIZE = 32
 AGENT_USE_LASS = True
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-8-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -193,7 +194,7 @@ AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/09.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -261,10 +262,12 @@ HORIZON_H = 0.9
 HORIZON_MAX_DEPTH = 40
 CHECKPIONTED_RSP = True
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-57/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-53/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
+
+
 
 
 class ResourceCategories:
@@ -328,6 +331,7 @@ class RunnerStatsBranches:
 	it_52_6 = "it_52_6"
 
 	it_53_6 = "it_53_6"
+	it_53_7 = "it_53_7"
 
 	it_54_6 = "it-54_6"
 
@@ -338,6 +342,8 @@ class RunnerStatsBranches:
 	it_57_9 = "it_57_9"
 	it_57_10 = "it_57_10"
 	it_57_11 = "it_57_11"
+	it_57_12 = "it_57_12"
+	it_57_13 = "it_57_13"
 
 	it_58_6 = "it_58_6"
 	it_64_6 = "it_64_6"
@@ -347,6 +353,18 @@ class RunnerStatsBranches:
 	it_61_6 = "it_61_6"
 
 	it_63_6 = "it_63_6"
+
+	it_65_6 = "it_65_6"
+	it_66_6 = "it_66_6"
+
+	it_68_6 = "it_68_6"
+	it_69_6 = "it_69_6"
+
+	it_70_6 = "it_70_6"
+	it_71_6 = "it_71_6"
+
+	it_72_6 = "it_72_6"
+	it_73_6 = "it_73_6"
 
 	all = [
 		main,
@@ -392,6 +410,7 @@ class RunnerStatsBranches:
 		it_51_6,
 		it_52_6,
 		it_53_6,
+		it_53_7,
 		it_54_6,
 		it_56_6,
 		it_56_7,
@@ -399,15 +418,26 @@ class RunnerStatsBranches:
 		it_57_8,
 		it_57_9,
 		it_57_10,
+		it_57_11,
+		it_57_12,
+		it_57_13,
 		it_58_6,
 		it_64_6,
 		it_60_6,
 		it_60_7,
 		it_61_6,
-		it_63_6
+		it_63_6,
+		it_65_6,
+		it_66_6,
+		it_68_6,
+		it_69_6,
+		it_70_6,
+		it_71_6,
+		it_72_6,
+		it_73_6
 	]
 
-	default = it_57_6
+	default = it_53_7
 
 
 class RunnerStatsLossesBranches:
@@ -452,11 +482,16 @@ class RunnerStatsLossesBranches:
 	it_45_0 = "it_45_0"
 	it_47_0 = "it_47_0"
 	it_49_0 = "it_49_0"
-	it_51_0 = "it_51_0",
+	it_51_0 = "it_51_0"
+	it_53_0 = "it_53_0"
 	it_54_0 = "it_54_0"
 	it_56_0 = "it_56_0"
 	it_58_0 = "it_58_0"
 	it_60_0 = "it_60_0"
+	it_65_0 = "it_65_0"
+	it_68_0 = "it_68_0"
+	it_70_0 = "it_70_0"
+	it_72_0 = "it_72_0"
 
 	all = [
 		main,
@@ -502,7 +537,11 @@ class RunnerStatsLossesBranches:
 		it_54_0,
 		it_56_0,
 		it_58_0,
-		it_60_0
+		it_60_0,
+		it_65_0,
+		it_68_0,
+		it_70_0,
+		it_72_0
 	]
 
-	default = it_56_0
+	default = it_53_0
