@@ -37,7 +37,7 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 
 		gap = self.__trade_size_gap * state.get_agent_state().get_margin_available() if self.__trade_size_use_percentage \
 			else self.__trade_size_gap
-		min_size = self.__trade_min_size * state.get_agent_state().get_balance() if self.__trade_size_use_percentage \
+		min_size = self.__trade_min_size * state.get_agent_state().get_balance(original=True) if self.__trade_size_use_percentage \
 			else self.__trade_min_size
 
 		amounts = list(filter(
