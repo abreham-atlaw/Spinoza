@@ -123,11 +123,8 @@ MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
-MARKET_STATE_USE_MULTI_CHANNELS = True
-MARKET_STATE_CHANNELS = (
-		"c", "o", "l", "h", "v",
-		"time.year", "time.month", "time.day", "time.hour", "time.minute", "time.second"
-)
+MARKET_STATE_USE_MULTI_CHANNELS = False
+MARKET_STATE_CHANNELS = ('c',)
 MARKET_STATE_SMOOTHED_CHANNELS = ('c',)
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
@@ -326,6 +323,7 @@ class RunnerStatsBranches:
 	it_52_6 = "it_52_6"
 
 	it_53_6 = "it_53_6"
+	it_53_7 = "it_53_7"
 
 	it_54_6 = "it-54_6"
 
@@ -358,6 +356,7 @@ class RunnerStatsBranches:
 	it_71_6 = "it_71_6"
 
 	it_72_6 = "it_72_6"
+	it_73_6 = "it_73_6"
 
 	all = [
 		main,
@@ -403,6 +402,7 @@ class RunnerStatsBranches:
 		it_51_6,
 		it_52_6,
 		it_53_6,
+		it_53_7,
 		it_54_6,
 		it_56_6,
 		it_56_7,
@@ -425,7 +425,8 @@ class RunnerStatsBranches:
 		it_69_6,
 		it_70_6,
 		it_71_6,
-		it_72_6
+		it_72_6,
+		it_73_6
 	]
 
 	default = it_68_6
@@ -473,7 +474,8 @@ class RunnerStatsLossesBranches:
 	it_45_0 = "it_45_0"
 	it_47_0 = "it_47_0"
 	it_49_0 = "it_49_0"
-	it_51_0 = "it_51_0",
+	it_51_0 = "it_51_0"
+	it_53_0 = "it_53_0"
 	it_54_0 = "it_54_0"
 	it_56_0 = "it_56_0"
 	it_58_0 = "it_58_0"

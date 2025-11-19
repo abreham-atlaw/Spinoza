@@ -60,17 +60,20 @@ class HorizonModel(SpinozaModule):
 			return True
 		return depth < self.__max_depth
 
+	def _retrieve_recent_close(self, x: torch.Tensor):
+		return  x[..., -(self.X_extra_len + 1)]
+
 	def shift_and_predict(self, x: torch.Tensor, depth: int) -> torch.Tensor:
-		x[:, 1:-self.X_extra_len] = x[:, 0:-(self.X_extra_len + 1)].clone()
+		x[..., 1:x.shape[-1]-self.X_extra_len] = x[..., 0:-(self.X_extra_len + 1)].clone()
 		y = self.softmax(self(x, depth+1)[:, :-self.y_extra_len])
 		y = torch.sum(
 			y*self.bounds,
 			dim=1
-		) * x[:, -(self.X_extra_len + 1)]
+		) * self._retrieve_recent_close(x)
 		return y
 
 	def process_sample(self, x: torch.Tensor, depth: int) -> torch.Tensor:
-		x[:, -(self.X_extra_len + 1)] = self.shift_and_predict(x.clone(), depth)
+		x[..., -(self.X_extra_len + 1)] = self.shift_and_predict(x.clone(), depth)
 		return x
 
 	def call(self, x: torch.Tensor, depth: int = 0) -> torch.Tensor:
