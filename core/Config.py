@@ -315,6 +315,7 @@ class RunnerStatsBranches:
 	it_52_6 = "it_52_6"
 
 	it_53_6 = "it_53_6"
+	it_53_7 = "it_53_7"
 
 	it_54_6 = "it-54_6"
 
@@ -393,6 +394,7 @@ class RunnerStatsBranches:
 		it_51_6,
 		it_52_6,
 		it_53_6,
+		it_53_7,
 		it_54_6,
 		it_56_6,
 		it_56_7,
@@ -464,7 +466,8 @@ class RunnerStatsLossesBranches:
 	it_45_0 = "it_45_0"
 	it_47_0 = "it_47_0"
 	it_49_0 = "it_49_0"
-	it_51_0 = "it_51_0",
+	it_51_0 = "it_51_0"
+	it_53_0 = "it_53_0"
 	it_54_0 = "it_54_0"
 	it_56_0 = "it_56_0"
 	it_58_0 = "it_58_0"
