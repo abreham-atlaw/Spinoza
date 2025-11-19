@@ -1,5 +1,6 @@
 import torch
 
+from lib.utils.logger import Logger
 from .horizon_model import HorizonModel
 
 
@@ -7,6 +8,10 @@ class MCHorizonModel(HorizonModel):
 
 	def __init__(self, *args, close_channel: int = 0, **kwargs):
 		super().__init__(*args, **kwargs)
+		Logger.info(f"Initializing MCHorizonModel...")
+		self.args.update({
+			"close_channel": close_channel
+		})
 		self.close_channel = close_channel
 
 	def _retrieve_recent_close(self, x: torch.Tensor):
@@ -17,7 +22,7 @@ class MCHorizonModel(HorizonModel):
 		y = torch.concatenate(
 			(
 				torch.unsqueeze(y, dim=1),
-				torch.zeros((x.shape[0], x.shape[1]-1))
+				torch.zeros((x.shape[0], x.shape[1]-1), device=x.device)
 			),
 			dim=1
 		)
