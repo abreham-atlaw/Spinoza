@@ -28,13 +28,13 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			*args,
 			state_change_delta_model_mode=Config.AGENT_STATE_CHANGE_DELTA_MODEL_MODE,
 			state_change_delta_bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-			state_change_delta_bounds_epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
 			update_agent=Config.UPDATE_AGENT,
 			depth_mode=Config.AGENT_DEPTH_MODE,
 			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
 			core_model=None,
 			delta_model=None,
 			use_softmax=Config.AGENT_USE_SOFTMAX,
+			use_multi_channels=Config.MARKET_STATE_USE_MULTI_CHANNELS,
 			**kwargs
 	):
 		super().__init__(
@@ -77,6 +77,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		self.__use_softmax = use_softmax
 		self.__dta_output_cache = Cache()
+		self._use_multi_channels = use_multi_channels
+		Logger.info(f"Initializing TraderDNNTransitionAgent with multi_channels={use_multi_channels}")
 
 	def _find_gap_index(self, number: float) -> int:
 		boundaries = self._state_change_delta_bounds
@@ -293,7 +295,17 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		for j in range(len(self._simulation_state_change_delta_bounds)):
 			new_state = state.__deepcopy__()
 			new_state.recent_balance = state.get_agent_state().get_balance()
-			new_value = np.array(original_value[-1] * self._simulation_state_change_delta_bounds[j], dtype=np.float32).reshape(1)
+
+			new_value = np.array(original_value[-1] * self._simulation_state_change_delta_bounds[j], dtype=np.float32).reshape((1, 1))
+			if self._use_multi_channels:
+				new_value = np.concatenate(
+					(
+						new_value,
+						np.expand_dims(np.zeros(state.get_market_state().channels-1), axis=1)
+					),
+					axis=0
+				)
+
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,
