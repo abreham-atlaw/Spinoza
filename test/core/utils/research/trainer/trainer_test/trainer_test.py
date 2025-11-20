@@ -4,6 +4,7 @@ import unittest
 import numpy as np
 import torch
 import torch.nn as nn
+from deprecated.classic import deprecated
 from torch.optim import Adam
 from torch.utils.data import DataLoader, Dataset
 
@@ -24,7 +25,7 @@ from core.utils.research.model.model.cnn.resnet.resnet_block import ResNetBlock
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock, \
 	TransformerBlock
-from core.utils.research.model.model.utils import HorizonModel
+from core.utils.research.model.model.utils import HorizonModel, MCHorizonModel
 from core.utils.research.training.callbacks.horizon_scheduler_callback import HorizonSchedulerCallback
 from core.utils.research.training.trainer import Trainer
 from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
@@ -98,6 +99,7 @@ class TrainerTest(unittest.TestCase):
 	def _create_model(self):
 		return self._create_cnn2()
 
+	@deprecated
 	def _create_cnn(self):
 		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
@@ -201,9 +203,10 @@ class TrainerTest(unittest.TestCase):
 		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/11.json"))) + 1
 		INPUT_CHANNELS = 11
 
-		HORIZON_MODE = False
+		HORIZON_MODE = True
+		USE_MC_HORIZON = INPUT_CHANNELS > 1
 		HORIZON_BOUNDS = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
-		HORIZON_RANGE = (0.0, 0.99)
+		HORIZON_RANGE = (1.0, 0.99)
 		HORIZON_EPOCHS = 40
 		HORIZON_STEP = 5
 		HORIZON_MAX_DEPTH = 50
@@ -328,7 +331,8 @@ class TrainerTest(unittest.TestCase):
 		)
 
 		if HORIZON_MODE:
-			model = HorizonModel(
+			HorizonClass = HorizonModel if not USE_MC_HORIZON else MCHorizonModel
+			model = HorizonClass(
 				model=model,
 				bounds=HORIZON_BOUNDS,
 				h=HORIZON_RANGE[0],
@@ -438,7 +442,10 @@ class TrainerTest(unittest.TestCase):
 
 	def _create_losses(self):
 		return (
-			ProximalMaskedLoss3(bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND), weighted_sample=False),
+			ProximalMaskedLoss3(
+				bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
+				weighted_sample=False
+			),
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)
 
