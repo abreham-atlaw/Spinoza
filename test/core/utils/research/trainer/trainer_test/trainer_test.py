@@ -4,13 +4,15 @@ import unittest
 import numpy as np
 import torch
 import torch.nn as nn
+from deprecated.classic import deprecated
 from torch.optim import Adam
 from torch.utils.data import DataLoader, Dataset
 
 from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
+from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
-	ProximalMaskedPenaltyLoss2
+	ProximalMaskedPenaltyLoss2, ProximalMaskedLoss3
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
 	LayerStack, Identity, NoiseInjectionLayer
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
@@ -23,10 +25,11 @@ from core.utils.research.model.model.cnn.resnet.resnet_block import ResNetBlock
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock, \
 	TransformerBlock
-from core.utils.research.model.model.utils import HorizonModel
+from core.utils.research.model.model.utils import HorizonModel, MCHorizonModel
 from core.utils.research.training.callbacks.horizon_scheduler_callback import HorizonSchedulerCallback
 from core.utils.research.training.trainer import Trainer
 from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
+from lib.utils.fileio import load_json
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -55,9 +58,9 @@ class TrainerTest(unittest.TestCase):
 
 	def _get_root_dirs(self):
 		return [
-				"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/02/train"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/06/train"
 		], [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/02/test"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/06/test"
 		]
 
 	def __init_dataloader(self):
@@ -94,8 +97,9 @@ class TrainerTest(unittest.TestCase):
 		return 124
 
 	def _create_model(self):
-		return self._create_horizon_model()
+		return self._create_cnn2()
 
+	@deprecated
 	def _create_cnn(self):
 		CHANNELS = [128 for _ in range(4)]
 		EXTRA_LEN = 124
@@ -193,14 +197,16 @@ class TrainerTest(unittest.TestCase):
 
 	def _create_cnn2(self):
 
-		EXTRA_LEN = 124
+		EXTRA_LEN = 0
 		EMBEDDING_SIZE = 8
-		BLOCK_SIZE = 256 + EXTRA_LEN
-		VOCAB_SIZE = len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1
+		BLOCK_SIZE = 128 + EXTRA_LEN
+		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/11.json"))) + 1
+		INPUT_CHANNELS = 11
 
 		HORIZON_MODE = True
+		USE_MC_HORIZON = INPUT_CHANNELS > 1
 		HORIZON_BOUNDS = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
-		HORIZON_RANGE = (0.0, 0.99)
+		HORIZON_RANGE = (1.0, 0.99)
 		HORIZON_EPOCHS = 40
 		HORIZON_STEP = 5
 		HORIZON_MAX_DEPTH = 50
@@ -216,17 +222,13 @@ class TrainerTest(unittest.TestCase):
 		AVG_POOL = True
 		NORM = [DynamicLayerNorm(elementwise_affine=True) for _ in CHANNELS]
 
-		INDICATORS_DELTA = [1, 2, 4, 8, 16, 32, 64]
+		INDICATORS_DELTA = [1, 2, 4]
 		INDICATORS_SO = [16, 32, 64]
-		INDICATORS_RSI = [16, 32, 64]
-		INDICATORS_MMA = [16, 32, 64]
-		INDICATORS_MSD = [8, 16, 32, 64]
+		INDICATORS_RSI = None
+		INDICATORS_MMA = None
+		INDICATORS_MSD = None
 		INDICATORS_KSF = [
-			(0.1, 0.01),
-			(0.1, 0.001),
-			(0.01, 0.001),
-			(0.001, 0.1),
-			(0.001, 0.001)
+
 		]
 
 		INPUT_NORM = nn.Identity()
@@ -260,12 +262,13 @@ class TrainerTest(unittest.TestCase):
 			rsi=INDICATORS_RSI,
 			mma=INDICATORS_MMA,
 			msd=INDICATORS_MSD,
-			ksf=INDICATORS_KSF
+			ksf=INDICATORS_KSF,
+			input_channels=INPUT_CHANNELS,
 		)
 
 		model = CNN2(
 			extra_len=EXTRA_LEN,
-			input_size=BLOCK_SIZE,
+			input_size=(None, INPUT_CHANNELS, BLOCK_SIZE),
 
 			embedding_block=EmbeddingBlock(
 				indicators=indicators,
@@ -314,6 +317,7 @@ class TrainerTest(unittest.TestCase):
 			),
 
 			collapse_block=CollapseBlock(
+				extra_mode=False,
 				dropout=DROPOUT_BRIDGE,
 				ff_block=LinearModel(
 					dropout_rate=FF_DROPOUT,
@@ -327,11 +331,13 @@ class TrainerTest(unittest.TestCase):
 		)
 
 		if HORIZON_MODE:
-			model = HorizonModel(
+			HorizonClass = HorizonModel if not USE_MC_HORIZON else MCHorizonModel
+			model = HorizonClass(
 				model=model,
 				bounds=HORIZON_BOUNDS,
 				h=HORIZON_RANGE[0],
-				max_depth=HORIZON_MAX_DEPTH
+				max_depth=HORIZON_MAX_DEPTH,
+				X_extra_len=EXTRA_LEN
 			)
 		return model
 
@@ -436,7 +442,10 @@ class TrainerTest(unittest.TestCase):
 
 	def _create_losses(self):
 		return (
-			ProximalMaskedLoss2(e=2.0, w=1.0, n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1, weighted_sample=False),
+			ProximalMaskedLoss3(
+				bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
+				weighted_sample=False
+			),
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)
 

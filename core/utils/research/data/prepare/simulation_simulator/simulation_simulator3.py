@@ -2,6 +2,7 @@ import typing
 
 import numpy as np
 import pandas as pd
+import torch
 
 from lib.utils.logger import Logger
 from .simulation_simulator import SimulationSimulator
@@ -19,6 +20,7 @@ class SimulationSimulator3(SimulationSimulator):
 			),
 			smoothed_columns: typing.Tuple[str, ...] = ("c", "o", "l", "h"),
 			y_columns: typing.List[str] = ("c",),
+			flatten_y: bool = True,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
@@ -28,18 +30,11 @@ class SimulationSimulator3(SimulationSimulator):
 		self.__x_columns = x_columns
 		self.__smoothed_columns = smoothed_columns
 		self.__y_columns = y_columns
-
-	@staticmethod
-	def _encode_timestamp(df: pd.DataFrame) -> pd.DataFrame:
-		timestamp = pd.to_datetime(df["time"].to_numpy())
-		df[["time.year", "time.month", "time.day", "time.hour", "time.minute", "time.second"]] = np.stack(
-			[timestamp.year, timestamp.month, timestamp.day, timestamp.hour, timestamp.minute, timestamp.second],
-			axis=1)
-		return df
+		self.__flatten_y = flatten_y
 
 	def _setup_df(self, df: pd.DataFrame) -> pd.DataFrame:
 		df = super()._setup_df(df)
-		df = self._encode_timestamp(df.copy())
+		df = DataPrepUtils.encode_timestamp(df.copy())
 		return df
 
 	def _extract_columns(self, df: pd.DataFrame) -> np.ndarray:
@@ -65,11 +60,16 @@ class SimulationSimulator3(SimulationSimulator):
 		], axis=1)
 
 	def _prepare_y(self, sequences: np.ndarray) -> np.ndarray:
-		return np.stack([
+		y = np.stack([
 			super(SimulationSimulator3, self)._prepare_y(sequences[:, i, :])
 			for i in range(sequences.shape[1])
 			if self.__x_columns[i] in self.__y_columns
 		], axis=1)
+
+		if y.shape[1] == 1 and self.__flatten_y:
+			y = np.squeeze(y, axis=1)
+
+		return y
 
 	def _extract_granularity(self, data: np.ndarray, g: int) -> np.ndarray:
 		df = pd.DataFrame(columns=self.__x_columns, data=data.transpose((1, 0)))

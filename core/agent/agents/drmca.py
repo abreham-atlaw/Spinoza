@@ -42,6 +42,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			discount=Config.AGENT_DISCOUNT_FACTOR,
 			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
 			use_transition_only_model=Config.AGENT_MODEL_USE_TRANSITION_ONLY,
+			use_extra_data: bool = Config.AGENT_USE_EXTRA_DATA,
 			**kwargs
 	):
 		self.__use_transition_only = use_transition_only_model
@@ -64,6 +65,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		)
 		self.__encode_max_open_trades = encode_max_open_trade
 		self.__dra_input_cache = Cache()
+		self.__use_extra_data = use_extra_data
 
 	def _init_model(self) -> Model:
 		model = TemperatureScalingModel(
@@ -133,10 +135,29 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			if isinstance(action, ActionSequence):
 				action = action.actions[0]
 
-			time_series = state.get_market_state().get_state_of(target_instrument[0], target_instrument[1])
-			encoded_action = self.__encode_action(state, action)
-			open_trades = self.__encode_open_trades(state)
-			return np.concatenate((time_series, encoded_action, open_trades), axis=0)
+			market_data = state.get_market_state().get_channels_state(target_instrument[0], target_instrument[1])
+
+			extra_data = np.repeat(
+				np.expand_dims(
+					np.concatenate((
+						self.__encode_action(state, action),
+						self.__encode_open_trades(state)
+					), axis=-1),
+					axis=0
+				),
+				axis=0,
+				repeats=market_data.shape[0]
+			)
+			data = market_data
+
+			if self.__use_extra_data:
+				data = np.concatenate((market_data, extra_data), axis=-1)
+
+			if not self._use_multi_channels:
+				assert data.shape[0] == 1
+				data = np.squeeze(data, axis=0)
+
+			return data
 
 		return self.__dra_input_cache.cached_or_execute((state, action, target_instrument), lambda: prepare_model_input(state, action, target_instrument))
 

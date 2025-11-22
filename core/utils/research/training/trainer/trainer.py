@@ -121,7 +121,7 @@ class Trainer:
 
     @staticmethod
     def __split_y(y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
-        return y[:, :-1], y[:, -1:]
+        return y[..., :-1], y[..., -1:]
 
     def __loss(self, y_hat: torch.Tensor, y: torch.Tensor, w: torch.Tensor):
         cls_y, reg_y = self.__split_y(y)

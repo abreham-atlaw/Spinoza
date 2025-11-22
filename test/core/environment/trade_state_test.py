@@ -13,34 +13,42 @@ from lib.utils.logger import Logger
 class MarketStateTest(unittest.TestCase):
 
 	CURRENCIES = ["USD", "EUR", "AUD", "CAD", "GBP"]
+	CHANNELS = 4
 	MEMORY_LEN = 8
 
 	def setUp(self):
 		self.market_state = MarketState(
 			memory_len=MarketStateTest.MEMORY_LEN,
-			currencies=MarketStateTest.CURRENCIES
+			currencies=MarketStateTest.CURRENCIES,
+			channels=MarketStateTest.CHANNELS
 		)
 
 	def test_init(self):
 		self.assertEqual(
-			self.market_state._MarketState__state.shape,
-			(len(MarketStateTest.CURRENCIES), len(MarketStateTest.CURRENCIES), MarketStateTest.MEMORY_LEN)
+			self.market_state.get_price_matrix().shape,
+			(MarketStateTest.CHANNELS, len(MarketStateTest.CURRENCIES), len(MarketStateTest.CURRENCIES), MarketStateTest.MEMORY_LEN)
 		)
 
 	def test_update_and_get_state(self):
 		base_currency = MarketStateTest.CURRENCIES[0]
 		quote_currency = MarketStateTest.CURRENCIES[1]
 
-		values0 = np.arange(1, 9)
+		values0 = np.arange(self.MEMORY_LEN*self.CHANNELS).reshape((self.CHANNELS, -1)) + 1
 
 		self.market_state.update_state_of(base_currency, quote_currency, values0)
-		self.assertNotIn(False, self.market_state.get_state_of(base_currency, quote_currency) == values0)
+		self.assertTrue(np.all(
+			self.market_state.get_channels_state(base_currency, quote_currency) == values0
+		))
+		self.assertTrue(np.all(
+			self.market_state.get_state_of(base_currency, quote_currency) == values0[0]
+		))
 
-		values1 = np.arange(3, 6)
+		values1 = np.arange(3*self.CHANNELS).reshape((self.CHANNELS, -1)) * 2 + 1
 		self.market_state.update_state_of(base_currency, quote_currency, values1)
-		self.assertNotIn(
-			False,
-			self.market_state.get_state_of(base_currency, quote_currency) == np.concatenate((values1, values0[:MarketStateTest.MEMORY_LEN - len(values1)]))
+		self.assertTrue(
+			np.all(
+				self.market_state.get_channels_state(base_currency, quote_currency) == np.concatenate((values0[:, values1.shape[-1]:], values1), axis=-1)
+			)
 		)
 
 	def test_update_state_layer(self):
