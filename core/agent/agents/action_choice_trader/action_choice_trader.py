@@ -1,10 +1,12 @@
 import typing
-from abc import ABC
+from abc import ABC, abstractmethod
+from copy import deepcopy
 
-from core.agent.trader_action import TraderAction
-from core.environment.trade_state import TradeState
+from core.agent.action import TraderAction, Action, ActionSequence
+from core.environment.trade_state import TradeState, AgentState
 from lib.rl.agent import ActionChoiceAgent
 from core import Config
+from lib.utils.logger import Logger
 
 
 class ActionChoiceTrader(ActionChoiceAgent, ABC):
@@ -15,19 +17,27 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 			trade_size_gap=Config.AGENT_TRADE_SIZE_GAP,
 			trade_size_use_percentage=Config.AGENT_TRADE_SIZE_USE_PERCENTAGE,
 			trade_min_size=Config.AGENT_TRADE_MIN_SIZE,
+			multi_actions=Config.AGENT_SUPPORT_MULTI_ACTION,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
 		self.__trade_size_gap = trade_size_gap
 		self.__trade_size_use_percentage = trade_size_use_percentage
 		self.__trade_min_size = trade_min_size
+		self.__multi_actions = multi_actions
 
-	def _generate_actions(self, state: TradeState) -> typing.List[typing.Optional[TraderAction]]:
+		Logger.info(f"[ActionChoiceTrader]: Multi Action Support={multi_actions}")
+
+	@abstractmethod
+	def _simulate_action(self, state: TradeState, action: Action):
+		pass
+
+	def _generate_lone_actions(self, state: TradeState) -> typing.List[TraderAction]:
 		pairs = state.get_market_state().get_tradable_pairs()
 
 		gap = self.__trade_size_gap * state.get_agent_state().get_margin_available() if self.__trade_size_use_percentage \
 			else self.__trade_size_gap
-		min_size = self.__trade_min_size * state.get_agent_state().get_balance() if self.__trade_size_use_percentage \
+		min_size = self.__trade_min_size * state.get_agent_state().get_balance(original=True) if self.__trade_size_use_percentage \
 			else self.__trade_min_size
 
 		amounts = list(filter(
@@ -55,5 +65,51 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 			for trade in state.get_agent_state().get_open_trades()
 		]
 
-		actions.append(None)
 		return actions
+
+	def __generate_reversal_actions(self, trade: AgentState.OpenTrade, state: TradeState) -> typing.List[ActionSequence]:
+		state = deepcopy(state)
+
+		close_action = TraderAction(
+			trade.get_trade().base_currency,
+			trade.get_trade().quote_currency,
+			TraderAction.Action.CLOSE
+		)
+
+		self._simulate_action(state, close_action)
+
+		return [
+			ActionSequence(
+				actions=(
+					close_action,
+					action
+				)
+			)
+			for action in self._generate_lone_actions(state)
+			if action.action not in [
+				trade.get_trade().action,
+				TraderAction.Action.CLOSE
+			]
+		]
+
+	def __generate_action_sequences(self, state: TradeState) -> typing.List[ActionSequence]:
+		if len(state.get_agent_state().get_open_trades()) == 0:
+			return []
+
+		actions = []
+		for trade in state.get_agent_state().get_open_trades():
+			actions.extend(self.__generate_reversal_actions(trade, state))
+
+		return actions
+
+	def _generate_actions(self, state: TradeState) -> typing.List[typing.Optional[Action]]:
+		actions = self._generate_lone_actions(state)
+
+		actions.append(None)
+
+		if self.__multi_actions:
+			actions.extend(self.__generate_action_sequences(state))
+
+		return actions
+
+

@@ -1,7 +1,7 @@
 from typing import *
 
 from lib.rl.environment import ModelBasedState
-from core.agent.trader_action import TraderAction
+from core.agent.action import TraderAction
 from .market_state import MarketState
 from .agent_state import AgentState
 

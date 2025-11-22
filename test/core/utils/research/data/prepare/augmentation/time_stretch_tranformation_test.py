@@ -6,4 +6,4 @@ from .transformation_abstract_test import TransformationAbstractTest
 class TimeStretchTransformationTest(TransformationAbstractTest):
 
 	def _init_transformation(self) -> Transformation:
-		return TimeStretchTransformation()
+		return TimeStretchTransformation(max_n=0.75, min_n=0.5)
