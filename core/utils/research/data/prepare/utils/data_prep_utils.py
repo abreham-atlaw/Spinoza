@@ -54,3 +54,22 @@ class DataPrepUtils:
 		for i in range(stack.shape[0]):
 			stack[i] = sequence[..., i: i + length]
 		return stack
+
+	@staticmethod
+	def condense_granularity(df: pd.DataFrame, g: int) -> pd.DataFrame:
+
+		df = df.iloc[:g*(df.shape[0] // g)]
+		df_g = df.iloc[0::g].copy()
+
+		for col, condenser in zip(["l", "h"], [np.min, np.max]):
+			df_g[col] = condenser(df[col].to_numpy().reshape((-1, g)), axis=1)
+
+		return df_g
+
+	@staticmethod
+	def encode_timestamp(df: pd.DataFrame) -> pd.DataFrame:
+		timestamp = pd.to_datetime(df["time"].to_numpy())
+		df[["time.year", "time.month", "time.day", "time.hour", "time.minute", "time.second"]] = np.stack(
+			[timestamp.year, timestamp.month, timestamp.day, timestamp.hour, timestamp.minute, timestamp.second],
+			axis=1)
+		return df
