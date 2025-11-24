@@ -296,11 +296,14 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			new_state = state.__deepcopy__()
 			new_state.recent_balance = state.get_agent_state().get_balance()
 
-			new_value = np.array(original_value[-1] * self._simulation_state_change_delta_bounds[j], dtype=np.float32).reshape(1)
+			new_value = np.array(original_value[-1] * self._simulation_state_change_delta_bounds[j], dtype=np.float32).reshape((1, 1))
 			if self._use_multi_channels:
-				new_value = np.expand_dims(
-					np.concatenate((new_value, np.zeros(state.get_market_state().channels-1))),
-					axis=-1
+				new_value = np.concatenate(
+					(
+						new_value,
+						np.expand_dims(np.zeros(state.get_market_state().channels-1), axis=1)
+					),
+					axis=0
 				)
 
 			new_state.get_market_state().update_state_of(
