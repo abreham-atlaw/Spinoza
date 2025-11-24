@@ -123,8 +123,11 @@ MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
-MARKET_STATE_USE_MULTI_CHANNELS = False
-MARKET_STATE_CHANNELS = ('c',)
+MARKET_STATE_USE_MULTI_CHANNELS = True
+MARKET_STATE_CHANNELS = (
+		"c", "o", "l", "h", "v",
+		"time.year", "time.month", "time.day", "time.hour", "time.minute", "time.second"
+)
 MARKET_STATE_SMOOTHED_CHANNELS = ('c',)
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
