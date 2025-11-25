@@ -177,7 +177,7 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = True
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-27-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -258,7 +258,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-74/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-76/"
 
 CORE_MODEL_CONFIG.path = "model.zip"
 CORE_MODEL_CONFIG.download = False
@@ -382,6 +382,9 @@ class RunnerStatsBranches:
 	it_73_6 = "it_73_6"
 
 	it_74_6 = "it_74_6"
+	it_75_6 = "it_75_6"
+
+	it_76_6 = "it_76_6"
 
 	all = [
 		main,
@@ -453,9 +456,11 @@ class RunnerStatsBranches:
 		it_72_6,
 		it_73_6,
 		it_74_6,
+		it_75_6,
+		it_76_6
 	]
 
-	default = it_74_6
+	default = it_76_6
 
 
 class RunnerStatsLossesBranches:
@@ -511,6 +516,7 @@ class RunnerStatsLossesBranches:
 	it_70_0 = "it_70_0"
 	it_72_0 = "it_72_0"
 	it_74_0 = "it_74_0"
+	it_76_0 = "it_76_0"
 
 	all = [
 		main,
@@ -561,7 +567,8 @@ class RunnerStatsLossesBranches:
 		it_68_0,
 		it_70_0,
 		it_72_0,
-		it_74_0
+		it_74_0,
+		it_76_0
 	]
 
-	default = it_74_0
+	default = it_76_0
