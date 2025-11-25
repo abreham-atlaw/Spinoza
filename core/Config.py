@@ -148,7 +148,6 @@ AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
-	("USD", "ZAR")
 ]
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
@@ -178,7 +177,7 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = True
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-17-it-11-tot.1.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -265,7 +264,7 @@ try:
 except ImportError:
 	TIMEOUT = 11*60*60
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-73/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-75/"
 
 
 class ResourceCategories:
@@ -443,7 +442,7 @@ class RunnerStatsBranches:
 		it_76_6
 	]
 
-	default = it_73_6
+	default = it_75_6
 
 
 class RunnerStatsLossesBranches:
@@ -554,4 +553,4 @@ class RunnerStatsLossesBranches:
 		it_76_0
 	]
 
-	default = it_72_0
+	default = it_74_0
