@@ -108,7 +108,7 @@ OANDA_SIM_DELTA_MULTIPLIER = 10
 OANDA_SIM_MARGIN_RATE = 0.01
 OANDA_SIM_BALANCE = 100
 OANDA_SIM_ALIAS = "Sim Account 0"
-OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-5.json")
+OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-50.json")
 OANDA_SIM_MODEL_IN_PATH = "/Apps/RTrader/"
 
 DEFAULT_TIME_IN_FORCE = "FOK"
@@ -119,9 +119,9 @@ UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
 UPDATE_TRAIN = False
-MARKET_STATE_MEMORY = 1024
+MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
-MARKET_STATE_GRANULARITY = "M5"
+MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = False
 MARKET_STATE_CHANNELS = ('c',)
@@ -132,7 +132,7 @@ AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 70
 AGENT_TRADE_MIN_SIZE = 50
 AGENT_TRADE_SIZE_USE_PERCENTAGE = False
-AGENT_SUPPORT_MULTI_ACTION = False
+AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
@@ -148,7 +148,6 @@ AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
-	("USD", "ZAR")
 ]
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
@@ -176,9 +175,9 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 10
-AGENT_USE_LASS = False
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
+AGENT_MA_WINDOW_SIZE = 64
+AGENT_USE_LASS = True
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -199,7 +198,7 @@ AGENT_MODEL_EXTRA_LEN = 124
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/05.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/09.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -257,6 +256,9 @@ PREDICTION_MODELS = [
 	DELTA_MODEL_CONFIG,
 	ARA_MODEL_CONFIG
 ]
+
+
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-75/"
 
 
 class ResourceCategories:
@@ -434,7 +436,7 @@ class RunnerStatsBranches:
 		it_76_6
 	]
 
-	default = main
+	default = it_75_6
 
 
 class RunnerStatsLossesBranches:
@@ -545,4 +547,4 @@ class RunnerStatsLossesBranches:
 		it_76_0
 	]
 
-	default = main
+	default = it_74_0
