@@ -123,6 +123,9 @@ MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
+MARKET_STATE_USE_MULTI_CHANNELS = False
+MARKET_STATE_CHANNELS = ('c',)
+MARKET_STATE_SMOOTHED_CHANNELS = ('c',)
 DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TRADE_PENALTY = 0
@@ -174,7 +177,7 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = True
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-17-it-11-tot.1.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -192,6 +195,7 @@ AGENT_MIN_ABS_DISK_SPACE = None
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
+AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/09.json"), "r") as file:
@@ -262,7 +266,7 @@ HORIZON_H = 0.9
 HORIZON_MAX_DEPTH = 40
 CHECKPIONTED_RSP = True
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-73/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-75/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -329,6 +333,7 @@ class RunnerStatsBranches:
 	it_52_6 = "it_52_6"
 
 	it_53_6 = "it_53_6"
+	it_53_7 = "it_53_7"
 
 	it_54_6 = "it-54_6"
 
@@ -362,6 +367,9 @@ class RunnerStatsBranches:
 
 	it_72_6 = "it_72_6"
 	it_73_6 = "it_73_6"
+
+	it_74_6 = "it_74_6"
+	it_75_6 = "it_75_6"
 
 	all = [
 		main,
@@ -407,6 +415,7 @@ class RunnerStatsBranches:
 		it_51_6,
 		it_52_6,
 		it_53_6,
+		it_53_7,
 		it_54_6,
 		it_56_6,
 		it_56_7,
@@ -430,10 +439,12 @@ class RunnerStatsBranches:
 		it_70_6,
 		it_71_6,
 		it_72_6,
-		it_73_6
+		it_73_6,
+		it_74_6,
+		it_75_6
 	]
 
-	default = it_73_6
+	default = it_75_6
 
 
 class RunnerStatsLossesBranches:
@@ -478,7 +489,8 @@ class RunnerStatsLossesBranches:
 	it_45_0 = "it_45_0"
 	it_47_0 = "it_47_0"
 	it_49_0 = "it_49_0"
-	it_51_0 = "it_51_0",
+	it_51_0 = "it_51_0"
+	it_53_0 = "it_53_0"
 	it_54_0 = "it_54_0"
 	it_56_0 = "it_56_0"
 	it_58_0 = "it_58_0"
@@ -487,6 +499,7 @@ class RunnerStatsLossesBranches:
 	it_68_0 = "it_68_0"
 	it_70_0 = "it_70_0"
 	it_72_0 = "it_72_0"
+	it_74_0 = "it_74_0"
 
 	all = [
 		main,
@@ -536,7 +549,8 @@ class RunnerStatsLossesBranches:
 		it_65_0,
 		it_68_0,
 		it_70_0,
-		it_72_0
+		it_72_0,
+		it_74_0
 	]
 
-	default = it_72_0
+	default = it_74_0
