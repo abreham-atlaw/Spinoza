@@ -5,8 +5,9 @@ import datetime
 import pytz
 
 from lib.utils.logger import Logger
-from .data.models import AccountSummary, Trade, Order, CloseTradeResponse,  CreateOrderResponse, CandleStick, SpreadPrice, \
-	ClosedTradeDetails
+from .data.models import AccountSummary, Trade, Order, CloseTradeResponse, CreateOrderResponse, CandleStick, \
+	SpreadPrice, \
+	ClosedTradeDetails, TriggerPrice
 from . import OandaNetworkClient
 from .requests import AccountSummaryRequest, GetOpenTradesRequest, GetInstrumentsRequest, CreateOrderRequest, \
 	CloseTradeRequest, GetPriceRequest, GetCandleSticksRequest, GetSpreadPriceRequest, GetClosedTradesRequest
@@ -187,7 +188,14 @@ class Trader:
 		return math.floor(in_quote / (self.__summary.marginRate * price))
 
 	@Logger.logged_method
-	def trade(self, instrument: Tuple, action: int, margin: float, time_in_force="FOK") -> CreateOrderResponse:
+	def trade(
+			self,
+			instrument: Tuple,
+			action: int,
+			margin: float,
+			time_in_force="FOK",
+			stop_loss: float = None
+	) -> CreateOrderResponse:
 		instrument, action = self.__get_proper_instrument_action_pair(instrument, action)
 		available_margin = self.get_margin_available()
 		if available_margin < margin:
@@ -196,7 +204,14 @@ class Trader:
 			action,
 			self.__get_units_for_margin_used(instrument, margin)
 		)
-		order = Order(units, Trader.format_instrument(instrument), time_in_force)
+		if stop_loss is not None:
+			stop_loss = TriggerPrice(stop_loss)
+		order = Order(
+			units,
+			Trader.format_instrument(instrument),
+			time_in_force,
+			stopLossOnFill=stop_loss
+		)
 		return self.__client.execute(
 			CreateOrderRequest(order)
 		)

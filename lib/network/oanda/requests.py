@@ -37,8 +37,14 @@ class CreateOrderRequest(Request):
 		)
 	
 	def get_post_data(self) -> Dict:
+		data = super().get_post_data()
+		data = {
+			k: v
+			for k, v in data.items()
+			if v is not None
+		}
 		return json.dumps({
-			"order": super().get_post_data()
+			"order": data
 		})
 
 	def _filter_response(self, response):
