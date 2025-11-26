@@ -1,4 +1,5 @@
 from core import Config
+from core.utils.misc.sim_trading.setup import SetupManager
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from core.utils.resman import ResourceRepository
 from lib.utils.file_storage import FileStorage
@@ -27,6 +28,9 @@ class RealTimeRSSetupManager(RSSetupManager):
 		self.__accounts_repo = accounts_repo
 		self.__allocation_map = {}
 
+	def _init_setup_manager(self) -> SetupManager:
+		return SetupManager(setup_accounts=False)
+
 	def __allocate_account(self):
 		Logger.info(f"Allocating Oanda Account...")
 		account = self.__accounts_repo.allocate()
@@ -42,6 +46,7 @@ class RealTimeRSSetupManager(RSSetupManager):
 
 	def _allocate_extra(self, stat: RunnerStats):
 		self.__allocation_map[stat.id] = self.__allocate_account()
+		self._setup_manager.setup()
 
 	def _finish_extra(self, stat: RunnerStats):
 		if stat.id not in self.__allocation_map:

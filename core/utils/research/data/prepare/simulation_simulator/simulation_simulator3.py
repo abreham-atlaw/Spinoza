@@ -32,17 +32,9 @@ class SimulationSimulator3(SimulationSimulator):
 		self.__y_columns = y_columns
 		self.__flatten_y = flatten_y
 
-	@staticmethod
-	def _encode_timestamp(df: pd.DataFrame) -> pd.DataFrame:
-		timestamp = pd.to_datetime(df["time"].to_numpy())
-		df[["time.year", "time.month", "time.day", "time.hour", "time.minute", "time.second"]] = np.stack(
-			[timestamp.year, timestamp.month, timestamp.day, timestamp.hour, timestamp.minute, timestamp.second],
-			axis=1)
-		return df
-
 	def _setup_df(self, df: pd.DataFrame) -> pd.DataFrame:
 		df = super()._setup_df(df)
-		df = self._encode_timestamp(df.copy())
+		df = DataPrepUtils.encode_timestamp(df.copy())
 		return df
 
 	def _extract_columns(self, df: pd.DataFrame) -> np.ndarray:
