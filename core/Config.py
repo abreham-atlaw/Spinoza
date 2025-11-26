@@ -148,7 +148,6 @@ AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
-	("USD", "ZAR")
 ]
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
@@ -461,7 +460,7 @@ class RunnerStatsBranches:
 		it_76_6
 	]
 
-	default = it_53_6
+	default = it_53_7
 
 
 class RunnerStatsLossesBranches:
@@ -572,4 +571,4 @@ class RunnerStatsLossesBranches:
 		it_76_0
 	]
 
-	default = it_41_h_1
+	default = it_53_0
