@@ -22,6 +22,7 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 			multi_actions=Config.AGENT_SUPPORT_MULTI_ACTION,
 			stop_loss_granularity=Config.AGENT_STOP_LOSS_GRANULARITY,
 			stop_loss_value_bound=Config.AGENT_STOP_LOSS_VALUE_BOUND,
+			use_stop_loss=Config.AGENT_USE_STOP_LOSS,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
@@ -31,6 +32,7 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 		self.__multi_actions = multi_actions
 		self.__stop_loss_granularity = stop_loss_granularity
 		self.__stop_loss_value_bound = stop_loss_value_bound
+		self.__use_stop_loss = use_stop_loss
 
 		Logger.info(f"[ActionChoiceTrader]: Multi Action Support={multi_actions}")
 
@@ -39,6 +41,8 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 		pass
 
 	def _generate_stop_loss_bounds(self, action: int) -> typing.List[float]:
+		if not self.__use_stop_loss:
+			return [None]
 		direction = -1 if action == TraderAction.Action.SELL else 1
 		return [
 			1 + (-direction)*r
