@@ -247,13 +247,32 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def _get_expected_instant_reward(self, state) -> float:
 		return self._get_environment().get_reward(state)
 
-	def __get_involved_instruments(self, open_trades: List[AgentState.OpenTrade]) -> List[Tuple[str, str]]:
+	@staticmethod
+	def __get_involved_instruments(open_trades: List[AgentState.OpenTrade]) -> List[Tuple[str, str]]:
 		return list(set(
 			[
 				(open_trade.get_trade().base_currency, open_trade.get_trade().quote_currency)
 				for open_trade in open_trades
 			]
 		))
+
+	def __simulate_trade_trigger(self, state: TradeState, trade: AgentState.OpenTrade):
+		if trade.get_trade().stop_loss is None:
+			return
+		instrument = trade.get_trade().base_currency, trade.get_trade().quote_currency
+		current_price = state.get_market_state().get_current_price(instrument[0], instrument[1])
+		previous_price = state.get_market_state().get_state_of(instrument[0], instrument[1])[-2]
+
+		percentage = current_price / previous_price
+
+		direction = np.sign(trade.get_trade().units)
+
+		if direction*percentage <= direction*trade.get_trade().stop_loss:
+			state.get_agent_state().close_trades(instrument[0], instrument[1])  # TODO: CLOSE SINGLE TRADE
+
+	def __simulate_trades_triggers(self, state: TradeState, instrument: Tuple[str, str]):
+		for trade in state.get_agent_state().get_open_trades(instrument[0], instrument[1]):
+			self.__simulate_trade_trigger(state, trade)
 
 	def _get_possible_states(self, state: TradeState, action: Action) -> List[TradeState]:
 
@@ -311,6 +330,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				quote_currency,
 				new_value
 			)
+			self.__simulate_trades_triggers(new_state, (base_currency, quote_currency))
 			states.append(new_state)
 
 		return states

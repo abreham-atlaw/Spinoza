@@ -1,3 +1,4 @@
+import typing
 from typing import *
 
 import json
@@ -61,7 +62,23 @@ class GetInstrumentsRequest(Request):
 	def _filter_response(self, response):
 		from . import Trader
 		return [Trader.split_instrument(instrument["name"]) for instrument in response["instruments"]]
-	
+
+
+class GetInstrumentPrecisionRequest(Request):
+
+	def __init__(self, instrument: typing.Tuple[str, str]):
+		super().__init__("accounts/{{account_id}}/instruments/", output_class=int)
+		self.__instrument = instrument
+
+	def _filter_response(self, response):
+		from . import Trader
+		instrument = Trader.format_instrument(self.__instrument)
+		details = next(filter(
+			lambda detail: detail["name"] == instrument,
+			response["instruments"]
+		))
+		return details["displayPrecision"]
+
 
 class CloseTradeRequest(Request):
 

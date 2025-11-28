@@ -146,6 +146,11 @@ class TraderTest(unittest.TestCase):
 		self.assertEqual(len(open_trades), 1)
 		self.assertIsNotNone(open_trades[0].stopLossOrder)
 
+	def test_get_instrument_precision(self):
+		self.assertEqual(
+			self.trader.get_instrument_precision(("AUD", "USD")),
+			5
+		)
 
 if __name__ == "__main__":
 	unittest.main()

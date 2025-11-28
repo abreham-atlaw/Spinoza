@@ -2,6 +2,8 @@ import typing
 from abc import ABC, abstractmethod
 from copy import deepcopy
 
+import numpy as np
+
 from core.agent.action import TraderAction, Action, ActionSequence
 from core.environment.trade_state import TradeState, AgentState
 from lib.rl.agent import ActionChoiceAgent
@@ -18,6 +20,8 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 			trade_size_use_percentage=Config.AGENT_TRADE_SIZE_USE_PERCENTAGE,
 			trade_min_size=Config.AGENT_TRADE_MIN_SIZE,
 			multi_actions=Config.AGENT_SUPPORT_MULTI_ACTION,
+			stop_loss_granularity=Config.AGENT_STOP_LOSS_GRANULARITY,
+			stop_loss_value_bound=Config.AGENT_STOP_LOSS_VALUE_BOUND,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
@@ -25,12 +29,21 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 		self.__trade_size_use_percentage = trade_size_use_percentage
 		self.__trade_min_size = trade_min_size
 		self.__multi_actions = multi_actions
+		self.__stop_loss_granularity = stop_loss_granularity
+		self.__stop_loss_value_bound = stop_loss_value_bound
 
 		Logger.info(f"[ActionChoiceTrader]: Multi Action Support={multi_actions}")
 
 	@abstractmethod
 	def _simulate_action(self, state: TradeState, action: Action):
 		pass
+
+	def _generate_stop_loss_bounds(self, action: int) -> typing.List[float]:
+		direction = -1 if action == TraderAction.Action.SELL else 1
+		return [
+			1 + (-direction)*r
+			for r in np.arange(self.__stop_loss_value_bound[0], self.__stop_loss_value_bound[1], self.__stop_loss_granularity)
+		]
 
 	def _generate_lone_actions(self, state: TradeState) -> typing.List[TraderAction]:
 		pairs = state.get_market_state().get_tradable_pairs()
@@ -53,10 +66,12 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 				pair[0],
 				pair[1],
 				action,
-				margin_used=amount
+				margin_used=amount,
+				stop_loss=stop_loss
 			)
 			for pair in pairs
 			for action in [TraderAction.Action.BUY, TraderAction.Action.SELL]
+			for stop_loss in self._generate_stop_loss_bounds(action)
 			for amount in amounts
 		]
 

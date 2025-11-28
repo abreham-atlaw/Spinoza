@@ -273,13 +273,18 @@ def draw_graph_live(root_node, depth=None, top=None, visited=False, state_reposi
 				return ", ".join([get_action_label(action) for action in action.actions])
 
 			if action is None:
-				return "None"
+				label = "None"
 			elif action.action == 0:
-				return "Sell"
+				label ="Sell"
 			elif action.action == 1:
-				return "Buy"
+				label = "Buy"
 			elif action.action == 2:
-				return "Close"
+				label = "Close"
+
+			if action is not None and action.stop_loss is not None:
+				label = f"{label}\n(SL={action.stop_loss})"
+
+			return label
 
 		if node.node_type == 0:
 			total_value = f"\n{node.get_total_value(): .4f}"

@@ -1,3 +1,4 @@
+import typing
 from typing import *
 
 import math
@@ -10,8 +11,10 @@ from .data.models import AccountSummary, Trade, Order, CloseTradeResponse, Creat
 	ClosedTradeDetails, TriggerPrice
 from . import OandaNetworkClient
 from .requests import AccountSummaryRequest, GetOpenTradesRequest, GetInstrumentsRequest, CreateOrderRequest, \
-	CloseTradeRequest, GetPriceRequest, GetCandleSticksRequest, GetSpreadPriceRequest, GetClosedTradesRequest
+	CloseTradeRequest, GetPriceRequest, GetCandleSticksRequest, GetSpreadPriceRequest, GetClosedTradesRequest, \
+	GetInstrumentPrecisionRequest
 from .exceptions import InstrumentNotFoundException, InvalidActionException, InsufficientMarginException
+from lib.utils.cache.decorators import CacheDecorators
 
 
 class Trader:
@@ -205,7 +208,7 @@ class Trader:
 			self.__get_units_for_margin_used(instrument, margin)
 		)
 		if stop_loss is not None:
-			stop_loss = TriggerPrice(stop_loss)
+			stop_loss = TriggerPrice(round(stop_loss, self.get_instrument_precision(instrument)-1))
 		order = Order(
 			units,
 			Trader.format_instrument(instrument),
@@ -256,3 +259,9 @@ class Trader:
 			to=self.__localize_datetime(datetime.datetime.now())
 		)
 		return cs[0].time.astimezone(self.__timezone)
+
+	@CacheDecorators.cached_method()
+	def get_instrument_precision(self, instrument: typing.Tuple[str, str]) -> float:
+		return self.__client.execute(
+			GetInstrumentPrecisionRequest(instrument)
+		)
