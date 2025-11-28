@@ -9,6 +9,9 @@ class FileStorageTest(unittest.TestCase):
 	def setUp(self):
 		self.fs = ServiceProvider.provide_file_storage(path="/")
 
+	def test_upload_file(self):
+		self.fs.upload_file("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/README.md")
+
 	def test_listdir(self):
 		files = self.fs.listdir("/Apps/RTrader")
 		self.assertTrue(len(files) > 0)

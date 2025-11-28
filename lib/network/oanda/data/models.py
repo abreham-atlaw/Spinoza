@@ -10,6 +10,11 @@ class Trade:
 
 
 @attr.define
+class TriggerPrice:
+	price: float = attr.ib()
+
+
+@attr.define
 class AccountSummary:
 
 	NAV: float = attr.ib()
@@ -34,6 +39,7 @@ class Trade:
 	marginUsed: float = attr.ib()
 	state: str = attr.ib()
 	price: float = attr.ib()
+	stopLossOrder: Optional[TriggerPrice] = attr.ib(default=None)
 
 	def get_instrument(self) -> Tuple[str, str]:
 		from lib.network.oanda import Trader
@@ -59,6 +65,7 @@ class Order:
 	units: int = attr.ib()
 	instrument: str = attr.ib()
 	timeInForce: str = attr.ib()
+	stopLossOnFill: Optional[TriggerPrice] = attr.ib()
 	type: Optional[str] = "MARKET"
 	positionFill: Optional[str] = "DEFAULT"
 

@@ -2,5 +2,5 @@ from .transformation import Transformation
 from .vertical_shift_transformation import VerticalShiftTransformation
 from .gaussian_noise_transformation import GaussianNoiseTransformation
 from .vertical_stretch_transformation import VerticalStretchTransformation
-from .time_stetch_transformation import TimeStretchTransformation
+from .time_stretch_transformation import TimeStretchTransformation
 from .transformation_pipeline import TransformationPipeline

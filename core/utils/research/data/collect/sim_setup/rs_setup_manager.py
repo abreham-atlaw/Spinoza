@@ -28,8 +28,11 @@ class RSSetupManager:
 		self.__times_repo = times_repo
 		self.__rs_repo = rs_repo
 		self.__fs = fs
-		self.__setup_manager = SetupManager()
+		self._setup_manager = self._init_setup_manager()
 		self.__model_evaluator = model_evaluator
+
+	def _init_setup_manager(self) -> SetupManager:
+		return SetupManager()
 
 	def __serialize_time(self, time: datetime):
 		return time.strftime("%Y-%m-%d %H:%M:%S+00:00")
@@ -47,7 +50,7 @@ class RSSetupManager:
 		stat.simulated_timestamps.append(self.__serialize_time(start_time))
 
 		Logger.info(f"Setting up Simulation Trading...")
-		self.__setup_manager.setup(start_time)
+		self._setup_manager.setup(start_time)
 
 	@retry(exception_cls=(FileNotFoundException,), patience=10)
 	def setup(self):

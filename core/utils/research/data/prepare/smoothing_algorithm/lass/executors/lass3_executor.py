@@ -15,6 +15,7 @@ class Lass3Executor(LassExecutor):
 			padding: int = 0,
 			left_align: bool = False,
 			verbose_threshold: int = int(1e4),
+			vertical_correction: float = True,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
@@ -22,6 +23,7 @@ class Lass3Executor(LassExecutor):
 		self.__target_size = None
 		self._left_align = left_align
 		self.__verbose_threshold = verbose_threshold
+		self.__vertical_correction = vertical_correction
 
 	def set_model(self, model: SpinozaModule):
 		super().set_model(model)
@@ -96,6 +98,8 @@ class Lass3Executor(LassExecutor):
 			)
 			y[:, target[0]:target[1]] = self.__extract_target(y_block, target, source)
 
+		if self.__vertical_correction:
+			y += np.expand_dims(X[:, -1] - y[:, -1], axis=1)
 
 		if is_flat:
 			y = y.flatten()
