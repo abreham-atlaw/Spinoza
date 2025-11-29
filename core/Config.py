@@ -17,7 +17,7 @@ class ModelConfig:
 IS_LIVE = True
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-EXPORT_DIR = os.path.join(BASE_DIR, "temp/")
+EXPORT_DIR = "/kaggle/working/"
 RES_DIR = os.path.join(BASE_DIR, "res/")
 
 NETWORK_TRIES = 10
@@ -60,7 +60,7 @@ PCLOUD_FOLDER = "/Apps/RTrader"
 # LIVE ENVIRONMENT
 OANDA_TOKEN = "4e3bc058fee3b2005e2a651081da881e-1cc2b5245cda5e61beb340aaf217c704"
 OANDA_TRADING_URL = "https://api-fxpractice.oanda.com/v3" if IS_LIVE else "http://127.0.0.1:8000/api"
-OANDA_TRADING_ACCOUNT_ID = "101-001-19229086-002"
+OANDA_TRADING_ACCOUNT_ID = ""
 OANDA_TEST_ACCOUNT_ID = "101-001-19229086-002"
 
 OANDA_SIM_DELTA_MULTIPLIER = 1 if IS_LIVE else 10
@@ -71,12 +71,12 @@ OANDA_SIM_TIMES_PATH = os.path.join(RES_DIR, "times/times-50.json")
 OANDA_SIM_MODEL_IN_PATH = PCLOUD_FOLDER
 
 DEFAULT_TIME_IN_FORCE = "FOK"
-TIMEZONE = timezone("Africa/Addis_Ababa")
+TIMEZONE = timezone("UTC")
 
 # AGENT CONFIGS
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
-UPDATE_SAVE_PATH = os.path.join(EXPORT_DIR, "Data/drmca_export")
+UPDATE_SAVE_PATH = os.path.join(EXPORT_DIR, "outs")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
@@ -85,7 +85,7 @@ MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = False
 MARKET_STATE_CHANNELS = ('c',)
 MARKET_STATE_SMOOTHED_CHANNELS = ('c',)
-DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks/real")
+DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks")
 TIME_PENALTY = 0
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
@@ -141,7 +141,7 @@ AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = True
 AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
-AGENT_CRA_SIZE = 5
+AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_DRMCA_WP = 100
 AGENT_TOP_K_NODES = None
@@ -222,27 +222,9 @@ PREDICTION_MODELS = [
 
 MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-75/"
 
-CORE_MODEL_CONFIG.path = "model.zip"
-CORE_MODEL_CONFIG.download = False
-OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
-TIMEZONE = timezone("UTC")
-MARKET_STATE_GRANULARITY = "M30"
-UPDATE_AGENT = True
-UPDATE_EXPORT_BATCH_SIZE = 2
-UPDATE_SAVE_PATH = "/kaggle/working/outs"
-DUMP_CANDLESTICKS_PATH = "/kaggle/working/candlesticks"
-AGENT_DUMP_NODES_PATH = "/kaggle/working/graph_dumps"
-AGENT_DUMP_NODES = True
-UPDATE_TRAIN = False
-AGENT_CRA_SIZE = 0
-MAPLOSS_BRANCH = "ma_ews"
-MAPLOSS_KEY = "cnn"
-
-OANDA_TRADING_ACCOUNT_ID = ""
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
 MODEL_OUT_PATH = MAPLOSS_FS_MODELS_PATH
-MODEL_TMP_PATH = os.path.abspath("./out/")
 
 TIMEOUT = 6*60*60
 
