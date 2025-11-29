@@ -518,3 +518,55 @@ class RunnerStatsLossesBranches:
 	]
 
 	default = it_74_0
+
+
+
+
+# DEPRECATED CONFIGS
+
+
+REMOTE_TRADER_URL = "http://localhost:8080/"
+
+MC_SERVER_PORT = 8000
+MC_SERVER_URL = "http://127.0.0.1:%s" % (MC_SERVER_PORT,)
+
+MAX_PROCESSES = 6
+RECURSION_DEPTH = 10000
+NESTED_PROCESS = False
+MAIN_PID = os.getpid()
+
+OPTIMIZER_PG_CONFIG = {
+	"dsn": "postgres://ontiwpwwgbtgwp:8702c0dec88af3c49473d464bf44e8ad17419facfce764c8684ed540839fb8cb@ec2-34-194-100-156.compute-1.amazonaws.com:5432/dcs4e3sfc908fi",
+	"sslmode": "require"
+}
+
+PCLOUD_FOLDER_D = "/Apps/RTrader"
+PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
+MODEL_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER_D, "Models/10M/10MA")
+CHECKPOINT_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER_D, "Checkpoints/10M/10MA")
+
+IMS_REMOTE_PATH = os.path.join(PCLOUD_FOLDER_D, "stats")
+IMS_SYNC_SIZE = int(1e5)
+IMS_TEMP_PATH = "/tmp/"
+
+POLYGON_API_KEY = "1ijeQ0XUYNl1YMHy6Wl_5zEBtGbkipUP"
+
+
+# TRAINING ENVIRONMENT
+HISTORICAL_TABLE_NAME = "test_currencies_history"
+CURRENCIES_TABLE_NAME = "test_currencies"
+TRADEABLE_PAIRS_TABLE_NAME = "test_tradeable_pairs"
+DISTINCT_DATETIMES_TABLE_NAME = "test_distinct_datetimes"
+"""
+HISTORICAL_TABLE_NAME = "currencies_history"
+CURRENCIES_TABLE_NAME = "currencies"
+TRADEABLE_PAIRS_TABLE_NAME = "tradeable_pairs"
+DISTINCT_DATETIMES_TABLE_NAME = "distinct_datetimes"
+"""
+DEFAULT_PG_CONFIG = {
+	"host": "localhost",
+	"database": "rtrader_db",
+	"user": "rtrader_admin",
+	"password": "4U7z7KJM"  # TODO
+}
+
