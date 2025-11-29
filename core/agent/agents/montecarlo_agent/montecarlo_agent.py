@@ -12,7 +12,7 @@ class TraderMonteCarloAgent(MonteCarloAgent, ABC):
 			self,
 			*args,
 			discount=Config.AGENT_DISCOUNT_FACTOR,
-			min_free_memory_percent=Config.MIN_FREE_MEMORY,
+			min_free_memory_percent=Config.AGENT_MIN_FREE_MEMORY,
 			logical=Config.AGENT_LOGICAL_MCA,
 			uct_exploration_weight=Config.AGENT_UCT_EXPLORE_WEIGHT,
 			use_stm=Config.AGENT_STM,

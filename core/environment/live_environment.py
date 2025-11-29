@@ -212,6 +212,12 @@ class LiveEnvironment(TradeEnvironment):
 		data = self.__process_instrument(data)
 		return data
 
+	def __calculate_stop_loss(self, action: TraderAction) -> typing.Optional[float]:
+		if action.stop_loss is None:
+			return None
+		price = self.__trader.get_price((action.base_currency, action.quote_currency))
+		return price * action.stop_loss
+
 	def _open_trade(self, action: TraderAction):
 		super()._open_trade(action)
 		try:
@@ -219,7 +225,8 @@ class LiveEnvironment(TradeEnvironment):
 				(action.base_currency, action.quote_currency),
 				self.__to_oanda_action(action.action),
 				action.margin_used,
-				time_in_force=Config.DEFAULT_TIME_IN_FORCE
+				time_in_force=Config.DEFAULT_TIME_IN_FORCE,
+				stop_loss=None if action.stop_loss is None else self.__calculate_stop_loss(action)
 			)
 		except InsufficientMarginException as ex:
 			Logger.error(f"Insufficient margin requested for trade: {str(ex)}")
