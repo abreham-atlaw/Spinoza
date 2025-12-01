@@ -14,7 +14,7 @@ class ModelConfig:
 	path: str
 
 
-IS_LIVE = True
+IS_LIVE = False
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 EXPORT_DIR = "/kaggle/working/"
@@ -54,7 +54,6 @@ PCLOUD_FOLDER = "/Apps/RTrader"
 
 
 # ENVIRONMENT CONFIGS
-
 
 
 # LIVE ENVIRONMENT
@@ -226,7 +225,7 @@ OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
 MODEL_OUT_PATH = MAPLOSS_FS_MODELS_PATH
 
-TIMEOUT = 11*60*60
+TIMEOUT = 6*60*60
 
 
 class ResourceCategories:
@@ -406,7 +405,7 @@ class RunnerStatsBranches:
 		it_76_6
 	]
 
-	default = it_75_7
+	default = it_75_6
 
 
 class RunnerStatsLossesBranches:
