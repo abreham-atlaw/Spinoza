@@ -20,7 +20,7 @@ class SessionSerializer(Serializer):
 
 class RunnerStats2Serializer(Serializer):
 
-	__omitted_keys = ["session_timestamps", "simulated_timestamps", "profits", "session_model_losses"]
+	__omitted_keys = ["_id", "session_timestamps", "simulated_timestamps", "profits", "session_model_losses", "real_profits", "branch"]
 
 	def __init__(self):
 		super().__init__(RunnerStats2Session)
@@ -39,7 +39,7 @@ class RunnerStats2Serializer(Serializer):
 
 	@staticmethod
 	def __is_v1(json_: Dict) -> bool:
-		return "session_timestamps" in json_
+		return "sessions" not in json_
 
 	def __from_v1(self, stat: RunnerStats) -> RunnerStats2:
 		return RunnerStats2(
@@ -66,6 +66,10 @@ class RunnerStats2Serializer(Serializer):
 	def deserialize(self, json_: Dict) -> RunnerStats2:
 		if self.__is_v1(json_):
 			return self.__process_v1(json_)
+
+		for key in self.__omitted_keys:
+			if key in json_:
+				json_.pop(key)
 
 		json_["sessions"] = self.__session_serializer.deserialize_many(json_["sessions"])
 

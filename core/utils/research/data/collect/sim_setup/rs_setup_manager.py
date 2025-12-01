@@ -25,7 +25,8 @@ class RSSetupManager:
 			rs_repo: RunnerStatsRepository,
 			fs: FileStorage,
 			model_evaluator: ModelEvaluator,
-			refresh_finish: bool = True
+			refresh_finish: bool = True,
+			time_based_allocation: bool = True
 	):
 		self.__times_repo = times_repo
 		self.__rs_repo = rs_repo
@@ -33,18 +34,18 @@ class RSSetupManager:
 		self._setup_manager = self._init_setup_manager()
 		self.__model_evaluator = model_evaluator
 		self.__refresh_finish = refresh_finish
+		self.__time_based_allocation = time_based_allocation
 
 	def _init_setup_manager(self) -> SetupManager:
 		return SetupManager()
 
 	def __serialize_time(self, time: datetime):
+		if isinstance(time, str):
+			return time
 		return time.strftime("%Y-%m-%d %H:%M:%S+00:00")
 
 	def _allocate_time(self, stat: RunnerStats) -> datetime:
-		return min(
-			self.__times_repo.retrieve_all(),
-			key=lambda t: stat.simulated_timestamps.count(self.__serialize_time(t))
-		)
+		return self.__times_repo.allocate(stat)
 
 	def _allocate_extra(self, stat: RunnerStats):
 		Logger.info(f"Allocating Time...")
@@ -58,7 +59,7 @@ class RSSetupManager:
 	@retry(exception_cls=(FileNotFoundException,), patience=10)
 	def setup(self):
 		Logger.info(f"Allocating Runner Stat...")
-		stat = self.__rs_repo.allocate_for_runlive()
+		stat = self.__rs_repo.allocate_for_runlive(allow_locked=self.__time_based_allocation)
 		Logger.success(f"Allocated Runner Stat: {stat}")
 
 		Logger.info(f"Downloading {stat.model_name}...")
