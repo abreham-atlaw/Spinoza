@@ -10,14 +10,14 @@ class RSSetupManagerTest(unittest.TestCase):
 
 	def setUp(self):
 
-		Config.RunnerStatsBranches.default = Config.RunnerStatsBranches.it_23_0
-		Config.RunnerStatsLossesBranches.default = Config.RunnerStatsLossesBranches.it_23
-		Config.OANDA_SIM_MODEL_IN_PATH = "/Apps/RTrader/maploss/it-23/"
+		Config.RunnerStatsBranches.default = Config.RunnerStatsBranches.it_42_6
+		Config.RunnerStatsLossesBranches.default = Config.RunnerStatsLossesBranches.it_41_h_1
+		Config.OANDA_SIM_MODEL_IN_PATH = "/Apps/RTrader/maploss/it-42/"
 
 		Config.OANDA_TRADING_ACCOUNT_ID = ""
 		Config.OANDA_TRADING_URL = "http://127.0.0.1:8888/api"
 
-		Config.UPDATE_SAVE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/4/test"
+		Config.UPDATE_SAVE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/8/train"
 
 		self.setup_manager: RSSetupManager = ResearchProvider.provide_rs_setup_manager()
 
