@@ -261,11 +261,11 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			return
 		instrument = trade.get_trade().base_currency, trade.get_trade().quote_currency
 		current_price = state.get_market_state().get_current_price(instrument[0], instrument[1])
-		previous_price = state.get_market_state().get_state_of(instrument[0], instrument[1])[-2]
+		previous_price = trade.get_enter_value()
 
 		percentage = current_price / previous_price
 
-		direction = np.sign(trade.get_trade().units)
+		direction = -1 if trade.get_trade().action == TraderAction.Action.SELL else 1
 
 		if direction*percentage <= direction*trade.get_trade().stop_loss:
 			state.get_agent_state().close_trades(instrument[0], instrument[1])  # TODO: CLOSE SINGLE TRADE
