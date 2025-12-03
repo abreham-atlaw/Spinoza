@@ -14,7 +14,7 @@ class ModelConfig:
 	path: str
 
 
-IS_LIVE = True
+IS_LIVE = False
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 EXPORT_DIR = os.path.join(BASE_DIR, "temp/")
@@ -220,7 +220,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-75/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-74/"
 
 
 class ResourceCategories:
@@ -400,7 +400,7 @@ class RunnerStatsBranches:
 		it_76_6
 	]
 
-	default = it_75_6
+	default = it_74_6
 
 
 class RunnerStatsLossesBranches:
