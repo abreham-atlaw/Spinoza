@@ -136,9 +136,9 @@ class TraderTest(unittest.TestCase):
 		current_price = self.trader.get_price(("AUD", "USD"))
 		self.trader.trade(
 			("AUD", "USD"),
-			action=Trader.TraderAction.BUY,
+			action=Trader.TraderAction.SELL,
 			margin=20,
-			stop_loss=round(current_price * 0.999, 3)
+			stop_loss=0.6566031374999999
 		)
 
 		open_trades: typing.List[Trade] = self.trader.get_open_trades()
