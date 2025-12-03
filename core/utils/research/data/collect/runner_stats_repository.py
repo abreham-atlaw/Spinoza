@@ -10,6 +10,8 @@ from pymongo import MongoClient
 from core import Config
 from core.di import ServiceProvider, ResearchProvider
 from core.utils.research.data.collect.runner_stats import RunnerStats
+from core.utils.research.data.collect.runner_stats2 import RunnerStats2
+from core.utils.research.data.collect.runner_stats2_serializer import RunnerStats2Serializer
 from core.utils.research.data.collect.runner_stats_serializer import RunnerStatsSerializer
 from lib.utils.logger import Logger
 
@@ -28,12 +30,13 @@ class RunnerStatsRepository:
 			profit_based_selection: bool = False,
 			profit_predictor: 'ProfitPredictor' = None,
 			branch: str = Config.RunnerStatsBranches.default,
+			use_v1: bool = False
 	):
 		Logger.info(f"Using Branch {branch} with key '{model_name_key}'")
 		db = client[db_name]
 		self.client = client
 		self._collection = db[f"{collection_name}-branch-{branch}"]
-		self.__serializer = RunnerStatsSerializer()
+		self.__serializer = RunnerStatsSerializer() if use_v1 else RunnerStats2Serializer()
 		self.__resman = ServiceProvider.provide_resman(f"{Config.ResourceCategories.RUNNER_STAT}-{branch}")
 		self.__select_weight = select_weight
 		if isinstance(max_loss, float):
@@ -47,10 +50,10 @@ class RunnerStatsRepository:
 		self.__profit_predictor = profit_predictor
 		self.branch = branch
 
-	def __get_select_sort_field(self, stat: RunnerStats) -> float:
+	def __get_select_sort_field(self, stat: RunnerStats2) -> float:
 		return stat.duration
 
-	def __get_sort_scores(self, stats: typing.List[RunnerStats]) -> typing.List[float]:
+	def __get_sort_scores(self, stats: typing.List[RunnerStats2]) -> typing.List[float]:
 		field_values = [self.__get_select_sort_field(stat) for stat in stats]
 		field_mean = np.mean(field_values)
 
@@ -59,7 +62,7 @@ class RunnerStatsRepository:
 			for i in range(len(field_values))
 		]
 
-	def __filter_select(self, stats: typing.List[RunnerStats]):
+	def __filter_select(self, stats: typing.List[RunnerStats2]):
 		selected = list(filter(
 			lambda stat:
 			(
@@ -88,55 +91,55 @@ class RunnerStatsRepository:
 			selected = selected[:self.__population_size]
 		return selected
 
-	def __sort_select(self, stats: typing.List[RunnerStats]):
+	def __sort_select(self, stats: typing.List[RunnerStats2]):
 		scores = self.__get_sort_scores(stats)
 		return sorted(stats, key=lambda stat: scores[stats.index(stat)])
 
-	def store(self, stats: RunnerStats):
+	def store(self, stats: RunnerStats2):
 		old_stats = self.retrieve(stats.id)
 		if old_stats is None:
 			self._collection.insert_one(
-				stats.__dict__
+				self.__serializer.serialize(stats)
 			)
 			return
 		self._collection.update_one(
 			{"id": stats.id},
-			{"$set": stats.__dict__},
+			{"$set": self.__serializer.serialize(stats)},
 			upsert=True
 		)
 
 	def remove(self, id: str):
 		self._collection.delete_one({"id": id})
 
-	def retrieve(self, id: str) -> typing.Optional[RunnerStats]:
+	def retrieve(self, id: str) -> typing.Optional[RunnerStats2]:
 		doc = self._collection.find_one({"id": id})
 		if doc:
 			return self.__serializer.deserialize(doc)
 		else:
 			return None
 
-	def retrieve_all(self) -> typing.List[RunnerStats]:
+	def retrieve_all(self) -> typing.List[RunnerStats2]:
 		docs = self._collection.find()
 		return self.__serializer.deserialize_many(docs)
 
 	def exists(self, id):
 		return self.retrieve(id) is not None
 
-	def retrieve_by_loss_complete(self) -> typing.List[RunnerStats]:
+	def retrieve_by_loss_complete(self) -> typing.List[RunnerStats2]:
 		return [
 			stat
 			for stat in self.retrieve_all()
 			if 0.0 not in stat.model_losses
 		]
 
-	def retrieve_non_locked(self) -> typing.List[RunnerStats]:
+	def retrieve_non_locked(self) -> typing.List[RunnerStats2]:
 		return [
 			stat
 			for stat in self.retrieve_all()
 			if not self.__resman.is_locked_by_id(stat.id)
 		]
 
-	def allocate_for_runlive(self, allow_locked: bool = False) -> RunnerStats:
+	def allocate_for_runlive(self, allow_locked: bool = False) -> RunnerStats2:
 		if allow_locked:
 			pool = self.retrieve_all()
 		else:
@@ -155,7 +158,7 @@ class RunnerStatsRepository:
 		self.__resman.lock_by_id(selected.id)
 		return selected
 
-	def finish_session(self, instance: RunnerStats, profit: float):
+	def finish_session(self, instance: RunnerStats2, profit: float):
 		duration = (datetime.now() - instance.session_timestamps[-1]).total_seconds()
 		instance.add_profit(profit)
 		instance.add_duration(duration)
