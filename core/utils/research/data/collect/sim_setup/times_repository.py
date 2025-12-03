@@ -3,6 +3,7 @@ import typing
 from abc import ABC, abstractmethod
 from datetime import datetime
 
+from core import Config
 from core.di import ServiceProvider
 from core.utils.research.data.collect.runner_stats2 import RunnerStats2
 
@@ -24,8 +25,9 @@ class JsonTimesRepository(TimesRepository):
 			self,
 			path: str,
 			format="%Y-%m-%d %H:%M:%S+00:00",
+			resman_key: str = Config.TIMES_RESOURCE_MANAGER_KEY
 	):
-		self.__resource_manager = ServiceProvider.provide_resman("times")
+		self.__resource_manager = ServiceProvider.provide_resman(resman_key)
 		self.__format = format
 		with open(path, "r") as file:
 			self.__times = map(
