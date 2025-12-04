@@ -95,6 +95,9 @@ AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = False
 AGENT_STOP_LOSS_GRANULARITY = 0.001
 AGENT_STOP_LOSS_VALUE_BOUND = (0.001, 0.005)
+AGENT_STOP_LOSS_CONVERSION = False
+AGENT_STOP_LOSS_CONVERSION_BOUNDS = (0.9995, 1.0005)
+AGENT_STOP_LOSS_CONVERSION_ACCURACY = int(1e2)
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
@@ -137,8 +140,8 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 64
-AGENT_USE_LASS = True
+AGENT_MA_WINDOW_SIZE = 32
+AGENT_USE_LASS = False
 AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 0
@@ -161,7 +164,7 @@ AGENT_MODEL_EXTRA_LEN = 124
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/09.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/11.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -220,7 +223,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-75/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-79/"
 
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
@@ -331,6 +334,8 @@ class RunnerStatsBranches:
 
 	it_76_6 = "it_76_6"
 
+	it_79_6 = "it_79_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -403,10 +408,11 @@ class RunnerStatsBranches:
 		it_74_6,
 		it_75_6,
 		it_75_7,
-		it_76_6
+		it_76_6,
+		it_79_6,
 	]
 
-	default = it_75_6
+	default = it_79_6
 
 
 class RunnerStatsLossesBranches:
@@ -463,6 +469,7 @@ class RunnerStatsLossesBranches:
 	it_72_0 = "it_72_0"
 	it_74_0 = "it_74_0"
 	it_76_0 = "it_76_0"
+	it_79_0 = "it_79_0"
 
 	all = [
 		main,
@@ -514,10 +521,11 @@ class RunnerStatsLossesBranches:
 		it_70_0,
 		it_72_0,
 		it_74_0,
-		it_76_0
+		it_76_0,
+		it_79_0
 	]
 
-	default = it_74_0
+	default = it_79_0
 
 
 
