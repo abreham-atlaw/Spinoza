@@ -224,7 +224,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-56/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-79/"
 
 
 class ResourceCategories:
