@@ -35,7 +35,8 @@ class LiveEnvironmentTest(unittest.TestCase):
 				base_currency,
 				quote_currency,
 				TraderAction.Action.SELL,
-				margin_used=20
+				margin_used=20,
+				stop_loss=1.0
 			)
 		)
 
