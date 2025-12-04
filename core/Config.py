@@ -96,7 +96,7 @@ AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = False
 AGENT_STOP_LOSS_GRANULARITY = 0.001
 AGENT_STOP_LOSS_VALUE_BOUND = (0.001, 0.005)
-AGENT_STOP_LOSS_CONVERSION = True
+AGENT_STOP_LOSS_CONVERSION = False
 AGENT_STOP_LOSS_CONVERSION_BOUNDS = (0.9995, 1.0005)
 AGENT_STOP_LOSS_CONVERSION_ACCURACY = int(1e2)
 AGENT_DEPTH = 30  # TODO: DEPRECATED
@@ -141,7 +141,7 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 64
+AGENT_MA_WINDOW_SIZE = 32
 AGENT_USE_LASS = False
 AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
@@ -407,7 +407,7 @@ class RunnerStatsBranches:
 		it_79_6,
 	]
 
-	default = it_56_7
+	default = it_79_6
 
 
 class RunnerStatsLossesBranches:
@@ -520,7 +520,7 @@ class RunnerStatsLossesBranches:
 		it_79_0
 	]
 
-	default = it_56_0
+	default = it_79_0
 
 
 
