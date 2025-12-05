@@ -7,6 +7,7 @@ from core.di import ResearchProvider
 from lib.utils.logger import Logger
 from .rs_filter import RSFilter
 from ...data.collect.runner_stats import RunnerStats
+from ...data.collect.runner_stats2 import RunnerStats2
 
 
 class RSAnalyzer(ABC):
@@ -76,16 +77,23 @@ class RSAnalyzer(ABC):
 
 		return stats
 
+
+	@staticmethod
+	def __attach_sessions_size(stats: typing.List[RunnerStats2]):
+		for stat in stats:
+			stat.sessions_size = len(stat.sessions)
+		return stats
+
 	@staticmethod
 	def __construct_df(stats: typing.List[RunnerStats]) -> pd.DataFrame:
 		return pd.DataFrame([
 			(stat.id, stat.temperature, stat.profit, stat.model_losses,
 			 [dt.strftime("%Y-%m-%d %H:%M:%S.%f") for dt in stat.session_timestamps], stat.profits,
-			 stat.simulated_timestamps, stat.session_model_losses)
+			 stat.simulated_timestamps, stat.session_model_losses, stat.sessions_size)
 			for stat in stats
 		], columns=[
 			"ID", "Temperature", "Profit", "Losses", "Sessions", "Profits", "Sim. Timestamps",
-			"Session Model Losses"
+			"Session Model Losses", "Sessions Size"
 		])
 
 	def _export_stats(self, stats: typing.List[RunnerStats], path: str):
@@ -104,6 +112,8 @@ class RSAnalyzer(ABC):
 			for repository in self.__repositories.values()
 			for stat in repository.retrieve_all()
 		]
+
+		self.__attach_sessions_size(stats)
 
 		Logger.info(f"Filtering {len(stats)} stats")
 		stats = self.__filter_stats(
