@@ -63,7 +63,7 @@ OANDA_TRADING_URL = "https://api-fxpractice.oanda.com/v3" if IS_LIVE else "http:
 OANDA_TRADING_ACCOUNT_ID = "101-001-19229086-002"
 OANDA_TEST_ACCOUNT_ID = "101-001-19229086-002"
 
-OANDA_SIM_DELTA_MULTIPLIER = 1 if IS_LIVE else 10
+OANDA_SIM_DELTA_MULTIPLIER = 1 if IS_LIVE else 1
 OANDA_SIM_MARGIN_RATE = 0.01
 OANDA_SIM_BALANCE = 100
 OANDA_SIM_ALIAS = "Sim Account 0"
@@ -81,7 +81,7 @@ UPDATE_SAVE_PATH = os.path.join(EXPORT_DIR, "Data/drmca_export")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
-MARKET_STATE_GRANULARITY = "M30"
+MARKET_STATE_GRANULARITY = "M5"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = False
 MARKET_STATE_CHANNELS = ('c',)
@@ -224,7 +224,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-79/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-82/"
 
 
 class ResourceCategories:
@@ -412,7 +412,7 @@ class RunnerStatsBranches:
 		it_82_6
 	]
 
-	default = it_79_6
+	default = it_82_6
 
 
 class RunnerStatsLossesBranches:
@@ -529,7 +529,7 @@ class RunnerStatsLossesBranches:
 		it_82_0
 	]
 
-	default = it_79_0
+	default = it_82_0
 
 
 
