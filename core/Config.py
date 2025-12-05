@@ -95,6 +95,9 @@ AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = False
 AGENT_STOP_LOSS_GRANULARITY = 0.001
 AGENT_STOP_LOSS_VALUE_BOUND = (0.001, 0.005)
+AGENT_STOP_LOSS_CONVERSION = True
+AGENT_STOP_LOSS_CONVERSION_BOUNDS = (0.9995, 1.0005)
+AGENT_STOP_LOSS_CONVERSION_ACCURACY = int(1e2)
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
@@ -331,6 +334,11 @@ class RunnerStatsBranches:
 
 	it_76_6 = "it_76_6"
 
+	it_79_6 = "it_79_6"
+	it_80_6 = "it_80_6"
+
+	it_82_6 = "it_82_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -403,7 +411,10 @@ class RunnerStatsBranches:
 		it_74_6,
 		it_75_6,
 		it_75_7,
-		it_76_6
+		it_76_6,
+		it_79_6,
+		it_80_6,
+		it_82_6
 	]
 
 	default = it_76_6
@@ -463,6 +474,9 @@ class RunnerStatsLossesBranches:
 	it_72_0 = "it_72_0"
 	it_74_0 = "it_74_0"
 	it_76_0 = "it_76_0"
+	it_79_0 = "it_79_0"
+	it_80_0 = "it_80_0"
+	it_82_0 = "it_82_0"
 
 	all = [
 		main,
@@ -514,7 +528,10 @@ class RunnerStatsLossesBranches:
 		it_70_0,
 		it_72_0,
 		it_74_0,
-		it_76_0
+		it_76_0,
+		it_79_0,
+		it_80_0,
+		it_82_0
 	]
 
 	default = it_76_0
