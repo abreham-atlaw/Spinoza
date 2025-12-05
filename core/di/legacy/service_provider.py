@@ -14,6 +14,9 @@ from lib.utils.torch_utils.model_handler import ModelHandler
 
 class ServiceProvider:
 
+
+	__mongo_client = None
+
 	@staticmethod
 	def provide_file_storage(path=None) -> FileStorage:
 		if path is None:
@@ -25,7 +28,9 @@ class ServiceProvider:
 
 	@staticmethod
 	def provide_mongo_client() -> MongoClient:
-		return MongoClient(Config.MONGODB_URL)
+		if ServiceProvider.__mongo_client is None:
+			ServiceProvider.__mongo_client = MongoClient(Config.MONGODB_URL)
+		return ServiceProvider.__mongo_client
 
 	@staticmethod
 	def provide_resman(category: str) -> ResourceRepository:
