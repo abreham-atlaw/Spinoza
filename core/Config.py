@@ -142,8 +142,8 @@ AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 32
-AGENT_USE_LASS = False
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
+AGENT_USE_LASS = True
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-30-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -165,7 +165,7 @@ AGENT_MODEL_EXTRA_LEN = 124
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/11.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -231,7 +231,7 @@ TEMPERATURES = [0.1, 0.25, 1.0]
 HORIZON_MODE = True
 HORIZON_H = 0.9
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-79/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-80/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -422,7 +422,7 @@ class RunnerStatsBranches:
 		it_82_6
 	]
 
-	default = it_79_6
+	default = it_80_6
 
 
 class RunnerStatsLossesBranches:
@@ -539,7 +539,7 @@ class RunnerStatsLossesBranches:
 		it_82_0
 	]
 
-	default = it_79_0
+	default = it_80_0
 
 
 
