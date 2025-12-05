@@ -62,7 +62,7 @@ OANDA_TRADING_URL = "https://api-fxpractice.oanda.com/v3" if IS_LIVE else "http:
 OANDA_TRADING_ACCOUNT_ID = ""
 OANDA_TEST_ACCOUNT_ID = "101-001-19229086-002"
 
-OANDA_SIM_DELTA_MULTIPLIER = 1 if IS_LIVE else 10
+OANDA_SIM_DELTA_MULTIPLIER = 1 if IS_LIVE else 1
 OANDA_SIM_MARGIN_RATE = 0.01
 OANDA_SIM_BALANCE = 100
 OANDA_SIM_ALIAS = "Sim Account 0"
@@ -80,7 +80,7 @@ UPDATE_SAVE_PATH = os.path.join(EXPORT_DIR, "outs")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
-MARKET_STATE_GRANULARITY = "M30"
+MARKET_STATE_GRANULARITY = "M5"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = False
 MARKET_STATE_CHANNELS = ('c',)
@@ -157,14 +157,14 @@ AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e4)
 AGENT_FILESYSTEM_STATE_REPOSITORY_PATH = BASE_DIR
 AGENT_MIN_FREE_MEMORY = 2
 AGENT_MIN_DISK_SPACE = 0.1
-AGENT_MIN_ABS_DISK_SPACE = 12.0
+AGENT_MIN_ABS_DISK_SPACE = None
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/05.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/12.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -223,7 +223,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-79/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-82/"
 
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
@@ -417,7 +417,7 @@ class RunnerStatsBranches:
 		it_82_6
 	]
 
-	default = it_79_6
+	default = it_82_6
 
 
 class RunnerStatsLossesBranches:
@@ -534,7 +534,7 @@ class RunnerStatsLossesBranches:
 		it_82_0
 	]
 
-	default = it_79_0
+	default = it_82_0
 
 
 
