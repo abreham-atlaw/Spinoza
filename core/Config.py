@@ -66,7 +66,7 @@ OANDA_SIM_DELTA_MULTIPLIER = 1 if IS_LIVE else 10
 OANDA_SIM_MARGIN_RATE = 0.01
 OANDA_SIM_BALANCE = 100
 OANDA_SIM_ALIAS = "Sim Account 0"
-OANDA_SIM_TIMES_PATH = os.path.join(RES_DIR, "times/times-50.json")
+OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-50-it-4.json")
 OANDA_SIM_MODEL_IN_PATH = PCLOUD_FOLDER
 TIMES_RESOURCE_MANAGER_KEY = "times"
 
@@ -139,7 +139,7 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = True
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-27-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
@@ -220,7 +220,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-75/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-76/"
 
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
@@ -406,7 +406,7 @@ class RunnerStatsBranches:
 		it_76_6
 	]
 
-	default = it_75_6
+	default = it_76_6
 
 
 class RunnerStatsLossesBranches:
@@ -517,7 +517,7 @@ class RunnerStatsLossesBranches:
 		it_76_0
 	]
 
-	default = it_74_0
+	default = it_76_0
 
 
 
