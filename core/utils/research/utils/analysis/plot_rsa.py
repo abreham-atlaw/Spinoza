@@ -7,6 +7,7 @@ from lib.utils.logger import Logger
 from .rs_filter import RSFilter
 from .rsa import RSAnalyzer
 from ...data.collect.runner_stats import RunnerStats
+from ...data.collect.runner_stats2 import RunnerStats2
 from ...data.collect.runner_stats_populater import RunnerStatsPopulater
 
 
@@ -46,18 +47,40 @@ class PlotRSAnalyzer(RSAnalyzer):
 		self.__use_avg_profits = use_avg_profits
 		self.__sessions_len = sessions_len
 
-	def __trim_stat(self, stat: RunnerStats, sessions_len: int):
-		stat.session_timestamps, stat.simulated_timestamps, stat.profits = [
-			value[:sessions_len]
-			for value in [
-				stat.session_timestamps,
-				stat.simulated_timestamps,
-				stat.profits
-			]
-		]
+	def __trim_stat(self, stat: RunnerStats2, sessions_len: int):
+		stat.sessions = stat.sessions[:sessions_len]
 		return stat
 
+	def __get_common_sessions(self, sessions: typing.List[typing.List[str]]) -> typing.List[str]:
+
+		if None in sessions or len(sessions) == 1:
+			return sessions
+
+		if len(sessions) == 2:
+			return list(filter(
+				lambda session: session in sessions[0] and session in sessions[1],
+				sessions[0] + sessions[1]
+			))
+
+		return self.__get_common_sessions([sessions[0], self.__get_common_sessions(sessions[1:])])
+
+	def __sync_sessions(self, stats: typing.List[RunnerStats2]):
+		Logger.info(f"Syncing Sessions...")
+
+		sessions = sorted(self.__get_common_sessions(list(map(lambda stat: stat.simulated_timestamps, stats))))
+
+		for stat in stats:
+			stat.sessions = sorted(
+				list(filter(
+					lambda session: session.simulated_timestamp in sessions,
+					stat.sessions
+				)),
+				key=lambda session: sessions.index(session.simulated_timestamp)
+			)
+
 	def __trim_sessions(self, stats: typing.List[RunnerStats]):
+
+		self.__sync_sessions(stats)
 
 		sessions_len = self.__sessions_len
 		if sessions_len is None:
