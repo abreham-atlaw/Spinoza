@@ -54,7 +54,7 @@ class PlotRSAnalyzer(RSAnalyzer):
 	def __get_common_sessions(self, sessions: typing.List[typing.List[str]]) -> typing.List[str]:
 
 		if None in sessions or len(sessions) == 1:
-			return sessions
+			return sessions[0]
 
 		if len(sessions) == 2:
 			return list(filter(
