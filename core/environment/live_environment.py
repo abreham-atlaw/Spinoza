@@ -36,6 +36,9 @@ class LiveEnvironment(TradeEnvironment):
 			use_smoothing: int = Config.MARKET_STATE_SMOOTHING,
 			channels: typing.Tuple[str,...] = Config.MARKET_STATE_CHANNELS,
 			smoothed_channels: typing.Tuple[str,...] = Config.MARKET_STATE_SMOOTHED_CHANNELS,
+			stop_loss_conversion: bool = Config.AGENT_STOP_LOSS_CONVERSION,
+			stop_loss_conversion_bounds: typing.Tuple[float, float] = Config.AGENT_STOP_LOSS_CONVERSION_BOUNDS,
+			stop_loss_conversion_accuracy: int = Config.AGENT_STOP_LOSS_CONVERSION_ACCURACY,
 			close_channel_label: str = "c",
 			**kwargs
 	):
@@ -62,6 +65,10 @@ class LiveEnvironment(TradeEnvironment):
 		self.__close_channel_label = close_channel_label
 		self.__smoothed_channels = smoothed_channels
 		self.__smoothing_algorithm = None if not use_smoothing else ServiceProvider.provide_smoothing_algorithm()
+
+		self.__stop_loss_conversion = stop_loss_conversion
+		self.__stop_loss_conversion_bounds = stop_loss_conversion_bounds
+		self.__stop_loss_conversion_accuracy = stop_loss_conversion_accuracy
 		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
 
 	def __generate_all_instruments(self, instruments, agent_currency) -> List[Tuple[str, str]]:
@@ -194,7 +201,7 @@ class LiveEnvironment(TradeEnvironment):
 
 		return data
 
-	def __prepare_instrument(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
+	def __fetch_instrument_state(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
 		size = size + self.__smoothing_algorithm.reduction
 
 		candle_sticks = self.__trader.get_candlestick(
@@ -208,15 +215,37 @@ class LiveEnvironment(TradeEnvironment):
 			self.__dump_candlesticks(df)
 
 		data = df[list(self.__channels)].to_numpy().transpose()
+		return data
 
+	def __prepare_instrument(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
+		data = self.__fetch_instrument_state(base_currency, quote_currency, size, granularity)
 		data = self.__process_instrument(data)
 		return data
+
+	def __convert_stop_loss(self, action: TraderAction):
+		Logger.info(f"Converting Stop Loss...")
+		p = np.linspace(*self.__stop_loss_conversion_bounds, self.__stop_loss_conversion_accuracy)
+
+		x = self.__fetch_instrument_state(action.base_currency, action.quote_currency, self._market_state_memory, self.__market_state_granularity)
+		if x.ndim == 2:
+			x = x[0]
+
+		y = np.repeat(np.expand_dims(x, axis=0), repeats=p.shape[0], axis=0)
+		y[:, :-1] = y[:, 1:]
+		y[:, -1] *= p
+		y = self.__smoothing_algorithm.apply_on_batch(y)
+		y = y[:, -1] / y[:, -2]
+		y = p[np.argmin(np.abs(y - action.stop_loss))]
+		return y
 
 	def __calculate_stop_loss(self, action: TraderAction) -> typing.Optional[float]:
 		if action.stop_loss is None:
 			return None
+		stop_loss = action.stop_loss
+		if self.__stop_loss_conversion:
+			stop_loss = self.__convert_stop_loss(action)
 		price = self.__trader.get_price((action.base_currency, action.quote_currency))
-		return price * action.stop_loss
+		return price * stop_loss
 
 	def _open_trade(self, action: TraderAction):
 		super()._open_trade(action)
