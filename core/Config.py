@@ -66,7 +66,7 @@ OANDA_SIM_DELTA_MULTIPLIER = 1 if IS_LIVE else 10
 OANDA_SIM_MARGIN_RATE = 0.01
 OANDA_SIM_BALANCE = 100
 OANDA_SIM_ALIAS = "Sim Account 0"
-OANDA_SIM_TIMES_PATH = os.path.join(RES_DIR, "times/times-50.json")
+OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-50-it-4.json")
 OANDA_SIM_MODEL_IN_PATH = PCLOUD_FOLDER
 TIMES_RESOURCE_MANAGER_KEY = "times"
 
@@ -140,7 +140,7 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 32
+AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = False
 AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
@@ -164,7 +164,7 @@ AGENT_MODEL_EXTRA_LEN = 124
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/05.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/09.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -223,7 +223,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-79/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-84/"
 
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
@@ -339,6 +339,8 @@ class RunnerStatsBranches:
 
 	it_82_6 = "it_82_6"
 
+	it_84_6 = "it_84_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -414,10 +416,11 @@ class RunnerStatsBranches:
 		it_76_6,
 		it_79_6,
 		it_80_6,
-		it_82_6
+		it_82_6,
+		it_84_6
 	]
 
-	default = it_79_6
+	default = it_84_6
 
 
 class RunnerStatsLossesBranches:
@@ -477,6 +480,7 @@ class RunnerStatsLossesBranches:
 	it_79_0 = "it_79_0"
 	it_80_0 = "it_80_0"
 	it_82_0 = "it_82_0"
+	it_84_0 = "it_84_0"
 
 	all = [
 		main,
@@ -531,10 +535,12 @@ class RunnerStatsLossesBranches:
 		it_76_0,
 		it_79_0,
 		it_80_0,
-		it_82_0
+		it_82_0,
+		it_84_0
 	]
 
-	default = it_79_0
+	default = it_84_0
+
 
 
 
