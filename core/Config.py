@@ -34,9 +34,9 @@ MONGODB_URL = "mongodb+srv://abreham:zYUir15jnOcrPqg1@cluster0.vn0ngnn.mongodb.n
 DROPBOX_API_TOKEN = "sl.BrBqqSAAzJsdIo9x1NG-z51HwPzc6yw0KCrbQ7hn76DvI0vItMEhXBDiqW-W4yGzHzCHL1RVBEeFeKEEdj7EIIjorHfLqOeM9KEhanIYOynP3XGiFRi_4RK3MGATuFHz50iZUFezZ09Uwd6Uk4LC3Oc"
 DROPBOX_FOLDER = "/RForexTrader"
 PCLOUD_TOKENS = [
-	# "wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
+	"VVQfe7ZfKQB7ZbFDO0AqnuC0UnJdM10Id3hT42dCV",  # abrishatlaw@gmail.com +
 	"nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
-	# "QL3dHVZIO9B7Z3luRCUxoFefoSYQb1LRwkbOdFjoX",  # abreham.atlaw@yahoo.com -
+	"AO63UkZIO9B7Z9vy1c4ggwNyT92bwbMIQEyavx2t7",  # abreham.atlaw@yahoo.com -
 	# "aCT8vkZxDks7ZYpOYIhqlahkcknASzvkHKLR8Ai3y",  # abrehamatlaw@outlook.com -
 	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
