@@ -203,8 +203,9 @@ class TrainerTest(unittest.TestCase):
 		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/11.json"))) + 1
 		INPUT_CHANNELS = 3
 		OUTPUT_CHANNELS = 3
+		Y_CHANNEL_MAP = (0, 1, 2)
 
-		HORIZON_MODE = False
+		HORIZON_MODE = True
 		USE_MC_HORIZON = INPUT_CHANNELS > 1
 		HORIZON_BOUNDS = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 		HORIZON_RANGE = (1.0, 0.99)
@@ -345,7 +346,8 @@ class TrainerTest(unittest.TestCase):
 				bounds=HORIZON_BOUNDS,
 				h=HORIZON_RANGE[0],
 				max_depth=HORIZON_MAX_DEPTH,
-				X_extra_len=EXTRA_LEN
+				X_extra_len=EXTRA_LEN,
+				y_channel_map=Y_CHANNEL_MAP
 			)
 		return model
 

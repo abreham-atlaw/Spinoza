@@ -65,10 +65,10 @@ class HorizonModel(SpinozaModule):
 
 	def shift_and_predict(self, x: torch.Tensor, depth: int) -> torch.Tensor:
 		x[..., 1:x.shape[-1]-self.X_extra_len] = x[..., 0:-(self.X_extra_len + 1)].clone()
-		y = self.softmax(self(x, depth+1)[:, :-self.y_extra_len])
+		y = self.softmax(self(x, depth+1)[..., :-self.y_extra_len])
 		y = torch.sum(
 			y*self.bounds,
-			dim=1
+			dim=-1
 		) * self._retrieve_recent_close(x)
 		return y
 
