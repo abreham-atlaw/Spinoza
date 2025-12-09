@@ -3,7 +3,7 @@ import typing
 import torch
 import torch.nn as nn
 
-from core.utils.research.model.layers import FlattenLayer
+from core.utils.research.model.layers import FlattenLayer, Axis
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 
@@ -31,7 +31,7 @@ class CollapseBlock(SpinozaModule):
 			"flatten": flatten
 		}
 		self.ff_block = ff_block
-		self.channel_ff_block = channel_ff_block if channel_ff_block is not None else nn.Identity()
+		self.channel_ff_block = Axis(channel_ff_block, axis=1) if channel_ff_block is not None else nn.Identity()
 		self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
 		self.extra_mode = extra_mode
 		self.flatten = FlattenLayer(1, 2) if flatten else nn.Identity()
