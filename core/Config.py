@@ -143,7 +143,7 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = True
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-30-it-11-tot.0.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-31-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -224,7 +224,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-80/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-85/"
 
 
 class ResourceCategories:
@@ -418,7 +418,7 @@ class RunnerStatsBranches:
 		it_85_6
 	]
 
-	default = it_80_6
+	default = it_85_6
 
 
 class RunnerStatsLossesBranches:
@@ -539,7 +539,7 @@ class RunnerStatsLossesBranches:
 		it_85_0
 	]
 
-	default = it_80_0
+	default = it_85_0
 
 
 
