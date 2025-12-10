@@ -13,10 +13,10 @@ class SessionAnalyzerTest(unittest.TestCase):
 
 	def setUp(self):
 		self.session_analyzer = SessionAnalyzer(
-			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/00"),
+			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/02"),
 			instruments=[
 				("AUD", "USD"),
-				("USD", "ZAR")
+				# ("USD", "ZAR")
 			],
 			smoothing_algorithms=[
 				MovingAverage(32),
@@ -43,7 +43,7 @@ class SessionAnalyzerTest(unittest.TestCase):
 		self.session_analyzer.plot_node(idx=0, depth=5, path=[])
 
 	def test_plot_timestep_output(self):
-		for i in range(4):
+		for i in range(1):
 			self.session_analyzer.plot_timestep_output(
 				i,
 				h=0,

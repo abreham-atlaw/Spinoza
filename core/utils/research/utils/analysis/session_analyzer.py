@@ -38,7 +38,8 @@ class SessionAnalyzer:
 			model: typing.Optional[SpinozaModule] = None,
 			dtype: typing.Type = np.float32,
 			model_key: str = "spinoza-training",
-			bounds: typing.Iterable[float] = None
+			bounds: typing.Iterable[float] = None,
+			extra_len: int = 124
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -54,6 +55,7 @@ class SessionAnalyzer:
 		self.__bounds = bounds
 
 		self.__softmax = nn.Softmax(dim=-1)
+		self.__extra_len = extra_len
 
 	def __load_session_model(self, model_key: str) -> SpinozaModule:
 		model_path = os.path.join(
@@ -272,6 +274,7 @@ class SessionAnalyzer:
 		if X.ndim == 2:
 			X = np.expand_dims(X, axis=1)
 
+		X = X[..., :X.shape[-1] - self.__extra_len]
 		for c in range(X.shape[1]):
 			plt.plot(X[i, c][X[i, c] > 0], label=f"Channel: {c}")
 		plt.legend()
@@ -297,6 +300,9 @@ loss: {l[i] if l is not None else "N/A"}
 			),
 			axis=0
 		)
+
+		if len(self.__model.input_size) == 2:
+			X = np.squeeze(X, axis=1)
 
 		return torch.from_numpy(X).type(dtype)
 
