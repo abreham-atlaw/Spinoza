@@ -279,30 +279,52 @@ loss: {l[i] if l is not None else "N/A"}
 		dtype = next(self.__model.parameters()).dtype
 
 		X = np.expand_dims(
-			np.concatenate((seq, np.zeros(extra_len))),
+			np.concatenate(
+				(seq, np.zeros((seq.shape[0], extra_len))),
+				axis=-1
+			),
 			axis=0
 		)
 
 		return torch.from_numpy(X).type(dtype)
 
-	def plot_node_prediction(self, idx: int, path: typing.List[int] = None):
+	def plot_node_prediction(
+			self, 
+			idx: int,
+			path: typing.List[int] = None,
+			instrument: typing.Tuple[str, str] = None,
+			channels: typing.List[int] = None
+	):
 		if path is None:
 			path = []
+
+		if instrument is None:
+			instrument = self.__instruments[0]
+
 		node, repo = self.load_node(idx)
 		node = self.get_node(node, path)
 
-		state = repo.retrieve(node.id)
-		seq = state.get_market_state().get_state_of(*self.__instruments[0])
+		state: TradeState = repo.retrieve(node.id)
+		seq = state.get_market_state().get_channels_state(*instrument)
+
+		if channels is None:
+			channels = np.arange(seq.shape[0])
+
 		X = self.__prepare_node_input_data(seq)
 		y_hat = self.__softmax(self.__model(X)[:, :-1]).detach().numpy()
 
 		plt.figure(figsize=self.__fig_size)
 		plt.subplot(1, 2, 1)
-		plt.title(f"Node Prediction - idx={idx}, path={path}, depth={len(path)//2}")
-		plt.plot(seq)
-		if len(path) > 0:
-			plt.axvline(x=len(seq) - (len(path)//2) - 1, color="red")
 		plt.grid()
+		plt.title(f"Node Prediction - idx={idx}, path={path}, depth={len(path)//2}")
+
+		for i in channels:
+			plt.plot(seq[i][seq[i] > 0], label=f"Channel: {i}")
+
+		if len(path) > 0:
+			plt.axvline(x=seq.shape[1] - (len(path)//2) - 1, color="red")
+
+		plt.legend()
 
 		plt.subplot(1, 2, 2)
 		plt.title(f"y_hat={self.__get_yv(y_hat)[0]}")

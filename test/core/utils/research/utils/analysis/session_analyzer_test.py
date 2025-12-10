@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from core import Config
@@ -12,16 +13,16 @@ class SessionAnalyzerTest(unittest.TestCase):
 
 	def setUp(self):
 		self.session_analyzer = SessionAnalyzer(
-			session_path="/home/abrehamatlaw/Downloads/Compressed/results_2",
+			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/00"),
 			instruments=[
 				("AUD", "USD"),
 				("USD", "ZAR")
 			],
 			smoothing_algorithms=[
-				MovingAverage(64),
-				ServiceProvider.provide_lass(),
+				MovingAverage(32),
 			],
-			plt_y_grid_count=10
+			plt_y_grid_count=10,
+			model_key="176"
 		)
 
 	def test_plot_sequence(self):
@@ -55,4 +56,8 @@ class SessionAnalyzerTest(unittest.TestCase):
 			)
 
 	def test_plot_node_prediction(self):
-		self.session_analyzer.plot_node_prediction(0, path=[1, 0]*1)
+		self.session_analyzer.plot_node_prediction(
+			0,
+			path=[1, 0, 1, 0, 1, 0],
+			instrument=("AUD", "USD"),
+		)
