@@ -41,6 +41,7 @@ class LassTest(unittest.TestCase):
 
 	def test_batch(self):
 		batch_size = 128
+		samples = 10
 		x = self.sequence
 		x = np.stack([
 			x[i*batch_size: (i+1)*batch_size]
@@ -48,9 +49,11 @@ class LassTest(unittest.TestCase):
 		])
 		y = self.lass.apply(x)
 		self.assertIsInstance(y, np.ndarray)
-		plt.plot(np.arange(len(x)), x)
-		plt.plot(y)
-		plt.show()
+
+		for i in range(samples):
+			plt.plot(np.arange(len(x)), x[i])
+			plt.plot(y[i])
+			plt.show()
 
 	def test_plot_output(self):
 		ma = MovingAverage(32)

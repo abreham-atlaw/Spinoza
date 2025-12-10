@@ -45,6 +45,9 @@ class FileStorage(ABC):
 	def get_metadata(self, path: str) -> MetaData:
 		pass
 
+	def get_quota_usage(self) -> float:
+		return 0.0
+
 	def exists(self, path: str) -> bool:
 		try:
 			files = self.listdir(os.path.dirname(path))
