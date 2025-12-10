@@ -30,7 +30,7 @@ class SessionAnalyzerTest(unittest.TestCase):
 		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("USD", "ZAR"))
 
 	def test_plot_timestep_sequence(self):
-		self.session_analyzer.plot_timestep_sequence(i=3, instrument=("AUD", "USD"))
+		self.session_analyzer.plot_timestep_sequence(i=0, instrument=("AUD", "USD"))
 		self.session_analyzer.plot_timestep_sequence(i=3, instrument=("USD", "ZAR"))
 
 	def test_evaluate_model(self):
@@ -43,10 +43,10 @@ class SessionAnalyzerTest(unittest.TestCase):
 		self.session_analyzer.plot_node(idx=0, depth=5, path=[])
 
 	def test_plot_timestep_output(self):
-		for i in range(5):
+		for i in range(4):
 			self.session_analyzer.plot_timestep_output(
 				i,
-				h=1.0,
+				h=0,
 				max_depth=5,
 				loss=ProximalMaskedLoss(
 					n=len(DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND)),

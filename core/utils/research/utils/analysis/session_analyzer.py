@@ -249,8 +249,13 @@ class SessionAnalyzer:
 			i: int,
 			h: float = 0.0,
 			max_depth: int = 0,
-			loss: SpinozaLoss = None
+			loss: SpinozaLoss = None,
+			instrument: typing.Tuple[str, str] = None
 	):
+
+		if instrument is None:
+			instrument = self.__instruments[0]
+
 		X, y = self.__load_output_data()
 		y_hat = self.__get_y_hat(X, h=h, max_depth=max_depth)
 
@@ -262,7 +267,14 @@ class SessionAnalyzer:
 
 		plt.subplot(1, 2, 1)
 		plt.title(f"Timestep Output - i={i}, h={h}, max_depth={max_depth}")
-		plt.plot(X[i, :-124])
+		plt.grid()
+
+		if X.ndim == 2:
+			X = np.expand_dims(X, axis=1)
+
+		for c in range(X.shape[1]):
+			plt.plot(X[i, c][X[i, c] > 0], label=f"Channel: {c}")
+		plt.legend()
 
 		plt.subplot(1, 2, 2)
 		plt.title(f"""y: {y_v[i]}
