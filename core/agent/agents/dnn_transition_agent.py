@@ -35,6 +35,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			delta_model=None,
 			use_softmax=Config.AGENT_USE_SOFTMAX,
 			use_multi_channels=Config.MARKET_STATE_USE_MULTI_CHANNELS,
+			market_state_channels: typing.Tuple[str, ...] = Config.MARKET_STATE_CHANNELS,
+			simulated_channels: typing.Tuple[str, ...] = Config.MARKET_STATE_SIMULATED_CHANNELS,
 			**kwargs
 	):
 		super().__init__(
@@ -78,7 +80,9 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__use_softmax = use_softmax
 		self.__dta_output_cache = Cache()
 		self._use_multi_channels = use_multi_channels
-		Logger.info(f"Initializing TraderDNNTransitionAgent with multi_channels={use_multi_channels}")
+		self.__market_state_channels = market_state_channels
+		self.__simulated_channels = simulated_channels
+		Logger.info(f"Initializing TraderDNNTransitionAgent with multi_channels={use_multi_channels}, market_state_channels={market_state_channels}, simulated_channels={simulated_channels}")
 
 	def _find_gap_index(self, number: float) -> int:
 		boundaries = self._state_change_delta_bounds
@@ -306,24 +310,39 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return states
 
-	def __simulate_instrument_change_bound_mode(self, state: TradeState, base_currency: str, quote_currency: str) -> List[TradeState]:
+	def __get_possible_channel_values(self, state: TradeState, base_currency: str, quote_currency: str) -> np.ndarray:
+		channels = [i for i in range(len(self.__market_state_channels)) if self.__market_state_channels[i] in self.__simulated_channels]
+
+		original_values = state.get_market_state().get_channels_state(base_currency, quote_currency)
+		possible_values = original_values[channels][:, -1:] * self._simulation_state_change_delta_bounds
+
+		if possible_values.shape[0] > 1:
+			possible_values = np.array(
+				np.meshgrid(*[possible_values[i] for i in range(possible_values.shape[0])], indexing="ij")
+			).reshape(possible_values.shape[0], -1)
+
+		if original_values.shape[0] > possible_values.shape[0]:
+			y = np.zeros((original_values.shape[0], possible_values.shape[1]))
+			y[channels] = possible_values
+			possible_values = y
+
+		return possible_values
+
+	def __simulate_instrument_change_bound_mode(
+			self,
+			state: TradeState,
+			base_currency: str,
+			quote_currency: str
+	) -> List[TradeState]:
 		states = []
 
-		original_value = state.get_market_state().get_state_of(base_currency, quote_currency)
+		possible_values = self.__get_possible_channel_values(state, base_currency, quote_currency)
 
-		for j in range(len(self._simulation_state_change_delta_bounds)):
+		for j in range(possible_values.shape[1]):
 			new_state = state.__deepcopy__()
 			new_state.recent_balance = state.get_agent_state().get_balance()
 
-			new_value = np.array(original_value[-1] * self._simulation_state_change_delta_bounds[j], dtype=np.float32).reshape((1, 1))
-			if self._use_multi_channels:
-				new_value = np.concatenate(
-					(
-						new_value,
-						np.expand_dims(np.zeros(state.get_market_state().channels-1), axis=1)
-					),
-					axis=0
-				)
+			new_value = np.expand_dims(possible_values[:, j], axis=1)
 
 			new_state.get_market_state().update_state_of(
 				base_currency,

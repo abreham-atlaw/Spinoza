@@ -92,7 +92,8 @@ class MarketState:
 		state = self.__state[channels, bci, qci]
 		if self.is_anchored:
 			state = np.concatenate(
-				(self.__anchor.get_channels_state(base_currency, quote_currency, channels=channels), state)
+				(self.__anchor.get_channels_state(base_currency, quote_currency, channels=channels), state),
+				axis=-1
 			)[:, state.shape[0]:]
 		return state
 
@@ -108,13 +109,13 @@ class MarketState:
 		return self.__spread_state[bci, qci]
 
 	def __add_empty_state_layer(self, size: int):
-		self.__state = np.concatenate((self.__state, np.zeros(self.__state.shape[:-1] + [size])), axis=-1)
+		self.__state = np.concatenate((self.__state, np.zeros(self.__state.shape[:-1] + (size,))), axis=-1)
 
 	def update_state_of(self, base_currency, quote_currency, values: np.ndarray):
 		bci, qci = self.__get_currencies_position(base_currency, quote_currency)
 
 		if self.is_anchored:
-			self.__add_empty_state_layer(len(values))
+			self.__add_empty_state_layer(values.shape[-1])
 			self.__state[:, bci, qci, -len(values):] = values
 		else:
 			self.__state[:, bci, qci] = np.concatenate((self.__state[:, bci, qci, values.shape[-1]:], values), axis=-1)
@@ -174,7 +175,9 @@ class MarketState:
 			tradable_pairs=self.__tradable_pairs.copy(),
 			state=state,
 			spread_state=self.__spread_state.copy(),
-			anchor=anchor
+			anchor=anchor,
+			channels=self.channels,
+			close_channel=self.__close_channel,
 		)
 
 	def __hash__(self):

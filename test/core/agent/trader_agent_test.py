@@ -22,10 +22,30 @@ from temp import stats
 
 class TraderAgentTest(unittest.TestCase):
 
+	def _init_market_state(self):
+		self.memory_len = 128
+		self.channels = Config.MARKET_STATE_CHANNELS
+		market_state = MarketState(
+			currencies=["USD", "EUR", "AUD"],
+			tradable_pairs=[
+				("USD", "EUR"),
+				("AUD", "EUR"),
+				("USD", "AUD")
+			],
+			memory_len=self.memory_len,
+			channels=len(self.channels),
+		)
+
+		for instrument in market_state.get_tradable_pairs():
+			market_state.update_state_of(*instrument, np.random.random((len(Config.MARKET_STATE_CHANNELS), self.memory_len)))
+		return market_state
+
 	def setUp(self):
 		self.agent = TraderAgent()
 		self.environment = mock.Mock()
 		self.agent.set_environment(self.environment)
+
+		self.market_state = self._init_market_state()
 
 	def test_prediction_to_transition_probability(self):
 		market_state = MarketState(
@@ -88,35 +108,15 @@ class TraderAgentTest(unittest.TestCase):
 		self.assertEqual(result, np.array([0]))
 
 	def test_get_possible_states(self):
-		market_state = MarketState(
-			currencies=["USD", "EUR", "AUD"],
-			tradable_pairs=[
-				("USD", "EUR"),
-				("AUD", "EUR"),
-				("USD", "AUD")
-			],
-			memory_len=5
-		)
-		market_state.update_state_of("USD", "EUR", np.arange(5, 10))
-		market_state.update_state_of("AUD", "EUR", np.arange(1, 6))
-		market_state.update_state_of("USD", "AUD", np.arange(7, 12))
 
 		initial_balance = 100
-		agent_state = AgentState(initial_balance, market_state)
-		agent_state.open_trade(
-			TraderAction("USD", "EUR", TraderAction.Action.SELL, margin_used=40),
-			current_value=8
-		)
+		agent_state = AgentState(initial_balance, self.market_state)
 
-		state = TradeState(market_state, agent_state)
+		state = TradeState(self.market_state, agent_state)
 
 		result = self.agent._get_possible_states(
 			state,
-			TraderAction(
-				"USD",
-				"EUR",
-				TraderAction.Action.CLOSE
-			)
+			TraderAction("USD", "EUR", TraderAction.Action.SELL, margin_used=40)
 		)
 
 		self.assertEqual(
