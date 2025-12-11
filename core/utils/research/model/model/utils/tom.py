@@ -10,7 +10,8 @@ class TransitionOnlyModel(nn.Module):
 		self.extra_len = extra_len
 
 	def forward(self, X: torch.Tensor) -> torch.Tensor:
-		X[:, -self.extra_len:] = 0.0
+		if self.extra_len > 0:
+			X[..., X.shape[-1]-self.extra_len:] = 0.0
 		out = self.model(X)
 		out[:, -1] = 0
 		return out
