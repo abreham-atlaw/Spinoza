@@ -176,8 +176,8 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 
 	@staticmethod
 	def _parse_model_output(output: np.ndarray) -> typing.Tuple[np.ndarray, float]:
-		probability_distribution = output[:-1]
-		value = output[-1]
+		probability_distribution = output[..., :-1]
+		value = np.array(output[..., -1])[0]
 		return probability_distribution, value
 
 	def _prepare_dra_output(self, state: TradeState, action: Action, output: np.ndarray) -> float:

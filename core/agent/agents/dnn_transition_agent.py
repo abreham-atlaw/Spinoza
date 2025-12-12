@@ -82,7 +82,16 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self._use_multi_channels = use_multi_channels
 		self.__market_state_channels = market_state_channels
 		self.__simulated_channels = simulated_channels
+		self.__close_channel, self.__high_channel, self.__low_channel = self.__init_channel_idxs(simulated_channels)
+		self.__channels_map = [self.__market_state_channels.index(channel) for channel in self.__simulated_channels]
 		Logger.info(f"Initializing TraderDNNTransitionAgent with multi_channels={use_multi_channels}, market_state_channels={market_state_channels}, simulated_channels={simulated_channels}")
+
+	def __init_channel_idxs(self, channels: typing.Tuple[str, ...]) -> typing.Tuple[int, int, int]:
+		close_channel = channels.index("c")
+		high_channel = channels.index("h") if "h" in channels else close_channel
+		low_channel = channels.index("l") if "l" in channels else close_channel
+
+		return close_channel, high_channel, low_channel
 
 	def _find_gap_index(self, number: float) -> int:
 		boundaries = self._state_change_delta_bounds
@@ -165,11 +174,13 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			final_state: TradeState
 	) -> float:
 
-		def compute(initial_state: TradeState,
-			output: np.ndarray,
-			final_state: TradeState) -> float:
+		def compute(
+				initial_state: TradeState,
+				output: np.ndarray,
+				final_state: TradeState
+		) -> float:
 
-			probabilities = output.flatten()
+			probabilities = output.reshape((-1, output.shape[-1]))
 
 			for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
@@ -183,19 +194,20 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				):
 					continue
 
-				percentage = final_state.get_market_state().get_current_price(
+				percentage = (final_state.get_market_state().get_channels_state(
 					base_currency,
 					quote_currency
-				) / initial_state.get_market_state().get_current_price(
+				)[:, -1] / initial_state.get_market_state().get_channels_state(
 					base_currency,
 					quote_currency
-				)
+				)[:, -1])[self.__channels_map]
+
 				if self.__use_softmax:
-					probabilities = softmax(probabilities)
+					probabilities = np.array([softmax(p) for p in probabilities])
 
-				idx = self._find_gap_index(percentage)
+				idxs = [self._find_gap_index(percentage[i]) for i in range(percentage.shape[0])]
 
-				return float(probabilities[idx])
+				return np.product(probabilities[np.arange(3), idxs])
 		return self.__dta_output_cache.cached_or_execute((initial_state, output.tobytes(), final_state), lambda: compute(initial_state, output, final_state))
 
 	def __prediction_to_transition_probability_bound_mode(
@@ -264,14 +276,16 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		if trade.get_trade().stop_loss is None:
 			return
 		instrument = trade.get_trade().base_currency, trade.get_trade().quote_currency
-		current_price = state.get_market_state().get_current_price(instrument[0], instrument[1])
+
+		current_price = state.get_market_state().get_channels_state(instrument[0], instrument[1])[:, -1]
 		previous_price = trade.get_enter_value()
 
 		percentage = current_price / previous_price
 
 		direction = -1 if trade.get_trade().action == TraderAction.Action.SELL else 1
 
-		if direction*percentage <= direction*trade.get_trade().stop_loss:
+		stop_loss_channel = self.__low_channel if direction == 1 else self.__high_channel
+		if direction*percentage[stop_loss_channel] <= direction*trade.get_trade().stop_loss:
 			state.get_agent_state().close_trades(instrument[0], instrument[1])  # TODO: CLOSE SINGLE TRADE
 
 	def __simulate_trades_triggers(self, state: TradeState, instrument: Tuple[str, str]):

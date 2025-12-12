@@ -94,7 +94,9 @@ class MarketState:
 			state = np.concatenate(
 				(self.__anchor.get_channels_state(base_currency, quote_currency, channels=channels), state),
 				axis=-1
-			)[:, state.shape[0]:]
+			)
+			state = state[:, np.all(~np.isnan(state), axis=0)]
+			state = state[:, state.shape[1] - self.get_memory_len():]
 		return state
 
 	def get_current_price(self, base_currency, quote_currency) -> np.float32:
@@ -109,7 +111,7 @@ class MarketState:
 		return self.__spread_state[bci, qci]
 
 	def __add_empty_state_layer(self, size: int):
-		self.__state = np.concatenate((self.__state, np.zeros(self.__state.shape[:-1] + (size,))), axis=-1)
+		self.__state = np.concatenate((self.__state, np.zeros(self.__state.shape[:-1] + (size,))*np.nan), axis=-1)
 
 	def update_state_of(self, base_currency, quote_currency, values: np.ndarray):
 		bci, qci = self.__get_currencies_position(base_currency, quote_currency)

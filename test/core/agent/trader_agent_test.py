@@ -30,15 +30,30 @@ class TraderAgentTest(unittest.TestCase):
 			tradable_pairs=[
 				("USD", "EUR"),
 				("AUD", "EUR"),
-				("USD", "AUD")
+				("AUD", "USD")
 			],
 			memory_len=self.memory_len,
 			channels=len(self.channels),
 		)
 
 		for instrument in market_state.get_tradable_pairs():
-			market_state.update_state_of(*instrument, np.random.random((len(Config.MARKET_STATE_CHANNELS), self.memory_len)))
+			state = np.random.random((len(Config.MARKET_STATE_CHANNELS), self.memory_len))
+
+			for channel, p in [("h", 1.1), ("l", 0.9)]:
+				if channel in Config.MARKET_STATE_CHANNELS:
+					state[Config.MARKET_STATE_CHANNELS.index(channel)] = state[Config.MARKET_STATE_CHANNELS.index("c")] * p
+			market_state.update_state_of(*instrument, state)
 		return market_state
+
+	def __init_state(self):
+		market_state = self._init_market_state()
+		agent_state = AgentState(
+			100,
+			market_state,
+		)
+		return TradeState(
+			market_state, agent_state
+		)
 
 	def setUp(self):
 		self.agent = TraderAgent()
@@ -46,33 +61,20 @@ class TraderAgentTest(unittest.TestCase):
 		self.agent.set_environment(self.environment)
 
 		self.market_state = self._init_market_state()
+		self.state = self.__init_state()
 
 	def test_prediction_to_transition_probability(self):
-		market_state = MarketState(
-			currencies=["USD", "EUR", "AUD"],
-			tradable_pairs=[
-				("USD", "EUR"),
-				("AUD", "EUR"),
-				("USD", "AUD")
-			],
-			memory_len=5
+		initial_state = self.state
+		final_state = deepcopy(initial_state)
+		final_state.get_market_state().update_state_of(
+			"AUD", "USD",
+			initial_state.get_market_state().get_channels_state("AUD", "USD")[:, -1:]*1.0001
 		)
-		market_state.update_state_of("USD", "EUR", np.arange(5, 10))
-		market_state.update_state_of("AUD", "EUR", np.arange(1, 5))
-		market_state.update_state_of("USD", "AUD", np.arange(7, 12))
-		initial_state = mock.Mock()
-		initial_state.get_market_state.get_return = market_state
+		final_state.get_market_state().get_channels_state("USD", "EUR")
 
-		final_market_state = deepcopy(market_state)
-		final_market_state.update_state_of("AUD", "EUR", np.array([0.5]))
-		final_state = mock.Mock()
-		final_state.get_market_state.get_return = final_market_state
-
-		output = 0.7
-
-		result = self.agent._prediction_to_transition_probability(
+		result = self.agent._single_prediction_to_transition_probability_bound_mode(
 			initial_state,
-			np.array([0.7]),
+			np.random.random((3, 66)),
 			final_state
 		)
 
@@ -113,10 +115,13 @@ class TraderAgentTest(unittest.TestCase):
 		agent_state = AgentState(initial_balance, self.market_state)
 
 		state = TradeState(self.market_state, agent_state)
+		state.get_agent_state().open_trade(
+			TraderAction("USD", "EUR", TraderAction.Action.BUY, margin_used=40, stop_loss=0.8)
+		)
 
 		result = self.agent._get_possible_states(
 			state,
-			TraderAction("USD", "EUR", TraderAction.Action.SELL, margin_used=40)
+			None
 		)
 
 		self.assertEqual(
