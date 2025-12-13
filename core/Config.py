@@ -255,6 +255,13 @@ PREDICTION_MODELS = [
 ]
 
 
+try:
+	import torch_xla
+	from torch_xla.distributed import parallel_loader
+	TIMEOUT = 8*60*60
+except ImportError:
+	TIMEOUT = 11*60*60
+
 MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-69/"
 
 
