@@ -1,3 +1,4 @@
+import typing
 from typing import *
 
 import unittest
@@ -57,6 +58,11 @@ class TraderTest(unittest.TestCase):
 			Config.OANDA_TOKEN,
 			Config.OANDA_TEST_ACCOUNT_ID
 		)
+		self.trader.close_all_trades()
+
+	def tearDown(self):
+		# self.trader.close_all_trades()
+		pass
 
 	def test_get_account_summary(self):
 	
@@ -126,6 +132,25 @@ class TraderTest(unittest.TestCase):
 			200
 		)
 
+	def test_stop_loss_trade(self):
+		current_price = self.trader.get_price(("AUD", "USD"))
+		self.trader.trade(
+			("AUD", "USD"),
+			action=Trader.TraderAction.SELL,
+			margin=20,
+			stop_loss=0.6566031374999999
+		)
+
+		open_trades: typing.List[Trade] = self.trader.get_open_trades()
+
+		self.assertEqual(len(open_trades), 1)
+		self.assertIsNotNone(open_trades[0].stopLossOrder)
+
+	def test_get_instrument_precision(self):
+		self.assertEqual(
+			self.trader.get_instrument_precision(("AUD", "USD")),
+			5
+		)
 
 if __name__ == "__main__":
 	unittest.main()

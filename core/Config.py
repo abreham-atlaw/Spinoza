@@ -14,9 +14,12 @@ class ModelConfig:
 	path: str
 
 
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+IS_LIVE = True
 
-REMOTE_TRADER_URL = "http://localhost:8080/"
+BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+EXPORT_DIR = os.path.join(BASE_DIR, "temp/")
+RES_DIR = os.path.join(BASE_DIR, "res/")
+
 NETWORK_TRIES = 10
 
 LOGGING = True
@@ -24,35 +27,16 @@ LOGGING_PID = True
 LOGGING_CONSOLE = True
 LOGGING_FILE_PATH = os.path.abspath("output.log")
 
-MC_SERVER_PORT = 8000
-MC_SERVER_URL = "http://127.0.0.1:%s" % (MC_SERVER_PORT,)
-
-MIN_FREE_MEMORY = 2
-MAX_PROCESSES = 6
-RECURSION_DEPTH = 10000
-NESTED_PROCESS = False
-MAIN_PID = os.getpid()
-
 DEFAULT_EPSILON = 1e-9
 
 MONGODB_URL = "mongodb+srv://abreham:zYUir15jnOcrPqg1@cluster0.vn0ngnn.mongodb.net/?retryWrites=true&w=majority"
 
-OPTIMIZER_PG_CONFIG = {
-	"dsn": "postgres://ontiwpwwgbtgwp:8702c0dec88af3c49473d464bf44e8ad17419facfce764c8684ed540839fb8cb@ec2-34-194-100-156.compute-1.amazonaws.com:5432/dcs4e3sfc908fi",
-	"sslmode": "require"
-}
-
 DROPBOX_API_TOKEN = "sl.BrBqqSAAzJsdIo9x1NG-z51HwPzc6yw0KCrbQ7hn76DvI0vItMEhXBDiqW-W4yGzHzCHL1RVBEeFeKEEdj7EIIjorHfLqOeM9KEhanIYOynP3XGiFRi_4RK3MGATuFHz50iZUFezZ09Uwd6Uk4LC3Oc"
 DROPBOX_FOLDER = "/RForexTrader"
-
-# PCLOUD_API_TOKEN = "wiaJJZfKQB7ZFJGbF2LjLo0nFysSdWCN0mklLXYV"  # main
-# PCLOUD_API_TOKEN = "NbYQ47Z6O9B7ZsjyeitXJhUpmug9Cg4qS8m40yXYk"  # 0
-# PCLOUD_API_TOKEN = "1Qbjq7ZIO9B7ZzfX5wncB5G7ebGSYi95oiVmjFkky" # 1
-
 PCLOUD_TOKENS = [
-	# "wKjUxVZfKQB7ZRhHVp3l82GbW3HxrluLXwRJzzjT7",  # abrishatlaw@gmail.com +
+	"VVQfe7ZfKQB7ZbFDO0AqnuC0UnJdM10Id3hT42dCV",  # abrishatlaw@gmail.com +
 	"nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
-	# "QL3dHVZIO9B7Z3luRCUxoFefoSYQb1LRwkbOdFjoX",  # abreham.atlaw@yahoo.com -
+	"AO63UkZIO9B7Z9vy1c4ggwNyT92bwbMIQEyavx2t7",  # abreham.atlaw@yahoo.com -
 	# "aCT8vkZxDks7ZYpOYIhqlahkcknASzvkHKLR8Ai3y",  # abrehamatlaw@outlook.com -
 	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
@@ -65,51 +49,27 @@ PCLOUD_TOKENS = [
 	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
 	# "lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
 ]
-
-PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
-
 PCLOUD_FOLDER = "/Apps/RTrader"
-MODEL_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER, "Models/10M/10MA")
-CHECKPOINT_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER, "Checkpoints/10M/10MA")
 
-IMS_REMOTE_PATH = os.path.join(PCLOUD_FOLDER, "stats")
-IMS_SYNC_SIZE = int(1e5)
-IMS_TEMP_PATH = "/tmp/"
 
-POLYGON_API_KEY = "1ijeQ0XUYNl1YMHy6Wl_5zEBtGbkipUP"
 
 # ENVIRONMENT CONFIGS
 
-# TRAINING ENVIRONMENT
-HISTORICAL_TABLE_NAME = "test_currencies_history"
-CURRENCIES_TABLE_NAME = "test_currencies"
-TRADEABLE_PAIRS_TABLE_NAME = "test_tradeable_pairs"
-DISTINCT_DATETIMES_TABLE_NAME = "test_distinct_datetimes"
-"""
-HISTORICAL_TABLE_NAME = "currencies_history"
-CURRENCIES_TABLE_NAME = "currencies"
-TRADEABLE_PAIRS_TABLE_NAME = "tradeable_pairs"
-DISTINCT_DATETIMES_TABLE_NAME = "distinct_datetimes"
-"""
-DEFAULT_PG_CONFIG = {
-	"host": "localhost",
-	"database": "rtrader_db",
-	"user": "rtrader_admin",
-	"password": "4U7z7KJM"  # TODO
-}
+
 
 # LIVE ENVIRONMENT
 OANDA_TOKEN = "4e3bc058fee3b2005e2a651081da881e-1cc2b5245cda5e61beb340aaf217c704"
-OANDA_TRADING_URL = "https://api-fxpractice.oanda.com/v3"
+OANDA_TRADING_URL = "https://api-fxpractice.oanda.com/v3" if IS_LIVE else "http://127.0.0.1:8000/api"
 OANDA_TRADING_ACCOUNT_ID = "101-001-19229086-002"
 OANDA_TEST_ACCOUNT_ID = "101-001-19229086-002"
 
-OANDA_SIM_DELTA_MULTIPLIER = 10
+OANDA_SIM_DELTA_MULTIPLIER = 1 if IS_LIVE else 10
 OANDA_SIM_MARGIN_RATE = 0.01
 OANDA_SIM_BALANCE = 100
 OANDA_SIM_ALIAS = "Sim Account 0"
-OANDA_SIM_TIMES_PATH = os.path.join(BASE_DIR, "res/times/times-5.json")
-OANDA_SIM_MODEL_IN_PATH = "/Apps/RTrader/"
+OANDA_SIM_TIMES_PATH = os.path.join(RES_DIR, "times/times-50-it-4.json")
+OANDA_SIM_MODEL_IN_PATH = PCLOUD_FOLDER
+TIMES_RESOURCE_MANAGER_KEY = "times"
 
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("Africa/Addis_Ababa")
@@ -117,19 +77,28 @@ TIMEZONE = timezone("Africa/Addis_Ababa")
 # AGENT CONFIGS
 UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
-UPDATE_SAVE_PATH = os.path.join(BASE_DIR, "temp/Data/drmca_export")
+UPDATE_SAVE_PATH = os.path.join(EXPORT_DIR, "Data/drmca_export")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
-DUMP_CANDLESTICKS_PATH = os.path.join(BASE_DIR, "temp/candlesticks/real")
+MARKET_STATE_USE_MULTI_CHANNELS = False
+MARKET_STATE_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_SMOOTHED_CHANNELS = ('c',)
+DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TRADE_PENALTY = 0
-AGENT_TRADE_SIZE_GAP = 70
-AGENT_TRADE_MIN_SIZE = 50
-AGENT_TRADE_SIZE_USE_PERCENTAGE = False
-AGENT_SUPPORT_MULTI_ACTION = False
+AGENT_TRADE_SIZE_GAP = 0.7
+AGENT_TRADE_MIN_SIZE = 0.5
+AGENT_TRADE_SIZE_USE_PERCENTAGE = True
+AGENT_SUPPORT_MULTI_ACTION = True
+AGENT_USE_STOP_LOSS = False
+AGENT_STOP_LOSS_GRANULARITY = 0.001
+AGENT_STOP_LOSS_VALUE_BOUND = (0.001, 0.005)
+AGENT_STOP_LOSS_CONVERSION = True
+AGENT_STOP_LOSS_CONVERSION_BOUNDS = (0.9995, 1.0005)
+AGENT_STOP_LOSS_CONVERSION_ACCURACY = int(1e2)
 AGENT_DEPTH = 30  # TODO: DEPRECATED
 AGENT_STATE_CHANGE_DELTA_MODEL_MODE = False
 AGENT_MIN_PROBABILITY = 1e-6
@@ -140,7 +109,7 @@ AGENT_UCT_EXPLORE_WEIGHT = 0.7
 AGENT_LOGICAL_MCA = True
 AGENT_FRICTION_TIME = 6
 AGENT_STEP_TIME = (2 * 60) - AGENT_FRICTION_TIME
-AGENT_USE_CUSTOM_RESOURCE_MANAGER = False
+AGENT_USE_CUSTOM_RESOURCE_MANAGER = True
 AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
@@ -152,7 +121,7 @@ AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = False
 AGENT_COMMISSION_COST = 0.05  # IN AGENT_CURRENCY
 AGENT_SPREAD_COST = 0.05  # IN AGENT_CURRENCY
-AGENT_STM = True
+AGENT_STM = False
 AGENT_STM_THRESHOLD = 1e-4
 AGENT_STM_BALANCE_TOLERANCE = 5
 AGENT_STM_SIZE = int(1e5)
@@ -175,7 +144,7 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 32
 AGENT_USE_LASS = False
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-10-it-5-tot.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
@@ -183,16 +152,18 @@ AGENT_DRMCA_WP = 100
 AGENT_TOP_K_NODES = None
 AGENT_DYNAMIC_K_THRESHOLD = 0.05
 AGENT_DUMP_NODES = True
-AGENT_DUMP_NODES_PATH = os.path.join(BASE_DIR, "temp/graph_dumps")
+AGENT_DUMP_NODES_PATH = os.path.join(EXPORT_DIR, "graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
 AGENT_USE_AUTO_STATE_REPOSITORY = False
 AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e5)
 AGENT_FILESYSTEM_STATE_REPOSITORY_PATH = BASE_DIR
+AGENT_MIN_FREE_MEMORY = 2
 AGENT_MIN_DISK_SPACE = 0.1
 AGENT_MIN_ABS_DISK_SPACE = None
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_EXTRA_LEN = 124
+AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
 with open(os.path.join(BASE_DIR, "res/bounds/10.json"), "r") as file:
@@ -230,14 +201,14 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path="/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-training-cnn-1-it-42-tot.zip",
+	path=os.path.join(RES_DIR, "core_model.zip"),
 	download=False
 )
 
 DELTA_MODEL_CONFIG = ModelConfig(
 	id="delta",
 	url="https://www.dropbox.com/s/io0fbl7m44e6k8a/delta-bb_wrapped.h5?dl=0",
-	path=os.path.join(BASE_DIR, "res/m10/combined_trained/delta_model_d.h5"),
+	path=os.path.join(RES_DIR, "delta_model.h5"),
 	download=False
 )
 
@@ -319,6 +290,7 @@ class RunnerStatsBranches:
 	it_52_6 = "it_52_6"
 
 	it_53_6 = "it_53_6"
+	it_53_7 = "it_53_7"
 
 	it_54_6 = "it-54_6"
 
@@ -349,6 +321,26 @@ class RunnerStatsBranches:
 
 	it_70_6 = "it_70_6"
 	it_71_6 = "it_71_6"
+
+	it_72_6 = "it_72_6"
+	it_73_6 = "it_73_6"
+
+	it_74_6 = "it_74_6"
+	it_75_6 = "it_75_6"
+	it_75_7 = "it_75_7"
+
+	it_76_6 = "it_76_6"
+
+	it_79_6 = "it_79_6"
+	it_80_6 = "it_80_6"
+
+	it_82_6 = "it_82_6"
+
+	it_84_6 = "it_84_6"
+
+	it_85_6 = "it_85_6"
+
+	it_86_6 = "it_86_6"
 
 	all = [
 		main,
@@ -394,6 +386,7 @@ class RunnerStatsBranches:
 		it_51_6,
 		it_52_6,
 		it_53_6,
+		it_53_7,
 		it_54_6,
 		it_56_6,
 		it_56_7,
@@ -415,7 +408,19 @@ class RunnerStatsBranches:
 		it_68_6,
 		it_69_6,
 		it_70_6,
-		it_71_6
+		it_71_6,
+		it_72_6,
+		it_73_6,
+		it_74_6,
+		it_75_6,
+		it_75_7,
+		it_76_6,
+		it_79_6,
+		it_80_6,
+		it_82_6,
+		it_84_6,
+		it_85_6,
+		it_86_6
 	]
 
 	default = it_69_6
@@ -463,7 +468,8 @@ class RunnerStatsLossesBranches:
 	it_45_0 = "it_45_0"
 	it_47_0 = "it_47_0"
 	it_49_0 = "it_49_0"
-	it_51_0 = "it_51_0",
+	it_51_0 = "it_51_0"
+	it_53_0 = "it_53_0"
 	it_54_0 = "it_54_0"
 	it_56_0 = "it_56_0"
 	it_58_0 = "it_58_0"
@@ -471,6 +477,15 @@ class RunnerStatsLossesBranches:
 	it_65_0 = "it_65_0"
 	it_68_0 = "it_68_0"
 	it_70_0 = "it_70_0"
+	it_72_0 = "it_72_0"
+	it_74_0 = "it_74_0"
+	it_76_0 = "it_76_0"
+	it_79_0 = "it_79_0"
+	it_80_0 = "it_80_0"
+	it_82_0 = "it_82_0"
+	it_84_0 = "it_84_0"
+	it_85_0 = "it_85_0"
+	it_86_0 = "it_86_0"
 
 	all = [
 		main,
@@ -519,7 +534,69 @@ class RunnerStatsLossesBranches:
 		it_60_0,
 		it_65_0,
 		it_68_0,
-		it_70_0
+		it_70_0,
+		it_72_0,
+		it_74_0,
+		it_76_0,
+		it_79_0,
+		it_80_0,
+		it_82_0,
+		it_84_0,
+		it_85_0,
+		it_86_0
 	]
 
 	default = it_68_0
+
+
+
+
+
+# DEPRECATED CONFIGS
+
+
+REMOTE_TRADER_URL = "http://localhost:8080/"
+
+MC_SERVER_PORT = 8000
+MC_SERVER_URL = "http://127.0.0.1:%s" % (MC_SERVER_PORT,)
+
+MAX_PROCESSES = 6
+RECURSION_DEPTH = 10000
+NESTED_PROCESS = False
+MAIN_PID = os.getpid()
+
+OPTIMIZER_PG_CONFIG = {
+	"dsn": "postgres://ontiwpwwgbtgwp:8702c0dec88af3c49473d464bf44e8ad17419facfce764c8684ed540839fb8cb@ec2-34-194-100-156.compute-1.amazonaws.com:5432/dcs4e3sfc908fi",
+	"sslmode": "require"
+}
+
+PCLOUD_FOLDER_D = "/Apps/RTrader"
+PCLOUD_API_TOKEN = "jfAYHkZfKQB7Zn0vw75zQgU82511XehVaVjc2zSRV"
+MODEL_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER_D, "Models/10M/10MA")
+CHECKPOINT_PCLOUD_FOLDER = os.path.join(PCLOUD_FOLDER_D, "Checkpoints/10M/10MA")
+
+IMS_REMOTE_PATH = os.path.join(PCLOUD_FOLDER_D, "stats")
+IMS_SYNC_SIZE = int(1e5)
+IMS_TEMP_PATH = "/tmp/"
+
+POLYGON_API_KEY = "1ijeQ0XUYNl1YMHy6Wl_5zEBtGbkipUP"
+
+
+# TRAINING ENVIRONMENT
+HISTORICAL_TABLE_NAME = "test_currencies_history"
+CURRENCIES_TABLE_NAME = "test_currencies"
+TRADEABLE_PAIRS_TABLE_NAME = "test_tradeable_pairs"
+DISTINCT_DATETIMES_TABLE_NAME = "test_distinct_datetimes"
+"""
+HISTORICAL_TABLE_NAME = "currencies_history"
+CURRENCIES_TABLE_NAME = "currencies"
+TRADEABLE_PAIRS_TABLE_NAME = "tradeable_pairs"
+DISTINCT_DATETIMES_TABLE_NAME = "distinct_datetimes"
+"""
+DEFAULT_PG_CONFIG = {
+	"host": "localhost",
+	"database": "rtrader_db",
+	"user": "rtrader_admin",
+	"password": "4U7z7KJM"  # TODO
+}
+
