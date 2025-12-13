@@ -6,6 +6,7 @@ from torch import nn
 from core import Config
 from core.utils.misc.sim_trading.setup import SetupManager
 from core.utils.research.data.collect.runner_stats import RunnerStats
+from core.utils.research.data.collect.runner_stats2 import RunnerStats2
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository
 from core.utils.research.data.collect.sim_setup.times_repository import TimesRepository
 from core.utils.research.model.model.utils import TemperatureScalingModel, TransitionOnlyModel
@@ -23,36 +24,42 @@ class RSSetupManager:
 			times_repo: TimesRepository,
 			rs_repo: RunnerStatsRepository,
 			fs: FileStorage,
-			model_evaluator: ModelEvaluator
+			model_evaluator: ModelEvaluator,
+			refresh_finish: bool = True,
+			time_based_allocation: bool = True
 	):
 		self.__times_repo = times_repo
 		self.__rs_repo = rs_repo
 		self.__fs = fs
-		self.__setup_manager = SetupManager()
+		self._setup_manager = self._init_setup_manager()
 		self.__model_evaluator = model_evaluator
+		self.__refresh_finish = refresh_finish
+		self.__time_based_allocation = time_based_allocation
+
+	def _init_setup_manager(self) -> SetupManager:
+		return SetupManager()
 
 	def __serialize_time(self, time: datetime):
+		if isinstance(time, str):
+			return time
 		return time.strftime("%Y-%m-%d %H:%M:%S+00:00")
 
 	def _allocate_time(self, stat: RunnerStats) -> datetime:
-		return min(
-			self.__times_repo.retrieve_all(),
-			key=lambda t: stat.simulated_timestamps.count(self.__serialize_time(t))
-		)
+		return self.__times_repo.allocate(stat)
 
 	def _allocate_extra(self, stat: RunnerStats):
 		Logger.info(f"Allocating Time...")
 		start_time = self._allocate_time(stat)
 		Logger.info(f"Allocated Start Time: {start_time}")
-		stat.simulated_timestamps.append(self.__serialize_time(start_time))
+		stat.add_simulated_timestamp(self.__serialize_time(start_time))
 
 		Logger.info(f"Setting up Simulation Trading...")
-		self.__setup_manager.setup(start_time)
+		self._setup_manager.setup(start_time)
 
 	@retry(exception_cls=(FileNotFoundException,), patience=10)
 	def setup(self):
 		Logger.info(f"Allocating Runner Stat...")
-		stat = self.__rs_repo.allocate_for_runlive()
+		stat = self.__rs_repo.allocate_for_runlive(allow_locked=self.__time_based_allocation)
 		Logger.success(f"Allocated Runner Stat: {stat}")
 
 		Logger.info(f"Downloading {stat.model_name}...")
@@ -93,10 +100,16 @@ class RSSetupManager:
 
 	def finish(
 			self,
-			stat: RunnerStats,
+			stat: RunnerStats2,
 			pl: float,
 			model_path: str = None
 	):
+		if self.__refresh_finish:
+			Logger.info(f"Refreshing Stat...")
+			session = stat.get_active_session()
+			stat = self.__rs_repo.retrieve(stat.id)
+			stat.sessions.append(session)
+
 		if model_path is None:
 			model_path = Config.CORE_MODEL_CONFIG.path
 

@@ -1,3 +1,4 @@
+import os
 from typing import *
 
 import unittest
@@ -8,8 +9,14 @@ import matplotlib.pyplot as plt
 
 from copy import deepcopy
 
+import torch
+
+from core import Config
 from core.environment.live_environment import LiveEnvironment, MarketState, AgentState, TradeState, TraderAction
 from core.agent.agents import TraderMonteCarloAgent, TraderAgent
+from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
+from core.utils.research.utils.analysis.session_analyzer import SessionAnalyzer
+from lib.rl.agent.dta import TorchModel
 from temp import stats
 
 
@@ -166,3 +173,32 @@ class TraderAgentTest(unittest.TestCase):
 		agent._monte_carlo_tree_search(state)
 
 		x = 1
+
+	def test_get_expected_transition_probability_distribution(self):
+
+		analyzer = SessionAnalyzer(
+			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/00/"),
+			smoothing_algorithms=[
+				MovingAverage(64)
+			],
+			instruments=[
+				("AUD", "USD"),
+				("USD", "ZAR")
+			],
+			model_key="176"
+		)
+
+		node, repo = analyzer.load_node(1)
+
+		initial_state = repo.retrieve(node.id)
+		action = node.get_children()[3].action
+		final_states = [repo.retrieve(node.id) for node in node.get_children()[3].get_children()]
+		initial_states = [initial_state for _ in final_states]
+		actions = [action for _ in final_states]
+
+		distribution = self.agent._get_expected_transition_probability_distribution(
+			initial_states, actions, final_states
+		)
+
+		plt.scatter([state.get_market_state().get_current_price("USD","ZAR") for state in final_states], distribution)
+		plt.show()
