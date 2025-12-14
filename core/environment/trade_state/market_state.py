@@ -155,7 +155,7 @@ class MarketState:
 
 	def get_memory_len(self) -> int:
 		if self.is_anchored:
-			return self.__anchor.get_price_matrix().shape[-1]
+			return self.__anchor.get_memory_len()
 		return self.__state.shape[-1]
 
 	def get_currencies(self) -> List[str]:
