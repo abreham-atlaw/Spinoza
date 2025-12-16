@@ -11,7 +11,7 @@ class RunnerStats:
 
 	id: str
 	model_name: str
-	session_timestamps: typing.List[datetime]
+	session_timestamps: typing.List[datetime] = field(default_factory=lambda : [])
 	simulated_timestamps: typing.List[datetime] = field(default_factory=lambda: [])
 	profits: typing.List[float] = field(default_factory=lambda: [])
 	duration: float = 0.0
@@ -50,3 +50,6 @@ class RunnerStats:
 			self.session_model_losses.extend([0.0] * (len(self.session_timestamps) - 1 - len(self.session_model_losses)))
 
 		self.session_model_losses.append(loss)
+
+	def add_simulated_timestamp(self, timestamp: str):
+		self.simulated_timestamps.append(timestamp)
