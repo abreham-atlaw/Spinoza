@@ -201,7 +201,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(RES_DIR, "model.zip"),
+	path=os.path.join(RES_DIR, "core_model.zip"),
 	download=False
 )
 
@@ -226,7 +226,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-68/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-69/"
 
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
@@ -345,6 +345,10 @@ class RunnerStatsBranches:
 
 	it_84_6 = "it_84_6"
 
+	it_85_6 = "it_85_6"
+
+	it_86_6 = "it_86_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -421,10 +425,12 @@ class RunnerStatsBranches:
 		it_79_6,
 		it_80_6,
 		it_82_6,
-		it_84_6
+		it_84_6,
+		it_85_6,
+		it_86_6
 	]
 
-	default = it_68_6
+	default = it_69_6
 
 
 class RunnerStatsLossesBranches:
@@ -485,6 +491,8 @@ class RunnerStatsLossesBranches:
 	it_80_0 = "it_80_0"
 	it_82_0 = "it_82_0"
 	it_84_0 = "it_84_0"
+	it_85_0 = "it_85_0"
+	it_86_0 = "it_86_0"
 
 	all = [
 		main,
@@ -540,7 +548,9 @@ class RunnerStatsLossesBranches:
 		it_79_0,
 		it_80_0,
 		it_82_0,
-		it_84_0
+		it_84_0,
+		it_85_0,
+		it_86_0
 	]
 
 	default = it_68_0
