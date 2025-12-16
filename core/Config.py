@@ -335,6 +335,7 @@ class RunnerStatsBranches:
 	it_84_6 = "it_84_6"
 
 	it_85_6 = "it_85_6"
+	it_87_6 = "it_87_6"
 
 	it_86_6 = "it_86_6"
 
@@ -416,7 +417,8 @@ class RunnerStatsBranches:
 		it_82_6,
 		it_84_6,
 		it_85_6,
-		it_86_6
+		it_86_6,
+		it_87_6
 	]
 
 	default = it_23_0
