@@ -5,6 +5,7 @@ import numpy as np
 
 from lib.rl.environment import ModelBasedState
 from lib.utils.cache import Cache
+from lib.utils.logger import Logger
 from .drmca import TraderDeepReinforcementMonteCarloAgent
 from core import Config
 from core.environment.trade_state import TradeState
@@ -15,6 +16,7 @@ class DirectProbabilityDistributionAgent(TraderDeepReinforcementMonteCarloAgent,
 	def __init__(
 			self,
 			*args,
+			use_direct_distribution: bool = Config.AGENT_USE_DIRECT_DISTRIBUTION,
 			importance_threshold: float = Config.AGENT_POSSIBLE_STATES_IMPORTANCE_THRESHOLD,
 			**kwargs,
 	):
@@ -22,6 +24,8 @@ class DirectProbabilityDistributionAgent(TraderDeepReinforcementMonteCarloAgent,
 
 		self.__probability_store = Cache(key_func=lambda state: id(state))
 		self.__importance_threshold = importance_threshold
+		self.__enabled = use_direct_distribution
+		Logger.info(f"Direct probability distribution enabled: {self.__enabled}")
 
 	def __get_transition_probability_distribution(
 			self,
@@ -75,6 +79,10 @@ class DirectProbabilityDistributionAgent(TraderDeepReinforcementMonteCarloAgent,
 			quote_currency: str,
 			action: typing.Any
 	) -> typing.List[TradeState]:
+
+		if not self.__enabled:
+			return super()._simulate_instrument_change_bound_mode(state, base_currency, quote_currency, action)
+
 		states = []
 
 		possible_values, probabilities = self.__get_possible_values(state, action, base_currency, quote_currency)
@@ -101,6 +109,9 @@ class DirectProbabilityDistributionAgent(TraderDeepReinforcementMonteCarloAgent,
 	def _get_expected_transition_probability_distribution(
 			self, initial_states: typing.List[ModelBasedState], action: typing.List[typing.Any], final_states: typing.List[ModelBasedState]
 	) -> typing.List[float]:
+
+		if not self.__enabled:
+			return super()._get_expected_transition_probability_distribution(initial_states, action, final_states)
 
 		values = [
 			float(self.__probability_store.retrieve(final_states[i]))

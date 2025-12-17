@@ -82,7 +82,7 @@ UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
-MARKET_STATE_USE_ANCHOR = True
+MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = False
 MARKET_STATE_CHANNELS = ('c',)
 MARKET_STATE_SMOOTHED_CHANNELS = ('c',)
@@ -149,6 +149,7 @@ AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_DRMCA_WP = 100
+AGENT_USE_DIRECT_DISTRIBUTION = False
 AGENT_POSSIBLE_STATES_IMPORTANCE_THRESHOLD = 0.05
 AGENT_TOP_K_NODES = None
 AGENT_DYNAMIC_K_THRESHOLD = 0.05
@@ -202,7 +203,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-training-cnn-0-it-75-tot.zip"),
+	path=os.path.join(RES_DIR, "core_model.zip"),
 	download=False
 )
 
