@@ -207,7 +207,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 				idxs = [self._find_gap_index(percentage[i]) for i in range(percentage.shape[0])]
 
-				return np.product(probabilities[np.arange(3), idxs])
+				return float(np.product(probabilities[np.arange(probabilities.shape[0]), idxs]))
 		return self.__dta_output_cache.cached_or_execute((initial_state, output.tobytes(), final_state), lambda: compute(initial_state, output, final_state))
 
 	def __prediction_to_transition_probability_bound_mode(
