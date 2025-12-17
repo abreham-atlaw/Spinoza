@@ -23,6 +23,7 @@ from lib.utils.fileio import load_json
 from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .blacklist_repository import RSBlacklistRepository
+from .runner_stats2 import RunnerStats2
 from ..prepare.utils.data_prep_utils import DataPrepUtils
 
 
@@ -44,8 +45,9 @@ class RunnerStatsPopulater:
 			horizon_bounds: typing.List[float] = None,
 			horizon_h: float = None,
 			horizon_max_depth: int = None,
-			checkpointed: bool = False
-
+			checkpointed: bool = False,
+			horizon_model_class: typing.Type = HorizonModel,
+			horizon_extra_args: typing.Dict[str, typing.Any] = None
 	):
 		self.__in_filestorage = in_filestorage
 		self.__in_path = in_path
@@ -69,6 +71,8 @@ class RunnerStatsPopulater:
 		self.__horizon_bounds = horizon_bounds
 		self.__horizon_h = horizon_h
 		self.__horizon_max_depth = horizon_max_depth
+		self.__horizon_model_class = horizon_model_class
+		self.__horizon_extra_args = horizon_extra_args if horizon_extra_args is not None else {}
 		if self.__horizon_mode:
 			assert self.__horizon_bounds is not None and self.__horizon_h is not None
 
@@ -362,11 +366,12 @@ class RunnerStatsPopulater:
 			temperature=temperature
 		)
 		if self.__horizon_mode:
-			model = HorizonModel(
+			model = self.__horizon_model_class(
 				model=model,
 				h=self.__horizon_h,
 				bounds=self.__horizon_bounds,
-				max_depth=self.__horizon_max_depth
+				max_depth=self.__horizon_max_depth,
+				**self.__horizon_extra_args
 			)
 
 		if current_losses is not None and False not in [loss == 0 for loss in current_losses]:
@@ -379,10 +384,9 @@ class RunnerStatsPopulater:
 		stats = self.__repository.retrieve(id)
 		if stats is None:
 			print("[+]Creating...")
-			stats = RunnerStats(
+			stats = RunnerStats2(
 				id=id,
 				model_name=os.path.basename(path),
-				session_timestamps=[],
 				temperature=temperature
 			)
 			stats.model_losses = losses
@@ -433,8 +437,8 @@ class RunnerStatsPopulater:
 
 			print(f"{(i+1)*100/len(files) :.2f}", end="\r")
 
-		self.__clean_junk()
-
 		if not self.__is_all_complete():
 			Logger.info(f"Found incomplete files. Restarting...")
 			self.start(replace_existing)
+
+		self.__clean_junk()

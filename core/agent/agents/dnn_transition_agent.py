@@ -28,13 +28,13 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			*args,
 			state_change_delta_model_mode=Config.AGENT_STATE_CHANGE_DELTA_MODEL_MODE,
 			state_change_delta_bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-			state_change_delta_bounds_epsilon=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON,
 			update_agent=Config.UPDATE_AGENT,
 			depth_mode=Config.AGENT_DEPTH_MODE,
 			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
 			core_model=None,
 			delta_model=None,
 			use_softmax=Config.AGENT_USE_SOFTMAX,
+			use_multi_channels=Config.MARKET_STATE_USE_MULTI_CHANNELS,
 			**kwargs
 	):
 		super().__init__(
@@ -77,6 +77,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		self.__use_softmax = use_softmax
 		self.__dta_output_cache = Cache()
+		self._use_multi_channels = use_multi_channels
+		Logger.info(f"Initializing TraderDNNTransitionAgent with multi_channels={use_multi_channels}")
 
 	def _find_gap_index(self, number: float) -> int:
 		boundaries = self._state_change_delta_bounds
@@ -245,13 +247,32 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def _get_expected_instant_reward(self, state) -> float:
 		return self._get_environment().get_reward(state)
 
-	def __get_involved_instruments(self, open_trades: List[AgentState.OpenTrade]) -> List[Tuple[str, str]]:
+	@staticmethod
+	def __get_involved_instruments(open_trades: List[AgentState.OpenTrade]) -> List[Tuple[str, str]]:
 		return list(set(
 			[
 				(open_trade.get_trade().base_currency, open_trade.get_trade().quote_currency)
 				for open_trade in open_trades
 			]
 		))
+
+	def __simulate_trade_trigger(self, state: TradeState, trade: AgentState.OpenTrade):
+		if trade.get_trade().stop_loss is None:
+			return
+		instrument = trade.get_trade().base_currency, trade.get_trade().quote_currency
+		current_price = state.get_market_state().get_current_price(instrument[0], instrument[1])
+		previous_price = trade.get_enter_value()
+
+		percentage = current_price / previous_price
+
+		direction = -1 if trade.get_trade().action == TraderAction.Action.SELL else 1
+
+		if direction*percentage <= direction*trade.get_trade().stop_loss:
+			state.get_agent_state().close_trades(instrument[0], instrument[1])  # TODO: CLOSE SINGLE TRADE
+
+	def __simulate_trades_triggers(self, state: TradeState, instrument: Tuple[str, str]):
+		for trade in state.get_agent_state().get_open_trades(instrument[0], instrument[1]):
+			self.__simulate_trade_trigger(state, trade)
 
 	def _get_possible_states(self, state: TradeState, action: Action) -> List[TradeState]:
 
@@ -266,7 +287,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		elif isinstance(action, ActionSequence):
 			involved_instruments.extend([(action.base_currency, action.quote_currency) for action in action.actions])
 
-		else:
+		elif action is None and len(state.get_agent_state().get_open_trades()) == 0:
 			involved_instruments = state.get_market_state().get_tradable_pairs()
 
 		involved_instruments = list(set(involved_instruments))
@@ -274,7 +295,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		states = self.__simulate_instruments_change(state, involved_instruments)
 
 		for mid_state in states:
-			self.__simulate_action(mid_state, action)
+			self._simulate_action(mid_state, action)
 
 		return states
 
@@ -293,12 +314,23 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		for j in range(len(self._simulation_state_change_delta_bounds)):
 			new_state = state.__deepcopy__()
 			new_state.recent_balance = state.get_agent_state().get_balance()
-			new_value = np.array(original_value[-1] * self._simulation_state_change_delta_bounds[j], dtype=np.float32).reshape(1)
+
+			new_value = np.array(original_value[-1] * self._simulation_state_change_delta_bounds[j], dtype=np.float32).reshape((1, 1))
+			if self._use_multi_channels:
+				new_value = np.concatenate(
+					(
+						new_value,
+						np.expand_dims(np.zeros(state.get_market_state().channels-1), axis=1)
+					),
+					axis=0
+				)
+
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,
 				new_value
 			)
+			self.__simulate_trades_triggers(new_state, (base_currency, quote_currency))
 			states.append(new_state)
 
 		return states
@@ -323,7 +355,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		return states
 
-	def __simulate_action(self, state: TradeState, action: Action):  # TODO: SETUP CACHER
+	def _simulate_action(self, state: TradeState, action: Action):  # TODO: SETUP CACHER
 		# state = copy.deepcopy(state)
 
 		if action is None:
@@ -331,7 +363,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		if isinstance(action, ActionSequence):
 			for action in action.actions:
-				self.__simulate_action(state, action)
+				self._simulate_action(state, action)
 			return
 
 		assert isinstance(action, TraderAction)

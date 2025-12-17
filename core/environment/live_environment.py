@@ -1,5 +1,6 @@
 import os
 import random
+import typing
 from typing import *
 
 import numpy as np
@@ -9,6 +10,7 @@ from datetime import datetime
 
 from core.di import EnvironmentUtilsProvider, ServiceProvider
 from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
+from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
 from lib.network.oanda.exceptions import InsufficientMarginException
@@ -32,6 +34,12 @@ class LiveEnvironment(TradeEnvironment):
 			market_state_granularity: str = Config.MARKET_STATE_GRANULARITY,
 			candlestick_dump_path: str = Config.DUMP_CANDLESTICKS_PATH,
 			use_smoothing: int = Config.MARKET_STATE_SMOOTHING,
+			channels: typing.Tuple[str,...] = Config.MARKET_STATE_CHANNELS,
+			smoothed_channels: typing.Tuple[str,...] = Config.MARKET_STATE_SMOOTHED_CHANNELS,
+			stop_loss_conversion: bool = Config.AGENT_STOP_LOSS_CONVERSION,
+			stop_loss_conversion_bounds: typing.Tuple[float, float] = Config.AGENT_STOP_LOSS_CONVERSION_BOUNDS,
+			stop_loss_conversion_accuracy: int = Config.AGENT_STOP_LOSS_CONVERSION_ACCURACY,
+			close_channel_label: str = "c",
 			**kwargs
 	):
 		super(LiveEnvironment, self).__init__(*args, **kwargs)
@@ -53,7 +61,14 @@ class LiveEnvironment(TradeEnvironment):
 		self.__all_instruments = self.__generate_all_instruments(self.__instruments, self.__agent_currency)
 		self.__candlestick_dump_path = candlestick_dump_path
 		self.__use_smoothing = use_smoothing
+		self.__channels = channels
+		self.__close_channel_label = close_channel_label
+		self.__smoothed_channels = smoothed_channels
 		self.__smoothing_algorithm = None if not use_smoothing else ServiceProvider.provide_smoothing_algorithm()
+
+		self.__stop_loss_conversion = stop_loss_conversion
+		self.__stop_loss_conversion_bounds = stop_loss_conversion_bounds
+		self.__stop_loss_conversion_accuracy = stop_loss_conversion_accuracy
 		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
 
 	def __generate_all_instruments(self, instruments, agent_currency) -> List[Tuple[str, str]]:
@@ -136,7 +151,9 @@ class LiveEnvironment(TradeEnvironment):
 		market_state = MarketState(
 			currencies=self.__get_currencies(self.__all_instruments),
 			tradable_pairs=self.__instruments,
-			memory_len=memory_size
+			memory_len=memory_size,
+			channels=len(self.__channels),
+			close_channel=self.__channels.index(self.__close_channel_label)
 		)
 
 		for base_currency, quote_currency in self.__all_instruments:
@@ -167,16 +184,25 @@ class LiveEnvironment(TradeEnvironment):
 			candle_dict["time"] = candlestick.time
 			df_list.append(candle_dict)
 
-		return pd.DataFrame(df_list)
+		df = pd.DataFrame(df_list)
+		df = DataPrepUtils.encode_timestamp(df)
+		return df
 
-	def __process_instrument(self, sequence: np.ndarray) -> np.ndarray:
-		if self.__use_smoothing:
-			sequence = self.__smoothing_algorithm(sequence)
-		return sequence
+	def __process_instrument(self, data: np.ndarray) -> np.ndarray:
+		if not self.__use_smoothing:
+			return data
 
-	def __prepare_instrument(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
-		if isinstance(self.__smoothing_algorithm, MovingAverage):
-			size = size + self.__smoothing_algorithm.window_size - 1
+		data = np.stack([
+			self.__smoothing_algorithm(data[i, :])
+			if self.__channels[i] in self.__smoothed_channels
+			else data[i, self.__smoothing_algorithm.reduction:]
+			for i in range(data.shape[0])
+		])
+
+		return data
+
+	def __fetch_instrument_state(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
+		size = size + self.__smoothing_algorithm.reduction
 
 		candle_sticks = self.__trader.get_candlestick(
 			(base_currency, quote_currency),
@@ -187,9 +213,39 @@ class LiveEnvironment(TradeEnvironment):
 		df = self.__candlesticks_to_dataframe(candle_sticks)
 		if self.__candlestick_dump_path is not None:
 			self.__dump_candlesticks(df)
-		sequence = df["c"].to_numpy()
-		sequence = self.__process_instrument(sequence)
-		return sequence
+
+		data = df[list(self.__channels)].to_numpy().transpose()
+		return data
+
+	def __prepare_instrument(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
+		data = self.__fetch_instrument_state(base_currency, quote_currency, size, granularity)
+		data = self.__process_instrument(data)
+		return data
+
+	def __convert_stop_loss(self, action: TraderAction):
+		Logger.info(f"Converting Stop Loss...")
+		p = np.linspace(*self.__stop_loss_conversion_bounds, self.__stop_loss_conversion_accuracy)
+
+		x = self.__fetch_instrument_state(action.base_currency, action.quote_currency, self._market_state_memory, self.__market_state_granularity)
+		if x.ndim == 2:
+			x = x[0]
+
+		y = np.repeat(np.expand_dims(x, axis=0), repeats=p.shape[0], axis=0)
+		y[:, :-1] = y[:, 1:]
+		y[:, -1] *= p
+		y = self.__smoothing_algorithm.apply_on_batch(y)
+		y = y[:, -1] / y[:, -2]
+		y = p[np.argmin(np.abs(y - action.stop_loss))]
+		return y
+
+	def __calculate_stop_loss(self, action: TraderAction) -> typing.Optional[float]:
+		if action.stop_loss is None:
+			return None
+		stop_loss = action.stop_loss
+		if self.__stop_loss_conversion:
+			stop_loss = self.__convert_stop_loss(action)
+		price = self.__trader.get_price((action.base_currency, action.quote_currency))
+		return price * stop_loss
 
 	def _open_trade(self, action: TraderAction):
 		super()._open_trade(action)
@@ -198,7 +254,8 @@ class LiveEnvironment(TradeEnvironment):
 				(action.base_currency, action.quote_currency),
 				self.__to_oanda_action(action.action),
 				action.margin_used,
-				time_in_force=Config.DEFAULT_TIME_IN_FORCE
+				time_in_force=Config.DEFAULT_TIME_IN_FORCE,
+				stop_loss=None if action.stop_loss is None else self.__calculate_stop_loss(action)
 			)
 		except InsufficientMarginException as ex:
 			Logger.error(f"Insufficient margin requested for trade: {str(ex)}")

@@ -47,16 +47,13 @@ class TradeEnvironment(Environment, ABC):
 
 		return state.get_recent_balance_change() + self.__time_penalty
 
-	def perform_action(self, action: Action):
-
+	def _perform_action(self, action: Action):
 		if isinstance(action, ActionSequence):
 			for action in action.actions:
-				self.perform_action(action)
+				self._perform_action(action)
 			return
 
 		assert action is None or isinstance(action, TraderAction)
-
-		recent_balance = self.get_state().get_agent_state().get_balance()
 
 		if action is None:
 			pass
@@ -66,6 +63,13 @@ class TradeEnvironment(Environment, ABC):
 
 		else:
 			self._open_trade(action)
+
+	def perform_action(self, action: Action):
+
+		recent_balance = self.get_state().get_agent_state().get_balance()
+
+		self._perform_action(action)
+
 		self._state = self._refresh_state()
 		self._state.recent_balance = recent_balance
 
