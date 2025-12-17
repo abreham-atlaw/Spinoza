@@ -13,7 +13,7 @@ class SessionAnalyzerTest(unittest.TestCase):
 
 	def setUp(self):
 		self.session_analyzer = SessionAnalyzer(
-			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/02"),
+			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/00"),
 			instruments=[
 				("AUD", "USD"),
 				# ("USD", "ZAR")
