@@ -8,12 +8,13 @@ import matplotlib.pyplot as plt
 from core import Config
 from core.Config import BASE_DIR
 from core.utils.research.data.prepare import SimulationSimulator3
-from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
+from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage, IdentitySA
 from core.utils.research.data.prepare.splitting import SequentialSplitter
+from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from lib.utils.logger import Logger
 
 
-class SimulationSimulator2Test(unittest.TestCase):
+class SimulationSimulator3Test(unittest.TestCase):
 
 	def setUp(self):
 		df = pd.read_csv(os.path.join(BASE_DIR, "temp/Data/AUD-USD.2-day.csv"))
@@ -30,8 +31,7 @@ class SimulationSimulator2Test(unittest.TestCase):
 			batch_size=10,
 			output_path=self.output_path,
 			granularity=5,
-			smoothing_algorithm=MovingAverage(64),
-			smoothed_columns=('c',),
+			smoothing_algorithm=IdentitySA(),
 			order_gran=True,
 			trim_extra_gran=True,
 			trim_incomplete_batch=True,
@@ -40,6 +40,8 @@ class SimulationSimulator2Test(unittest.TestCase):
 			),
 			transformations=[
 			],
+			x_columns=("c", "l", "h"),
+			y_columns=("c", "l", "h")
 		)
 
 	def test_functionality(self):
@@ -56,12 +58,18 @@ class SimulationSimulator2Test(unittest.TestCase):
 			for axis in ["X", "y"]
 		]
 
+		bounds = DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND)
+
 		for f in np.random.randint(0, len(X_FILES), 10):
 			plt.figure(figsize=(20, 10))
 			X, y = [np.load(files[f]) for files in [X_FILES, Y_FILES]]
+
+			y = np.sum(bounds*y[..., :-1], axis=-1)*X[:, :, -1]
+
 			for idx, i in enumerate(np.argsort(np.mean(X[:, 0], axis=1))[:4]):
 				plt.subplot(2, 2, idx + 1)
-				for j in range(4):
-					plt.plot(X[i, j], label=["c", "o", "l", "h"][j])
+				for j in range(3):
+					plt.plot(X[i, j], label=["c", "l", "h"][j])
+					plt.scatter([X.shape[-1]], [y[i, j]])
 				plt.legend()
 			plt.show()

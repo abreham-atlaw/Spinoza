@@ -35,6 +35,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			delta_model=None,
 			use_softmax=Config.AGENT_USE_SOFTMAX,
 			use_multi_channels=Config.MARKET_STATE_USE_MULTI_CHANNELS,
+			market_state_channels: typing.Tuple[str, ...] = Config.MARKET_STATE_CHANNELS,
+			simulated_channels: typing.Tuple[str, ...] = Config.MARKET_STATE_SIMULATED_CHANNELS,
 			**kwargs
 	):
 		super().__init__(
@@ -78,7 +80,18 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__use_softmax = use_softmax
 		self.__dta_output_cache = Cache()
 		self._use_multi_channels = use_multi_channels
-		Logger.info(f"Initializing TraderDNNTransitionAgent with multi_channels={use_multi_channels}")
+		self.__market_state_channels = market_state_channels
+		self.__simulated_channels = simulated_channels
+		self.__close_channel, self.__high_channel, self.__low_channel = self.__init_channel_idxs(simulated_channels)
+		self.__channels_map = [self.__market_state_channels.index(channel) for channel in self.__simulated_channels]
+		Logger.info(f"Initializing TraderDNNTransitionAgent with multi_channels={use_multi_channels}, market_state_channels={market_state_channels}, simulated_channels={simulated_channels}")
+
+	def __init_channel_idxs(self, channels: typing.Tuple[str, ...]) -> typing.Tuple[int, int, int]:
+		close_channel = channels.index("c")
+		high_channel = channels.index("h") if "h" in channels else close_channel
+		low_channel = channels.index("l") if "l" in channels else close_channel
+
+		return close_channel, high_channel, low_channel
 
 	def _find_gap_index(self, number: float) -> int:
 		boundaries = self._state_change_delta_bounds
@@ -161,11 +174,13 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			final_state: TradeState
 	) -> float:
 
-		def compute(initial_state: TradeState,
-			output: np.ndarray,
-			final_state: TradeState) -> float:
+		def compute(
+				initial_state: TradeState,
+				output: np.ndarray,
+				final_state: TradeState
+		) -> float:
 
-			probabilities = output.flatten()
+			probabilities = output.reshape((-1, output.shape[-1]))
 
 			for base_currency, quote_currency in final_state.get_market_state().get_tradable_pairs():
 
@@ -179,19 +194,20 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 				):
 					continue
 
-				percentage = final_state.get_market_state().get_current_price(
+				percentage = (final_state.get_market_state().get_channels_state(
 					base_currency,
 					quote_currency
-				) / initial_state.get_market_state().get_current_price(
+				)[:, -1] / initial_state.get_market_state().get_channels_state(
 					base_currency,
 					quote_currency
-				)
+				)[:, -1])[self.__channels_map]
+
 				if self.__use_softmax:
-					probabilities = softmax(probabilities)
+					probabilities = np.array([softmax(p) for p in probabilities])
 
-				idx = self._find_gap_index(percentage)
+				idxs = [self._find_gap_index(percentage[i]) for i in range(percentage.shape[0])]
 
-				return float(probabilities[idx])
+				return float(np.product(probabilities[np.arange(probabilities.shape[0]), idxs]))
 		return self.__dta_output_cache.cached_or_execute((initial_state, output.tobytes(), final_state), lambda: compute(initial_state, output, final_state))
 
 	def __prediction_to_transition_probability_bound_mode(
@@ -260,17 +276,19 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		if trade.get_trade().stop_loss is None:
 			return
 		instrument = trade.get_trade().base_currency, trade.get_trade().quote_currency
-		current_price = state.get_market_state().get_current_price(instrument[0], instrument[1])
+
+		current_price = state.get_market_state().get_channels_state(instrument[0], instrument[1])[:, -1]
 		previous_price = trade.get_enter_value()
 
 		percentage = current_price / previous_price
 
 		direction = -1 if trade.get_trade().action == TraderAction.Action.SELL else 1
 
-		if direction*percentage <= direction*trade.get_trade().stop_loss:
+		stop_loss_channel = self.__low_channel if direction == 1 else self.__high_channel
+		if direction*percentage[stop_loss_channel] <= direction*trade.get_trade().stop_loss:
 			state.get_agent_state().close_trades(instrument[0], instrument[1])  # TODO: CLOSE SINGLE TRADE
 
-	def __simulate_trades_triggers(self, state: TradeState, instrument: Tuple[str, str]):
+	def _simulate_trades_triggers(self, state: TradeState, instrument: Tuple[str, str]):
 		for trade in state.get_agent_state().get_open_trades(instrument[0], instrument[1]):
 			self.__simulate_trade_trigger(state, trade)
 
@@ -292,52 +310,73 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		involved_instruments = list(set(involved_instruments))
 
-		states = self.__simulate_instruments_change(state, involved_instruments)
+		states = self.__simulate_instruments_change(state, involved_instruments, action)
 
 		for mid_state in states:
 			self._simulate_action(mid_state, action)
 
 		return states
 
-	def __simulate_instruments_change(self, mid_state, instruments: List[Tuple[str, str]]) -> List[TradeState]:
+	def __simulate_instruments_change(self, mid_state, instruments: List[Tuple[str, str]], action) -> List[TradeState]:
 		states = []
 		for base_currency, quote_currency in instruments:
-			states += self.__simulate_instrument_change(mid_state, base_currency, quote_currency)
+			states += self.__simulate_instrument_change(mid_state, base_currency, quote_currency, action)
 
 		return states
 
-	def __simulate_instrument_change_bound_mode(self, state: TradeState, base_currency: str, quote_currency: str) -> List[TradeState]:
+	@staticmethod
+	def _enumerate_channel_combinations(possible_values: np.ndarray) -> np.ndarray:
+		if possible_values.ndim > 1 and possible_values.shape[0] > 1:
+			possible_values = np.array(
+				np.meshgrid(*[possible_values[i] for i in range(possible_values.shape[0])], indexing="ij")
+			).reshape(possible_values.shape[0], -1)
+		return possible_values
+
+	def _get_possible_channel_values(self, state: TradeState, base_currency: str, quote_currency: str) -> np.ndarray:
+		channels = [i for i in range(len(self.__market_state_channels)) if self.__market_state_channels[i] in self.__simulated_channels]
+
+		original_values = state.get_market_state().get_channels_state(base_currency, quote_currency)
+		possible_values = original_values[channels][:, -1:] * self._simulation_state_change_delta_bounds
+
+		possible_values = self._enumerate_channel_combinations(possible_values)
+
+		if original_values.shape[0] > possible_values.shape[0]:
+			y = np.zeros((original_values.shape[0], possible_values.shape[1]))
+			y[channels] = possible_values
+			possible_values = y
+
+		return possible_values
+
+	def _simulate_instrument_change_bound_mode(
+			self,
+			state: TradeState,
+			base_currency: str,
+			quote_currency: str,
+			action: typing.Any
+	) -> List[TradeState]:
 		states = []
 
-		original_value = state.get_market_state().get_state_of(base_currency, quote_currency)
+		possible_values = self._get_possible_channel_values(state, base_currency, quote_currency)
 
-		for j in range(len(self._simulation_state_change_delta_bounds)):
+		for j in range(possible_values.shape[1]):
 			new_state = state.__deepcopy__()
 			new_state.recent_balance = state.get_agent_state().get_balance()
 
-			new_value = np.array(original_value[-1] * self._simulation_state_change_delta_bounds[j], dtype=np.float32).reshape((1, 1))
-			if self._use_multi_channels:
-				new_value = np.concatenate(
-					(
-						new_value,
-						np.expand_dims(np.zeros(state.get_market_state().channels-1), axis=1)
-					),
-					axis=0
-				)
+			new_value = np.expand_dims(possible_values[:, j], axis=1)
 
 			new_state.get_market_state().update_state_of(
 				base_currency,
 				quote_currency,
 				new_value
 			)
-			self.__simulate_trades_triggers(new_state, (base_currency, quote_currency))
+			self._simulate_trades_triggers(new_state, (base_currency, quote_currency))
 			states.append(new_state)
 
 		return states
 
-	def __simulate_instrument_change(self, state: TradeState, base_currency: str, quote_currency: str) -> List[TradeState]:
+	def __simulate_instrument_change(self, state: TradeState, base_currency: str, quote_currency: str, action) -> List[TradeState]:
 		if not self.__state_change_delta_model_mode:
-			return self.__simulate_instrument_change_bound_mode(state, base_currency, quote_currency)
+			return self._simulate_instrument_change_bound_mode(state, base_currency, quote_currency, action)
 
 		states = []
 
