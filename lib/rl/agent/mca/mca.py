@@ -287,7 +287,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			]
 		)
 
-	def __finalize_step(self, root: 'Node'):
+	def _finalize_step(self, root: 'Node'):
 
 		if self.__dump_nodes:
 			self.__dump_node(root)
@@ -457,8 +457,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._backpropagate(final_node)
 
 			self.__manage_resources()
-			if random.random() < 0.2:
-				stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
 			stats.iterations["main_loop"] += 1
 
 	def _monte_carlo_tree_search(self, state) -> None:
@@ -475,7 +473,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		)
 		optimal_action = max(root_node.get_children(), key=lambda node: node.get_total_value()).action
 		Logger.info(f"Best Action {optimal_action}")
-		self.__finalize_step(root_node)
+		self._finalize_step(root_node)
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
 		for action_node in self.__get_current_graph().get_children():
