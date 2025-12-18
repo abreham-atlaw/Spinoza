@@ -18,13 +18,18 @@ class DirectProbabilityDistributionAgent(TraderDeepReinforcementMonteCarloAgent,
 			*args,
 			use_direct_distribution: bool = Config.AGENT_USE_DIRECT_DISTRIBUTION,
 			importance_threshold: float = Config.AGENT_POSSIBLE_STATES_IMPORTANCE_THRESHOLD,
+			store_size: int = Config.AGENT_PROBABILITY_STORE_SIZE,
 			**kwargs,
 	):
 		super().__init__(*args, **kwargs)
 
-		self.__probability_store = Cache(key_func=lambda state: id(state))
+		self.__probability_store = Cache(
+			cache_size=store_size,
+			key_func=lambda state: id(state)
+		)
 		self.__importance_threshold = importance_threshold
 		self.__enabled = use_direct_distribution
+		self.__store_size_uncertainty = 0.1
 		Logger.info(f"Direct probability distribution enabled: {self.__enabled}")
 
 	def __get_transition_probability_distribution(
@@ -119,3 +124,7 @@ class DirectProbabilityDistributionAgent(TraderDeepReinforcementMonteCarloAgent,
 		]
 		assert None not in values
 		return values
+
+	def _finalize_step(self, root: 'Node'):
+		self.__probability_store.clear()
+		super()._finalize_step(root)
