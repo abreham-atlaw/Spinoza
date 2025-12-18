@@ -2,6 +2,8 @@ import os.path
 import random
 import typing
 
+import numpy as np
+
 from .file_storage import FileStorage, MetaData
 from .pcloud_client import PCloudClient
 from .exceptions import FileNotFoundException
@@ -23,6 +25,11 @@ class CombinedFileStorage(FileStorage):
 				pass
 		raise FileNotFoundException(path)
 
+	def _random_storage_choice(self) -> FileStorage:
+		weights = 1/np.array([child.get_quota_usage() for child in self.__children])
+		weights = weights/np.sum(weights)
+		return random.choices(self.__children, weights=list(weights))[0]
+
 	def _choose_storage(self, file_path: str, upload_path: typing.Union[str, None] = None):
 		try:
 			path = upload_path
@@ -30,7 +37,9 @@ class CombinedFileStorage(FileStorage):
 				path = os.path.basename(file_path)
 			return self._get_storage(path)
 		except FileNotFoundException:
-			return random.choice(self.__children)
+			fs = self._random_storage_choice()
+			Logger.info(f"Selected Storage {self.__children.index(fs)} for {path}...")
+			return fs
 
 	def get_url(self, path) -> str:
 		storage = self._get_storage(path)

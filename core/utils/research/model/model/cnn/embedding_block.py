@@ -18,7 +18,8 @@ class EmbeddingBlock(SpinozaModule):
 			input_norm: nn.Module = None,
 			input_dropout: typing.Union[float, nn.Module] = 0,
 			padding: nn.Module = None,
-			indicators_mask: typing.Union[typing.List[bool], nn.Module] = None
+			indicators_mask: typing.Union[typing.List[bool], nn.Module] = None,
+			prep_layer: typing.Optional[nn.Module] = None
 	):
 		self.args = {
 			"indicators": indicators,
@@ -27,7 +28,8 @@ class EmbeddingBlock(SpinozaModule):
 			"input_norm": input_norm,
 			"input_dropout": input_dropout,
 			"padding": padding,
-			"indicators_mask": indicators_mask
+			"indicators_mask": indicators_mask,
+			"prep_layer": prep_layer
 		}
 		super().__init__(auto_build=False)
 		self.indicators = indicators if indicators is not None else Indicators()
@@ -42,6 +44,7 @@ class EmbeddingBlock(SpinozaModule):
 		self.padding = padding if padding is not None else nn.Identity()
 
 		self.indicators_mask = self.__prepare_indicators_mask_args(indicators_mask)
+		self.prep_layer = prep_layer if prep_layer is not None else nn.Identity()
 
 	@staticmethod
 	def __prepare_dropout_args(input_dropout: typing.Union[float, nn.Module]):
@@ -75,7 +78,8 @@ class EmbeddingBlock(SpinozaModule):
 		], dim=1)
 
 	def call(self, x: torch.Tensor) -> torch.Tensor:
-		out = self.input_dropout(x)
+		out = self.prep_layer(x)
+		out = self.input_dropout(out)
 		out = self.input_norm(out)
 
 		out = self.apply_indicators(out)
