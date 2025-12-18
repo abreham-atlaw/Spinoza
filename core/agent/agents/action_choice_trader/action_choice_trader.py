@@ -129,6 +129,9 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 		if self.__multi_actions:
 			actions.extend(self.__generate_action_sequences(state))
 
+		for action in actions:
+			state.get_agent_state().rectify_action(action)
+
 		return actions
 
 

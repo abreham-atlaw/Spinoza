@@ -84,8 +84,9 @@ MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = True
-MARKET_STATE_CHANNELS = ("c", "l", "h")
-MARKET_STATE_SMOOTHED_CHANNELS = ('c',)
+MARKET_STATE_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_SMOOTHED_CHANNELS = ()
+MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h')
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks")
 TIME_PENALTY = 0
 AGENT_TRADE_PENALTY = 0
@@ -149,6 +150,8 @@ AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_DRMCA_WP = 100
+AGENT_USE_DIRECT_DISTRIBUTION = True
+AGENT_POSSIBLE_STATES_IMPORTANCE_THRESHOLD = 0.05
 AGENT_TOP_K_NODES = None
 AGENT_DYNAMIC_K_THRESHOLD = 0.05
 AGENT_DUMP_NODES = True
@@ -166,7 +169,7 @@ AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/10.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/13.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -201,7 +204,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(RES_DIR, "model.zip"),
+	path=os.path.join(RES_DIR, "core_model.zip"),
 	download=False
 )
 
@@ -226,7 +229,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-68/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-88/"
 
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
@@ -345,6 +348,13 @@ class RunnerStatsBranches:
 
 	it_84_6 = "it_84_6"
 
+	it_85_6 = "it_85_6"
+	it_87_6 = "it_87_6"
+
+	it_86_6 = "it_86_6"
+
+	it_88_6 = "it_88_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -421,10 +431,14 @@ class RunnerStatsBranches:
 		it_79_6,
 		it_80_6,
 		it_82_6,
-		it_84_6
+		it_84_6,
+		it_85_6,
+		it_86_6,
+		it_87_6,
+		it_88_6
 	]
 
-	default = it_68_6
+	default = it_88_6
 
 
 class RunnerStatsLossesBranches:
@@ -485,6 +499,9 @@ class RunnerStatsLossesBranches:
 	it_80_0 = "it_80_0"
 	it_82_0 = "it_82_0"
 	it_84_0 = "it_84_0"
+	it_85_0 = "it_85_0"
+	it_86_0 = "it_86_0"
+	it_88_0 = "it_88_0"
 
 	all = [
 		main,
@@ -540,10 +557,14 @@ class RunnerStatsLossesBranches:
 		it_79_0,
 		it_80_0,
 		it_82_0,
-		it_84_0
+		it_84_0,
+		it_85_0,
+		it_86_0,
+		it_88_0
 	]
 
-	default = it_68_0
+	default = it_88_0
+
 
 
 

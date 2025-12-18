@@ -13,5 +13,5 @@ class TransitionOnlyModel(nn.Module):
 		if self.extra_len > 0:
 			X[..., X.shape[-1]-self.extra_len:] = 0.0
 		out = self.model(X)
-		out[:, -1] = 0
+		out[..., -1] = 0
 		return out
