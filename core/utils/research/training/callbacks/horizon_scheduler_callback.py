@@ -15,6 +15,9 @@ class HorizonSchedulerCallback(Callback):
 		self.__epoch_step = step
 		Logger.info(f"HorizonSchedulerCallback: Using step {self.__step}@{self.__epoch_step} epochs")
 
+	def on_epoch_start(self, model, epoch, logs=None):
+		self.on_epoch_end(model, epoch-1, None, logs)
+
 	def on_epoch_end(self, model: HorizonModel, epoch: int, losses, logs=None):
 		if not isinstance(model, (HorizonModel, LassHorizonModel, AbstractHorizonModel)):
 			Logger.warning(f"HorizonSchedulerCallback can only be used with HorizonModel. Got {type(model)}")
