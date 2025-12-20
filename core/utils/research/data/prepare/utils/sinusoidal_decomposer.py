@@ -14,9 +14,12 @@ class SinusoidalDecomposer:
 			shifts: typing.Tuple[int, int, int] = (0, 6, 50),
 			layer_indifference_threshold: float = 0.05,
 			min_block_size: int = 512,
+			blocks_rate: float = 1.5,
 			block_layers: int = 10,
 			plot_progress: bool = True,
-			collapse_output: bool = True
+			collapse_output: bool = True,
+			use_correction: bool = False,
+			correction_steps: int = 1,
 	):
 		self.__layer_indifference_threshold = layer_indifference_threshold
 		self.__initial_fqs = np.linspace(*fqs)
@@ -25,6 +28,11 @@ class SinusoidalDecomposer:
 		self.__block_layers = block_layers
 		self.__plot_progress = plot_progress
 		self.__collapse_output = collapse_output
+		self.__correction_steps = correction_steps
+		self.__use_correction = use_correction
+		self.__blocks_rate = blocks_rate
+		Logger.info(f"Initialized SinusoidalDecomposer with use_correction:{use_correction}, correction_steps: {correction_steps}")
+
 
 	@staticmethod
 	def __wave(f: float, s: float, l: float) -> np.ndarray:
@@ -117,7 +125,37 @@ class SinusoidalDecomposer:
 			block += y[-1] - block[0]
 			y = np.concatenate((y, block), axis=-1)
 
-		y = self.__v_align(y, x)
+
+		if not self.__use_correction:
+			y = self.__v_align(y, x)
+
+		return y
+
+	def __get_window_sizes(self, initial_size: int, target_size: int) -> typing.List[int]:
+		if not self.__use_correction:
+			return [target_size]
+
+		if initial_size == target_size:
+			return [target_size]
+
+		sizes = [
+			int(np.ceil((initial_size - target_size)/(i+1) + target_size))
+			for i in range(self.__correction_steps)
+		]
+
+		return [target_size] + sizes[::-1]
+
+	def __optimize_for_block_size(self, x: np.ndarray, block_size: int) -> np.ndarray:
+		y = np.zeros((0, x.shape[0]))
+
+		for step_block_size in self.__get_window_sizes(x.shape[0], block_size):
+			y = np.concatenate(
+				(
+					np.expand_dims(self.__split_and_optimize(x - np.sum(y, axis=0), step_block_size), axis=0),
+					y
+				),
+				axis=0
+			)
 
 		return y
 
@@ -131,7 +169,7 @@ class SinusoidalDecomposer:
 
 		while block_size > self.__min_block_size:
 
-			step_y = np.expand_dims(self.__split_and_optimize(diff, block_size), axis=0)
+			step_y = self.__optimize_for_block_size(diff, block_size)
 			y = np.concatenate((y, step_y), axis=0)
 
 			if self.__plot_progress:
@@ -149,7 +187,7 @@ class SinusoidalDecomposer:
 
 			diff = diff - np.sum(step_y, axis=0)
 
-			blocks += 1
+			blocks *= self.__blocks_rate
 			block_size = int(np.ceil(x.shape[0] / blocks))
 
 		return y

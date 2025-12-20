@@ -21,7 +21,8 @@ class Lass3Transformer(SpinozaModule):
 			encoder_block: DecoderBlock,
 			decoder_block: Lass3DecoderBlock,
 			collapse_block: CollapseBlock,
-			input_block: Lass3TransformerInputBlock = None
+			input_block: Lass3TransformerInputBlock = None,
+			output_block: nn.Module = None
 	):
 		self.args = {
 			'block_size': block_size,
@@ -30,7 +31,8 @@ class Lass3Transformer(SpinozaModule):
 			'encoder_block': encoder_block,
 			'decoder_block': decoder_block,
 			'collapse_block': collapse_block,
-			'input_block': input_block
+			'input_block': input_block,
+			'output_block': output_block
 		}
 		super().__init__(input_size=(None, 2, block_size), auto_build=False)
 		self.encoder_embedding_block = encoder_embedding_block
@@ -40,7 +42,7 @@ class Lass3Transformer(SpinozaModule):
 		self.collapse_block = collapse_block
 
 		self.input_block = input_block if input_block is not None else Lass3TransformerInputBlock()
-
+		self.output_block = output_block
 		self.init()
 
 	def call(self, x: torch.Tensor) -> torch.Tensor:
@@ -53,6 +55,10 @@ class Lass3Transformer(SpinozaModule):
 		y_decoder = self.decoder_block(y_encoder, x_decoder_embedded)
 
 		y = self.collapse_block(y_decoder)
+
+		if self.output_block is not None:
+			y = self.output_block(x, y)
+
 		return y
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
