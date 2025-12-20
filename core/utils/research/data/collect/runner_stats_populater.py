@@ -23,6 +23,7 @@ from lib.utils.fileio import load_json
 from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 from .blacklist_repository import RSBlacklistRepository
+from .runner_stats2 import RunnerStats2
 from ..prepare.utils.data_prep_utils import DataPrepUtils
 
 
@@ -383,10 +384,9 @@ class RunnerStatsPopulater:
 		stats = self.__repository.retrieve(id)
 		if stats is None:
 			print("[+]Creating...")
-			stats = RunnerStats(
+			stats = RunnerStats2(
 				id=id,
 				model_name=os.path.basename(path),
-				session_timestamps=[],
 				temperature=temperature
 			)
 			stats.model_losses = losses
