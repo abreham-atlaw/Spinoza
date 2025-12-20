@@ -16,7 +16,7 @@ class HorizonSchedulerCallback(Callback):
 		Logger.info(f"HorizonSchedulerCallback: Using step {self.__step}@{self.__epoch_step} epochs")
 
 	def on_epoch_start(self, model, epoch, logs=None):
-		self.on_epoch_end(model, epoch-1, None, logs)
+		self.on_epoch_end(model, max(0, epoch-1), None, logs)
 
 	def on_epoch_end(self, model: HorizonModel, epoch: int, losses, logs=None):
 		if not isinstance(model, (HorizonModel, LassHorizonModel, AbstractHorizonModel)):
