@@ -14,7 +14,7 @@ from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
 	ProximalMaskedPenaltyLoss2, ProximalMaskedLoss3
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
-	LayerStack, Identity, NoiseInjectionLayer, MCInputPadding
+	LayerStack, Identity, NoiseInjectionLayer
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
@@ -202,6 +202,8 @@ class TrainerTest(unittest.TestCase):
 		BLOCK_SIZE = 128 + EXTRA_LEN
 		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/11.json"))) + 1
 		INPUT_CHANNELS = 3
+		OUTPUT_CHANNELS = 3
+		Y_CHANNEL_MAP = (0, 1, 2)
 
 		HORIZON_MODE = True
 		USE_MC_HORIZON = INPUT_CHANNELS > 1
@@ -221,8 +223,6 @@ class TrainerTest(unittest.TestCase):
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
 		NORM = [DynamicLayerNorm(elementwise_affine=True) for _ in CHANNELS]
-
-		EMBEDDING_PREP_LAYER = MCInputPadding(channels=(1, 2))
 
 		INDICATORS_DELTA = [1, 2, 4]
 		INDICATORS_SO = [16, 32, 64]
@@ -258,6 +258,9 @@ class TrainerTest(unittest.TestCase):
 		FF_LINEAR_NORM = [DynamicLayerNorm(elementwise_affine=True) for _ in FF_LINEAR_LAYERS[:]]
 		FF_DROPOUT = [0 for _ in FF_LINEAR_LAYERS[:-1]]
 
+		COLLAPSE_CHANNEL_FF_LAYERS = [32, 16, OUTPUT_CHANNELS]
+		COLLAPSE_FLATTEN = OUTPUT_CHANNELS == 1
+
 		indicators = Indicators(
 			delta=INDICATORS_DELTA,
 			so=INDICATORS_SO,
@@ -274,8 +277,7 @@ class TrainerTest(unittest.TestCase):
 
 			embedding_block=EmbeddingBlock(
 				indicators=indicators,
-				input_norm=INPUT_NORM,
-				prep_layer=EMBEDDING_PREP_LAYER,
+				input_norm=INPUT_NORM
 			),
 
 			cnn_block=CNNBlock(
@@ -321,6 +323,7 @@ class TrainerTest(unittest.TestCase):
 
 			collapse_block=CollapseBlock(
 				extra_mode=False,
+				flatten=COLLAPSE_FLATTEN,
 				dropout=DROPOUT_BRIDGE,
 				ff_block=LinearModel(
 					dropout_rate=FF_DROPOUT,
@@ -328,6 +331,9 @@ class TrainerTest(unittest.TestCase):
 					hidden_activation=FF_LINEAR_ACTIVATION,
 					init_fn=FF_LINEAR_INIT,
 					norm=FF_LINEAR_NORM
+				),
+				channel_ff_block=LinearModel(
+					layer_sizes=COLLAPSE_CHANNEL_FF_LAYERS
 				)
 			)
 
@@ -340,7 +346,8 @@ class TrainerTest(unittest.TestCase):
 				bounds=HORIZON_BOUNDS,
 				h=HORIZON_RANGE[0],
 				max_depth=HORIZON_MAX_DEPTH,
-				X_extra_len=EXTRA_LEN
+				X_extra_len=EXTRA_LEN,
+				y_channel_map=Y_CHANNEL_MAP
 			)
 		return model
 
@@ -447,7 +454,8 @@ class TrainerTest(unittest.TestCase):
 		return (
 			ProximalMaskedLoss3(
 				bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
-				weighted_sample=False
+				weighted_sample=False,
+				multi_channel=True
 			),
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)
@@ -484,7 +492,7 @@ class TrainerTest(unittest.TestCase):
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=1,
+			epochs=10,
 			progress=True,
 			reg_loss_only=self._get_reg_loss_only()
 		)
