@@ -22,7 +22,7 @@ class Lass7PreparerTest(unittest.TestCase):
 		Logger.info(f"Cleaning {self.output_path}")
 		os.system(f"rm -fr \"{self.output_path}\"")
 		self.preparer = Lass7Preparer(
-			decomposer=SinusoidalDecomposer(min_block_size=512, plot_progress=False),
+			decomposer=SinusoidalDecomposer(min_block_size=1024, block_layers=3, blocks_rate=2.5, plot_progress=False),
 			block_size=32,
 			granularity=2,
 			batch_size=64,
@@ -31,7 +31,8 @@ class Lass7PreparerTest(unittest.TestCase):
 			df=pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-10k.csv")),
 			splitter=SequentialSplitter(test_size=0.2),
 			left_align=False,
-			decoder_samples=8
+			decoder_samples=8,
+			vertical_align=True
 
 		)
 
