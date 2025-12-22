@@ -14,7 +14,7 @@ from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
 	ProximalMaskedPenaltyLoss2, ProximalMaskedLoss3
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
-	LayerStack, Identity, NoiseInjectionLayer
+	LayerStack, Identity, NoiseInjectionLayer, MCInputPadding
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
@@ -25,7 +25,7 @@ from core.utils.research.model.model.cnn.resnet.resnet_block import ResNetBlock
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock, \
 	TransformerBlock
-from core.utils.research.model.model.utils import HorizonModel
+from core.utils.research.model.model.utils import HorizonModel, MCHorizonModel
 from core.utils.research.training.callbacks.horizon_scheduler_callback import HorizonSchedulerCallback
 from core.utils.research.training.trainer import Trainer
 from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
@@ -201,11 +201,12 @@ class TrainerTest(unittest.TestCase):
 		EMBEDDING_SIZE = 8
 		BLOCK_SIZE = 128 + EXTRA_LEN
 		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/11.json"))) + 1
-		INPUT_CHANNELS = 11
+		INPUT_CHANNELS = 3
 
-		HORIZON_MODE = False
+		HORIZON_MODE = True
+		USE_MC_HORIZON = INPUT_CHANNELS > 1
 		HORIZON_BOUNDS = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
-		HORIZON_RANGE = (0.0, 0.99)
+		HORIZON_RANGE = (1.0, 0.99)
 		HORIZON_EPOCHS = 40
 		HORIZON_STEP = 5
 		HORIZON_MAX_DEPTH = 50
@@ -220,6 +221,8 @@ class TrainerTest(unittest.TestCase):
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
 		NORM = [DynamicLayerNorm(elementwise_affine=True) for _ in CHANNELS]
+
+		EMBEDDING_PREP_LAYER = MCInputPadding(channels=(1, 2))
 
 		INDICATORS_DELTA = [1, 2, 4]
 		INDICATORS_SO = [16, 32, 64]
@@ -271,7 +274,8 @@ class TrainerTest(unittest.TestCase):
 
 			embedding_block=EmbeddingBlock(
 				indicators=indicators,
-				input_norm=INPUT_NORM
+				input_norm=INPUT_NORM,
+				prep_layer=EMBEDDING_PREP_LAYER,
 			),
 
 			cnn_block=CNNBlock(
@@ -330,7 +334,8 @@ class TrainerTest(unittest.TestCase):
 		)
 
 		if HORIZON_MODE:
-			model = HorizonModel(
+			HorizonClass = HorizonModel if not USE_MC_HORIZON else MCHorizonModel
+			model = HorizonClass(
 				model=model,
 				bounds=HORIZON_BOUNDS,
 				h=HORIZON_RANGE[0],

@@ -273,21 +273,34 @@ def draw_graph_live(root_node, depth=None, top=None, visited=False, state_reposi
 				return ", ".join([get_action_label(action) for action in action.actions])
 
 			if action is None:
-				return "None"
+				label = "None"
 			elif action.action == 0:
-				return "Sell"
+				label ="Sell"
 			elif action.action == 1:
-				return "Buy"
+				label = "Buy"
 			elif action.action == 2:
-				return "Close"
+				label = "Close"
+
+			if action is not None and action.stop_loss is not None:
+				label = f"{label}\n(SL={action.stop_loss})"
+
+			return label
 
 		if node.node_type == 0:
 			total_value = f"\n{node.get_total_value(): .4f}"
 			instant_value = f"\n{node.instant_value: .4f}"
 			label = f"{total_value}{instant_value}"
 			if state_repository is not None:
-				current_price = state_repository.retrieve(node.id).market_state.get_current_price('AUD', 'USD')
-				previous_price = state_repository.retrieve(node.id).market_state.get_state_of("AUD", "USD")[-2]
+				from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
+
+				target_instrument = TraderDNNTransitionAgent._get_target_instrument(
+					state_repository.retrieve(node.parent.parent.id),
+					None,
+					state_repository.retrieve(node.id)
+				)
+
+				current_price = state_repository.retrieve(node.id).market_state.get_current_price(*target_instrument)
+				previous_price = state_repository.retrieve(node.id).market_state.get_state_of(*target_instrument)[-2]
 				label += f"\n{format(current_price - previous_price, '.1e').replace('e-0', 'e-')}"
 				label += f"\n{current_price: .4f}"
 			return label

@@ -6,7 +6,7 @@ from core import Config
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers import SmoothedChannelDropout, \
 	EncoderNoiseInjectionLayer
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.layers.lass3.transformer import \
-	DecodedEncoderDropout, EncoderChannelDropout, EncoderDropout, DecoderPadEmbedding, EncoderVerticalShift
+	DecodedEncoderDropout, EncoderChannelDropout, EncoderDropout, DecoderPadEmbedding, EncoderVerticalShift, RevInNorm
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model import LassHorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3 import Lass3HorizonModel
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3.transformer import Lass3Transformer, \
@@ -30,9 +30,9 @@ class LassTrainerTest(TrainerTest):
 
 	def _get_root_dirs(self):
 		return [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/7/train")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/13/train")
 		], [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/7/test")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/13/test")
 		]
 
 	def _create_losses(self):
@@ -121,7 +121,7 @@ class LassTrainerTest(TrainerTest):
 	@staticmethod
 	def __create_lass3_transformer():
 
-		BLOCK_SIZE = 32
+		BLOCK_SIZE = 128
 		EMBEDDING_SIZE = 4
 		NUM_HEADS = 2
 		VOCAB_SIZE = 1
@@ -161,7 +161,7 @@ class LassTrainerTest(TrainerTest):
 		DECODER_EMBEDDING_CB_KERNELS = [1] * len(DECODER_EMBEDDING_CB_CHANNELS)
 		DECODER_EMBEDDING_CB_POOL_SIZES = [0] * len(DECODER_EMBEDDING_CB_CHANNELS)
 		DECODER_EMBEDDING_CB_DROPOUTS = [0] * len(DECODER_EMBEDDING_CB_CHANNELS)
-		DECODER_EMBEDDING_CB_NORM = [nn.Identity() for _ in range(len(DECODER_EMBEDDING_CB_CHANNELS))]
+		DECODER_EMBEDDING_CB_NORM = [DynamicLayerNorm() for _ in range(len(DECODER_EMBEDDING_CB_CHANNELS))]
 		DECODER_EMBEDDING_CB_HIDDEN_ACTIVATION = [nn.Identity() for _ in DECODER_EMBEDDING_CB_CHANNELS]
 		DECODER_EMBEDDING_POSITIONAL_ENCODING = True
 
@@ -183,6 +183,8 @@ class LassTrainerTest(TrainerTest):
 		COLLAPSE_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in COLLAPSE_FF_LINEAR_LAYERS]
 		COLLAPSE_FF_LINEAR_NORM = [nn.Identity() for _ in COLLAPSE_FF_LINEAR_LAYERS]
 		COLLAPSE_FF_LINEAR_DROPOUT = [0] * (len(COLLAPSE_FF_LINEAR_LAYERS) - 1)
+
+		OUTPUT_BLOCK = RevInNorm()
 
 		encoder_indicators = Indicators(
 			delta=ENCODER_EMBEDDING_INDICATORS_DELTA
@@ -268,7 +270,9 @@ class LassTrainerTest(TrainerTest):
 					norm=COLLAPSE_FF_LINEAR_NORM,
 					hidden_activation=COLLAPSE_FF_LINEAR_ACTIVATION
 				)
-			)
+			),
+
+			output_block=OUTPUT_BLOCK
 		)
 
 		if HORIZON_MODE:
