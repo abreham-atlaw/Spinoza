@@ -91,6 +91,7 @@ TIME_PENALTY = 0
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
+AGENT_TRADE_MAX_MARGIN_USED = 0.75
 AGENT_TRADE_SIZE_USE_PERCENTAGE = True
 AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = False
@@ -345,6 +346,14 @@ class RunnerStatsBranches:
 
 	it_84_6 = "it_84_6"
 
+	it_85_6 = "it_85_6"
+	it_87_6 = "it_87_6"
+
+	it_86_6 = "it_86_6"
+
+	it_88_6 = "it_88_6"
+	it_89_6 = "it_89_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -421,7 +430,12 @@ class RunnerStatsBranches:
 		it_79_6,
 		it_80_6,
 		it_82_6,
-		it_84_6
+		it_84_6,
+		it_85_6,
+		it_86_6,
+		it_87_6,
+		it_88_6,
+		it_89_6
 	]
 
 	default = it_68_6
@@ -485,6 +499,9 @@ class RunnerStatsLossesBranches:
 	it_80_0 = "it_80_0"
 	it_82_0 = "it_82_0"
 	it_84_0 = "it_84_0"
+	it_85_0 = "it_85_0"
+	it_86_0 = "it_86_0"
+	it_88_0 = "it_88_0"
 
 	all = [
 		main,
@@ -540,7 +557,10 @@ class RunnerStatsLossesBranches:
 		it_79_0,
 		it_80_0,
 		it_82_0,
-		it_84_0
+		it_84_0,
+		it_85_0,
+		it_86_0,
+		it_88_0
 	]
 
 	default = it_68_0
