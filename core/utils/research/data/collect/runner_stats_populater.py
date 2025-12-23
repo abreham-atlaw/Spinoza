@@ -99,6 +99,10 @@ class RunnerStatsPopulater:
 				path=os.path.join(Config.RES_DIR, "losses/pml3_1.json"),
 				bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
 				multi_channel=True
+			),
+			ProximalMaskedLoss(
+				n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
+				multi_channel=True
 			)
 		]
 
