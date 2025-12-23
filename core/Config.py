@@ -238,7 +238,7 @@ HORIZON_H = 0.9
 HORIZON_USE_MC = True
 HORIZON_Y_CHANNEL_MAP = (0, 1, 2)
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-88/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-89/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -359,6 +359,7 @@ class RunnerStatsBranches:
 	it_86_6 = "it_86_6"
 
 	it_88_6 = "it_88_6"
+	it_89_6 = "it_89_6"
 
 	all = [
 		main,
@@ -440,10 +441,11 @@ class RunnerStatsBranches:
 		it_85_6,
 		it_86_6,
 		it_87_6,
-		it_88_6
+		it_88_6,
+		it_89_6
 	]
 
-	default = it_88_6
+	default = it_89_6
 
 
 class RunnerStatsLossesBranches:
