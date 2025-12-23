@@ -352,6 +352,7 @@ class RunnerStatsBranches:
 	it_86_6 = "it_86_6"
 
 	it_88_6 = "it_88_6"
+	it_89_6 = "it_89_6"
 
 	all = [
 		main,
@@ -433,7 +434,8 @@ class RunnerStatsBranches:
 		it_85_6,
 		it_86_6,
 		it_87_6,
-		it_88_6
+		it_88_6,
+		it_89_6
 	]
 
 	default = it_23_0
