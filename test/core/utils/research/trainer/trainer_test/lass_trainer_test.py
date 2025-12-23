@@ -31,9 +31,9 @@ class LassTrainerTest(TrainerTest):
 
 	def _get_root_dirs(self):
 		return [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/15/train")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/13/train")
 		], [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/15/test")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/13/test")
 		]
 
 	def _create_losses(self):
@@ -278,7 +278,7 @@ class LassTrainerTest(TrainerTest):
 
 		if HORIZON_MODE:
 			model = Lass3HorizonModel(
-				h=HORIZON_RANGE[0],
+				h=HORIZON_RANGE[1],
 				model=model,
 				max_depth=HORIZON_MAX_DEPTH
 			)
@@ -395,9 +395,9 @@ class LassTrainerTest(TrainerTest):
 		# 	model=self.__create_lass3_transformer(),
 		# 	max_depth=5
 		# )
-		# return self.__create_lass3_transformer()
+		return self.__create_lass3_transformer()
 		# return self.__create_lass5_model()
-		return self.__create_lass8_transformer()
+		# return self.__create_lass8_transformer()
 
 	def _get_sequence_length(self):
 		return 32
