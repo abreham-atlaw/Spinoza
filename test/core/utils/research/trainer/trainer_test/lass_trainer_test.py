@@ -15,6 +15,7 @@ from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass3
 	Lass3TransformerInputBlock
 from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass5 import Lass3To5Model, \
 	Lass3ExecutorLass5Model
+from core.utils.research.data.prepare.smoothing_algorithm.lass.model.model.lass8 import Lass8Transformer
 from core.utils.research.losses import MeanSquaredErrorLoss
 from core.utils.research.model.layers import DynamicLayerNorm, DynamicBatchNorm, Indicators
 from core.utils.research.model.model.cnn.cnn2 import CNN2
@@ -277,7 +278,7 @@ class LassTrainerTest(TrainerTest):
 
 		if HORIZON_MODE:
 			model = Lass3HorizonModel(
-				h=HORIZON_RANGE[0],
+				h=HORIZON_RANGE[1],
 				model=model,
 				max_depth=HORIZON_MAX_DEPTH
 			)
@@ -286,6 +287,103 @@ class LassTrainerTest(TrainerTest):
 	def __create_lass5_model(self):
 		model = self.__create_lass3_transformer()
 		return Lass3ExecutorLass5Model(padding=2, block_size=32, model=model)
+
+	def __create_lass8_transformer(self):
+
+		BLOCK_SIZE = 32
+		EMBEDDING_SIZE = 4
+		NUM_HEADS = 2
+
+		# ENCODER EMBEDDING BLOCK
+		ENCODER_EMBEDDING_INDICATORS_DELTA = [1]
+		ENCODER_EMBEDDING_PADDING = nn.ReflectionPad1d((1, 0))
+		ENCODER_EMBEDDING_CB_CHANNELS = [EMBEDDING_SIZE] * 8
+		ENCODER_EMBEDDING_CB_KERNELS = [3] * len(ENCODER_EMBEDDING_CB_CHANNELS)
+		ENCODER_EMBEDDING_CB_POOL_SIZES = [0] * len(ENCODER_EMBEDDING_CB_CHANNELS)
+		ENCODER_EMBEDDING_CB_DROPOUTS = [0] * len(ENCODER_EMBEDDING_CB_CHANNELS)
+		ENCODER_EMBEDDING_CB_NORM = [DynamicLayerNorm() for _ in range(len(ENCODER_EMBEDDING_CB_CHANNELS))]
+		ENCODER_EMBEDDING_CB_HIDDEN_ACTIVATION = [nn.Identity() for _ in ENCODER_EMBEDDING_CB_CHANNELS]
+		ENCODER_EMBEDDING_CB_PADDING = [nn.ReflectionPad1d(padding=(e // 2)) for e in ENCODER_EMBEDDING_CB_KERNELS]
+		ENCODER_EMBEDDING_POSITIONAL_ENCODING = True
+
+		# ENCODER BLOCK
+		ENCODER_NUM_HEADS = NUM_HEADS
+		ENCODER_NORM_1 = DynamicLayerNorm()
+		ENCODER_NORM_2 = DynamicLayerNorm()
+		ENCODER_FF_LAYERS = [EMBEDDING_SIZE * 2, EMBEDDING_SIZE]
+
+		# DECODER BLOCK
+		DECODER_NUM_HEADS = NUM_HEADS
+		DECODER_NORM_1 = DynamicLayerNorm()
+		DECODER_NORM_2 = DynamicLayerNorm()
+		DECODER_FF_LAYERS = [EMBEDDING_SIZE * 2, EMBEDDING_SIZE]
+
+		# COLLAPSE BLOCK
+		COLLAPSE_BRIDGE_DROPOUT = 0
+		COLLAPSE_INPUT_NORM = nn.Identity()
+		COLLAPSE_GLOBAL_AVG_POOL = False
+		COLLAPSE_FF_LINEAR_LAYERS = [EMBEDDING_SIZE * 8, EMBEDDING_SIZE * 4, BLOCK_SIZE]
+		COLLAPSE_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in COLLAPSE_FF_LINEAR_LAYERS]
+		COLLAPSE_FF_LINEAR_NORM = [nn.Identity() for _ in COLLAPSE_FF_LINEAR_LAYERS]
+		COLLAPSE_FF_LINEAR_DROPOUT = [0] * (len(COLLAPSE_FF_LINEAR_LAYERS) - 1)
+
+
+		encoder_indicators = Indicators(
+			delta=ENCODER_EMBEDDING_INDICATORS_DELTA
+		)
+
+		model = Lass8Transformer(
+			block_size=BLOCK_SIZE,
+
+			embedding_block=TransformerEmbeddingBlock(
+				positional_encoding=True,
+				embedding_block=EmbeddingBlock(
+					indicators=encoder_indicators,
+					padding=ENCODER_EMBEDDING_PADDING
+				),
+				cnn_block=CNNBlock(
+					input_channels=encoder_indicators.indicators_len,
+					conv_channels=ENCODER_EMBEDDING_CB_CHANNELS,
+					kernel_sizes=ENCODER_EMBEDDING_CB_KERNELS,
+					pool_sizes=ENCODER_EMBEDDING_CB_POOL_SIZES,
+					dropout_rate=ENCODER_EMBEDDING_CB_DROPOUTS,
+					norm=ENCODER_EMBEDDING_CB_NORM,
+					hidden_activation=ENCODER_EMBEDDING_CB_HIDDEN_ACTIVATION,
+					padding=ENCODER_EMBEDDING_CB_PADDING
+				)
+			),
+
+			encoder_block=DecoderBlock(
+				embedding_last=False,
+				num_heads=ENCODER_NUM_HEADS,
+				norm_1=ENCODER_NORM_1,
+				norm_2=ENCODER_NORM_2,
+				ff_block=LinearModel(ENCODER_FF_LAYERS)
+			),
+
+			decoder_block=DecoderBlock(
+				embedding_last=False,
+				num_heads=DECODER_NUM_HEADS,
+				norm_1=DECODER_NORM_1,
+				norm_2=DECODER_NORM_2,
+				ff_block=LinearModel(DECODER_FF_LAYERS)
+			),
+
+			collapse_block=CollapseBlock(
+				extra_mode=False,
+				dropout=COLLAPSE_BRIDGE_DROPOUT,
+				input_norm=COLLAPSE_INPUT_NORM,
+				global_avg_pool=COLLAPSE_GLOBAL_AVG_POOL,
+				ff_block=LinearModel(
+					dropout_rate=COLLAPSE_FF_LINEAR_DROPOUT,
+					layer_sizes=COLLAPSE_FF_LINEAR_LAYERS,
+					norm=COLLAPSE_FF_LINEAR_NORM,
+					hidden_activation=COLLAPSE_FF_LINEAR_ACTIVATION
+				)
+			),
+
+		)
+		return model
 
 	def _create_model(self):
 		# return LassHorizonModel(
@@ -299,6 +397,7 @@ class LassTrainerTest(TrainerTest):
 		# )
 		return self.__create_lass3_transformer()
 		# return self.__create_lass5_model()
+		# return self.__create_lass8_transformer()
 
 	def _get_sequence_length(self):
 		return 32

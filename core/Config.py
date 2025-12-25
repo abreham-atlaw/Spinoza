@@ -92,6 +92,7 @@ TIME_PENALTY = 0
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
+AGENT_TRADE_MAX_MARGIN_USED = 0.75
 AGENT_TRADE_SIZE_USE_PERCENTAGE = True
 AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = False
@@ -347,6 +348,7 @@ class RunnerStatsBranches:
 	it_86_6 = "it_86_6"
 
 	it_88_6 = "it_88_6"
+	it_89_6 = "it_89_6"
 
 	all = [
 		main,
@@ -428,7 +430,8 @@ class RunnerStatsBranches:
 		it_85_6,
 		it_86_6,
 		it_87_6,
-		it_88_6
+		it_88_6,
+		it_89_6
 	]
 
 	default = it_88_6

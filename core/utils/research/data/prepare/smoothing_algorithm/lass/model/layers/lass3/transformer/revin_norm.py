@@ -16,7 +16,7 @@ class RevInNorm(SpinozaModule):
 
 	def call(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 		x = x[:, self.encoder_channel]
-		return y * torch.std(x, dim=-1) + torch.mean(x, dim=-1)
+		return y * torch.std(x[:, 0], dim=-1) + torch.mean(x[:, 0], dim=-1)
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
 		return self.args
