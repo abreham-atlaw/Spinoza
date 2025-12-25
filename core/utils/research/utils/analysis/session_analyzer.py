@@ -125,7 +125,7 @@ class SessionAnalyzer:
 		self.__smoothing_algorithms = smoothing_algorithms
 		Logger.info("Using Smoothing Algorithms: {}".format(', '.join([str(sa) for sa in smoothing_algorithms])))
 
-	def plot_sequence(self, instrument: typing.Tuple[str, str], checkpoints: typing.List[int] = None):
+	def plot_sequence(self, instrument: typing.Tuple[str, str], checkpoints: typing.List[int] = None, new_figure=True):
 		if checkpoints is None:
 			checkpoints = []
 
@@ -141,7 +141,8 @@ class SessionAnalyzer:
 			for sa_sequences in self.__get_smoothed_sequences(instrument=instrument)
 		]
 
-		plt.figure(figsize=self.__fig_size)
+		if new_figure:
+			plt.figure(figsize=self.__fig_size)
 		plt.title(" / ".join(instrument))
 		plt.grid()
 
@@ -159,7 +160,8 @@ class SessionAnalyzer:
 			plt.text(checkpoint, max(x), str(checkpoint), verticalalignment="center")
 
 		plt.legend()
-		plt.show()
+		if new_figure:
+			plt.show()
 
 	def plot_timestep_sequence(self, instrument: typing.Tuple[str, str], i: int):
 		x = self.__get_sequences(instrument=instrument)[i]
@@ -354,7 +356,7 @@ loss: {l[i] if l is not None else "N/A"}
 
 		plt.show()
 
-
+	@CacheDecorators.cached_method()
 	def __load_prediction_sequence_input_data(self, instrument: typing.Tuple[str, str]) -> np.ndarray:
 
 		X = None
@@ -395,9 +397,18 @@ loss: {l[i] if l is not None else "N/A"}
 		max_val = max(abs(v) for v in y_hat_v)
 
 		plt.figure(figsize=self.__fig_size)
+
+		plt.subplot(2, 1, 1)
+		self.plot_sequence(instrument, new_figure=False)
+
+		plt.subplot(2, 1, 2)
+		plt.title(f"Prediction Sequence of {instrument} on Channel {channel}")
 		plt.bar(labels, y_hat_v, color=colors)
+		plt.xticks(rotation=90, fontsize=5)
+
 		plt.axhline(y=0, color="black")
 		plt.ylim(-max_val, max_val)
+
 
 		plt.xlabel("Timestep")
 		plt.ylabel("Prediction")
