@@ -395,9 +395,13 @@ loss: {l[i] if l is not None else "N/A"}
 		max_val = max(abs(v) for v in y_hat_v)
 
 		plt.figure(figsize=self.__fig_size)
+		plt.title(f"Prediction Sequence of {instrument} on Channel {channel}")
 		plt.bar(labels, y_hat_v, color=colors)
+		plt.xticks(rotation=90, fontsize=5)
+
 		plt.axhline(y=0, color="black")
 		plt.ylim(-max_val, max_val)
+
 
 		plt.xlabel("Timestep")
 		plt.ylabel("Prediction")
