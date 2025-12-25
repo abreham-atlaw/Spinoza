@@ -40,6 +40,7 @@ class Trade:
 	state: str = attr.ib()
 	price: float = attr.ib()
 	stopLossOrder: Optional[TriggerPrice] = attr.ib(default=None)
+	takeProfitOrder: Optional[TriggerPrice] = attr.ib(default=None)
 
 	def get_instrument(self) -> Tuple[str, str]:
 		from lib.network.oanda import Trader
@@ -66,6 +67,7 @@ class Order:
 	instrument: str = attr.ib()
 	timeInForce: str = attr.ib()
 	stopLossOnFill: Optional[TriggerPrice] = attr.ib()
+	takeProfitOnFill: Optional[TriggerPrice] = attr.ib()
 	type: Optional[str] = "MARKET"
 	positionFill: Optional[str] = "DEFAULT"
 
