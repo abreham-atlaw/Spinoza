@@ -115,13 +115,14 @@ class TraderAgentTest(unittest.TestCase):
 		agent_state = AgentState(initial_balance, self.market_state)
 
 		state = TradeState(self.market_state, agent_state)
-		# state.get_agent_state().open_trade(
-		# 	TraderAction("USD", "EUR", TraderAction.Action.BUY, margin_used=40, stop_loss=0.8)
-		# )
+		state.get_agent_state().open_trade(
+			state.get_agent_state().rectify_action(
+				TraderAction("AUD", "USD", TraderAction.Action.BUY, margin_used=40, take_profit=1.0002))
+		)
 
 		result = self.agent._get_possible_states(
 			state,
-			state.get_agent_state().rectify_action(TraderAction("AUD", "USD", TraderAction.Action.BUY, margin_used=40, stop_loss=0.8))
+			None
 		)
 
 		self.assertEqual(

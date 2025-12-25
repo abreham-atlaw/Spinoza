@@ -66,7 +66,7 @@ class LiveEnvironment(TradeEnvironment):
 		self.__smoothed_channels = smoothed_channels
 		self.__smoothing_algorithm = None if not use_smoothing else ServiceProvider.provide_smoothing_algorithm()
 
-		self.__stop_loss_conversion = stop_loss_conversion
+		self.__trigger_value_conversion = stop_loss_conversion
 		self.__stop_loss_conversion_bounds = stop_loss_conversion_bounds
 		self.__stop_loss_conversion_accuracy = stop_loss_conversion_accuracy
 		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
@@ -238,14 +238,11 @@ class LiveEnvironment(TradeEnvironment):
 		y = p[np.argmin(np.abs(y - action.stop_loss))]
 		return y
 
-	def __calculate_stop_loss(self, action: TraderAction) -> typing.Optional[float]:
-		if action.stop_loss is None:
-			return None
-		stop_loss = action.stop_loss
-		if self.__stop_loss_conversion:
-			stop_loss = self.__convert_stop_loss(action)
+	def __calculate_stop_loss(self, action: TraderAction, trigger_value: float) -> typing.Optional[float]:
+		if self.__trigger_value_conversion:
+			trigger_value = self.__convert_stop_loss(action)
 		price = self.__trader.get_price((action.base_currency, action.quote_currency))
-		return price * stop_loss
+		return price * trigger_value
 
 	def _open_trade(self, action: TraderAction):
 		super()._open_trade(action)
@@ -255,7 +252,8 @@ class LiveEnvironment(TradeEnvironment):
 				self.__to_oanda_action(action.action),
 				action.margin_used,
 				time_in_force=Config.DEFAULT_TIME_IN_FORCE,
-				stop_loss=None if action.stop_loss is None else self.__calculate_stop_loss(action)
+				stop_loss=None if action.stop_loss is None else self.__calculate_stop_loss(action, action.stop_loss),
+				take_profit=None if action.take_profit is None else self.__calculate_stop_loss(action, action.take_profit)
 			)
 		except InsufficientMarginException as ex:
 			Logger.error(f"Insufficient margin requested for trade: {str(ex)}")
