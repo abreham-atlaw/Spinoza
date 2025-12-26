@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from core import Config
@@ -12,16 +13,16 @@ class SessionAnalyzerTest(unittest.TestCase):
 
 	def setUp(self):
 		self.session_analyzer = SessionAnalyzer(
-			session_path="/home/abrehamatlaw/Downloads/Compressed/results_2",
+			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/00"),
 			instruments=[
 				("AUD", "USD"),
 				("USD", "ZAR")
 			],
 			smoothing_algorithms=[
-				MovingAverage(64),
-				ServiceProvider.provide_lass(),
+				MovingAverage(32),
 			],
-			plt_y_grid_count=10
+			plt_y_grid_count=10,
+			model_key="176"
 		)
 
 	def test_plot_sequence(self):
@@ -29,7 +30,7 @@ class SessionAnalyzerTest(unittest.TestCase):
 		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("USD", "ZAR"))
 
 	def test_plot_timestep_sequence(self):
-		self.session_analyzer.plot_timestep_sequence(i=3, instrument=("AUD", "USD"))
+		self.session_analyzer.plot_timestep_sequence(i=0, instrument=("AUD", "USD"))
 		self.session_analyzer.plot_timestep_sequence(i=3, instrument=("USD", "ZAR"))
 
 	def test_evaluate_model(self):
@@ -42,10 +43,10 @@ class SessionAnalyzerTest(unittest.TestCase):
 		self.session_analyzer.plot_node(idx=0, depth=5, path=[])
 
 	def test_plot_timestep_output(self):
-		for i in range(5):
+		for i in range(1):
 			self.session_analyzer.plot_timestep_output(
 				i,
-				h=1.0,
+				h=0,
 				max_depth=5,
 				loss=ProximalMaskedLoss(
 					n=len(DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND)),
@@ -55,4 +56,15 @@ class SessionAnalyzerTest(unittest.TestCase):
 			)
 
 	def test_plot_node_prediction(self):
-		self.session_analyzer.plot_node_prediction(0, path=[1, 0]*1)
+		self.session_analyzer.plot_node_prediction(
+			0,
+			path=[],
+			instrument=("AUD", "USD"),
+		)
+
+	def test_plot_prediction_sequence(self):
+		self.session_analyzer.plot_prediction_sequence(
+			instrument=("AUD", "USD"),
+			channel=0,
+			checkpoints=[4]
+		)

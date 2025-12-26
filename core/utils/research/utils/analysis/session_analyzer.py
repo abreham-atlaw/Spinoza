@@ -38,7 +38,8 @@ class SessionAnalyzer:
 			model: typing.Optional[SpinozaModule] = None,
 			dtype: typing.Type = np.float32,
 			model_key: str = "spinoza-training",
-			bounds: typing.Iterable[float] = None
+			bounds: typing.Iterable[float] = None,
+			extra_len: int = 124
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -54,6 +55,7 @@ class SessionAnalyzer:
 		self.__bounds = bounds
 
 		self.__softmax = nn.Softmax(dim=-1)
+		self.__extra_len = extra_len
 
 	def __load_session_model(self, model_key: str) -> SpinozaModule:
 		model_path = os.path.join(
@@ -123,7 +125,7 @@ class SessionAnalyzer:
 		self.__smoothing_algorithms = smoothing_algorithms
 		Logger.info("Using Smoothing Algorithms: {}".format(', '.join([str(sa) for sa in smoothing_algorithms])))
 
-	def plot_sequence(self, instrument: typing.Tuple[str, str], checkpoints: typing.List[int] = None):
+	def plot_sequence(self, instrument: typing.Tuple[str, str], checkpoints: typing.List[int] = None, new_figure=True):
 		if checkpoints is None:
 			checkpoints = []
 
@@ -139,7 +141,8 @@ class SessionAnalyzer:
 			for sa_sequences in self.__get_smoothed_sequences(instrument=instrument)
 		]
 
-		plt.figure(figsize=self.__fig_size)
+		if new_figure:
+			plt.figure(figsize=self.__fig_size)
 		plt.title(" / ".join(instrument))
 		plt.grid()
 
@@ -157,7 +160,8 @@ class SessionAnalyzer:
 			plt.text(checkpoint, max(x), str(checkpoint), verticalalignment="center")
 
 		plt.legend()
-		plt.show()
+		if new_figure:
+			plt.show()
 
 	def plot_timestep_sequence(self, instrument: typing.Tuple[str, str], i: int):
 		x = self.__get_sequences(instrument=instrument)[i]
@@ -225,7 +229,7 @@ class SessionAnalyzer:
 				max_depth=max_depth,
 				bounds=self.__bounds
 			)
-		y_hat = self.__softmax(model(torch.from_numpy(X))[:, :-1]).detach().numpy()
+		y_hat = self.__softmax(model(torch.from_numpy(X))[..., :-1]).detach().numpy()
 		return y_hat
 
 	def __get_yv(self, y: np.ndarray) -> np.ndarray:
@@ -249,8 +253,13 @@ class SessionAnalyzer:
 			i: int,
 			h: float = 0.0,
 			max_depth: int = 0,
-			loss: SpinozaLoss = None
+			loss: SpinozaLoss = None,
+			instrument: typing.Tuple[str, str] = None
 	):
+
+		if instrument is None:
+			instrument = self.__instruments[0]
+
 		X, y = self.__load_output_data()
 		y_hat = self.__get_y_hat(X, h=h, max_depth=max_depth)
 
@@ -262,7 +271,15 @@ class SessionAnalyzer:
 
 		plt.subplot(1, 2, 1)
 		plt.title(f"Timestep Output - i={i}, h={h}, max_depth={max_depth}")
-		plt.plot(X[i, :-124])
+		plt.grid()
+
+		if X.ndim == 2:
+			X = np.expand_dims(X, axis=1)
+
+		X = X[..., :X.shape[-1] - self.__extra_len]
+		for c in range(X.shape[1]):
+			plt.plot(X[i, c][X[i, c] > 0], label=f"Channel: {c}")
+		plt.legend()
 
 		plt.subplot(1, 2, 2)
 		plt.title(f"""y: {y_v[i]}
@@ -279,33 +296,127 @@ loss: {l[i] if l is not None else "N/A"}
 		dtype = next(self.__model.parameters()).dtype
 
 		X = np.expand_dims(
-			np.concatenate((seq, np.zeros(extra_len))),
+			np.concatenate(
+				(seq, np.zeros((seq.shape[0], extra_len))),
+				axis=-1
+			),
 			axis=0
 		)
 
+		if len(self.__model.input_size) == 2:
+			X = np.squeeze(X, axis=1)
+
 		return torch.from_numpy(X).type(dtype)
 
-	def plot_node_prediction(self, idx: int, path: typing.List[int] = None):
+	def plot_node_prediction(
+			self, 
+			idx: int,
+			path: typing.List[int] = None,
+			instrument: typing.Tuple[str, str] = None,
+			channels: typing.List[int] = None
+	):
 		if path is None:
 			path = []
+
+		if instrument is None:
+			instrument = self.__instruments[0]
+
 		node, repo = self.load_node(idx)
 		node = self.get_node(node, path)
 
-		state = repo.retrieve(node.id)
-		seq = state.get_market_state().get_state_of(*self.__instruments[0])
+		state: TradeState = repo.retrieve(node.id)
+		seq = state.get_market_state().get_channels_state(*instrument)
+
+		if channels is None:
+			channels = np.arange(seq.shape[0])
+
 		X = self.__prepare_node_input_data(seq)
-		y_hat = self.__softmax(self.__model(X)[:, :-1]).detach().numpy()
+		y_hat = self.__softmax(self.__model(X)[..., :-1]).detach().numpy()
+
+		if y_hat.ndim == 2:
+			y_hat = np.expand_dims(y_hat, axis=1)
 
 		plt.figure(figsize=self.__fig_size)
 		plt.subplot(1, 2, 1)
-		plt.title(f"Node Prediction - idx={idx}, path={path}, depth={len(path)//2}")
-		plt.plot(seq)
-		if len(path) > 0:
-			plt.axvline(x=len(seq) - (len(path)//2) - 1, color="red")
 		plt.grid()
+		plt.title(f"Node Prediction - idx={idx}, path={path}, depth={len(path)//2}")
+
+		for i in channels:
+			plt.plot(seq[i][seq[i] > 0], label=f"Channel: {i}")
+
+		if len(path) > 0:
+			plt.axvline(x=seq.shape[1] - (len(path)//2) - 1, color="red")
+
+		plt.legend()
 
 		plt.subplot(1, 2, 2)
-		plt.title(f"y_hat={self.__get_yv(y_hat)[0]}")
-		plt.plot(y_hat[0])
+		plt.title(f"y_hat={[self.__get_yv(y_hat[:, c])[0] for c in range(y_hat.shape[1])]}")
+		for c in range(y_hat.shape[1]):
+			plt.plot(y_hat[0, c], label=f"Channel: {c}")
+
+		plt.show()
+
+	@CacheDecorators.cached_method()
+	def __load_prediction_sequence_input_data(self, instrument: typing.Tuple[str, str]) -> np.ndarray:
+
+		X = None
+
+		for i in range(len(os.listdir(self.__graphs_path))):
+			node, repo = self.load_node(i)
+			state: TradeState = repo.retrieve(node.id)
+			x = state.get_market_state().get_channels_state(*instrument)
+			x = self.__prepare_node_input_data(x).numpy()
+			if X is None:
+				X = x
+				continue
+			X = np.concatenate((X, x), axis=0)
+
+		return X
+
+	def plot_prediction_sequence(
+			self,
+			instrument: typing.Tuple[str, str] = None,
+			channel: int = 0,
+			h: float = 0.0,
+			max_depth: int = 0,
+			checkpoints: typing.List[int] = None,
+	):
+		if instrument is None:
+			instrument = self.__instruments[0]
+
+		if checkpoints is None:
+			checkpoints = []
+
+		X = self.__load_prediction_sequence_input_data(instrument)
+		y_hat = self.__get_y_hat(X, h=h, max_depth=max_depth)
+
+		y_hat = np.expand_dims(y_hat, axis=1) if y_hat.ndim == 2 else y_hat
+
+		y_hat = y_hat[:, channel]
+
+		y_hat_v = self.__get_yv(y_hat) - 1
+
+		labels = [str(i) for i in range(y_hat_v.shape[0])]
+		colors = ["green" if v >= 0 else "red" for v in y_hat_v]
+		max_val = max(abs(v) for v in y_hat_v)
+
+		plt.figure(figsize=self.__fig_size)
+
+		plt.subplot(2, 1, 1)
+		self.plot_sequence(instrument, new_figure=False, checkpoints=checkpoints)
+
+		plt.subplot(2, 1, 2)
+		plt.title(f"Prediction Sequence of {instrument} on Channel {channel}")
+		plt.bar(labels, y_hat_v, color=colors)
+		plt.xticks(rotation=90, fontsize=5)
+
+		plt.axhline(y=0, color="black")
+		plt.ylim(-max_val, max_val)
+
+		plt.xlabel("Timestep")
+		plt.ylabel("Prediction")
+
+		for checkpoint in checkpoints:
+			plt.axvline(x=checkpoint, color="blue")
 
 		plt.show()
