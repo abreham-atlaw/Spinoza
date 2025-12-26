@@ -143,7 +143,7 @@ AGENT_USE_SOFTMAX = False
 AGENT_USE_KALMAN_FILTER = False
 AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
-AGENT_MA_WINDOW_SIZE = 32
+AGENT_MA_WINDOW_SIZE = 16
 AGENT_USE_LASS = False
 AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
@@ -167,7 +167,7 @@ AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/10.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/11.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -227,7 +227,7 @@ PREDICTION_MODELS = [
 ]
 
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-68/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-90/"
 
 
 class ResourceCategories:
@@ -434,7 +434,7 @@ class RunnerStatsBranches:
 		it_90_6
 	]
 
-	default = it_68_6
+	default = it_90_6
 
 
 class RunnerStatsLossesBranches:
@@ -561,7 +561,7 @@ class RunnerStatsLossesBranches:
 		it_90_0
 	]
 
-	default = it_68_0
+	default = it_90_0
 
 
 
