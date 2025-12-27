@@ -13,7 +13,7 @@ class SessionAnalyzerTest(unittest.TestCase):
 
 	def setUp(self):
 		self.session_analyzer = SessionAnalyzer(
-			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/03"),
+			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/00"),
 			instruments=[
 				("AUD", "USD"),
 				("USD", "ZAR")
@@ -22,7 +22,7 @@ class SessionAnalyzerTest(unittest.TestCase):
 				MovingAverage(32),
 			],
 			plt_y_grid_count=10,
-			model_key="it-89"
+			model_key="176"
 		)
 
 	def test_plot_sequence(self):
@@ -65,5 +65,6 @@ class SessionAnalyzerTest(unittest.TestCase):
 	def test_plot_prediction_sequence(self):
 		self.session_analyzer.plot_prediction_sequence(
 			instrument=("AUD", "USD"),
-			channel=0
+			channel=0,
+			checkpoints=[4]
 		)
