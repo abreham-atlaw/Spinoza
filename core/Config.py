@@ -35,7 +35,7 @@ DROPBOX_API_TOKEN = "sl.BrBqqSAAzJsdIo9x1NG-z51HwPzc6yw0KCrbQ7hn76DvI0vItMEhXBDi
 DROPBOX_FOLDER = "/RForexTrader"
 PCLOUD_TOKENS = [
 	"VVQfe7ZfKQB7ZbFDO0AqnuC0UnJdM10Id3hT42dCV",  # abrishatlaw@gmail.com +
-	"nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
+	"HnQuN7Z6O9B7Z8u8NNWHx9Yf871Ahj1uR6Hj7eSVX",  # abrishatlaw@yahoo.com +
 	"AO63UkZIO9B7Z9vy1c4ggwNyT92bwbMIQEyavx2t7",  # abreham.atlaw@yahoo.com -
 	# "aCT8vkZxDks7ZYpOYIhqlahkcknASzvkHKLR8Ai3y",  # abrehamatlaw@outlook.com -
 	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
@@ -163,6 +163,8 @@ AGENT_MIN_DISK_SPACE = 0.1
 AGENT_MIN_ABS_DISK_SPACE = None
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
+AGENT_MODEL_USE_AGGREGATION = False
+AGENT_MODEL_AGGREGATION_ALPHA = 0.3
 AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
@@ -202,7 +204,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(RES_DIR, "model.zip"),
+	path=os.path.join(RES_DIR, "core_model.zip"),
 	download=False
 )
 
@@ -354,6 +356,8 @@ class RunnerStatsBranches:
 	it_88_6 = "it_88_6"
 	it_89_6 = "it_89_6"
 
+	it_90_6 = "it_90_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -435,7 +439,8 @@ class RunnerStatsBranches:
 		it_86_6,
 		it_87_6,
 		it_88_6,
-		it_89_6
+		it_89_6,
+		it_90_6
 	]
 
 	default = it_68_6
@@ -502,6 +507,7 @@ class RunnerStatsLossesBranches:
 	it_85_0 = "it_85_0"
 	it_86_0 = "it_86_0"
 	it_88_0 = "it_88_0"
+	it_90_0 = "it_90_0"
 
 	all = [
 		main,
@@ -560,7 +566,8 @@ class RunnerStatsLossesBranches:
 		it_84_0,
 		it_85_0,
 		it_86_0,
-		it_88_0
+		it_88_0,
+		it_90_0
 	]
 
 	default = it_68_0
