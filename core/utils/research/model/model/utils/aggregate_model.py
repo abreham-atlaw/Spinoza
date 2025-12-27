@@ -22,6 +22,7 @@ class AggregateModel(nn.Module):
 		self.a = a
 		self.n = int(1.0 / a)
 		self.y_extra_len = y_extra_len
+		Logger.info(f"Initializing AggregateModel with a={a}")
 
 	def __prepare_bounds(self, bounds: typing.Union[typing.List[float], torch.Tensor]) -> torch.Tensor:
 		if isinstance(bounds, typing.List):
