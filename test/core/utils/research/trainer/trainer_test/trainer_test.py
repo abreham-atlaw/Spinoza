@@ -69,7 +69,7 @@ class TrainerTest(unittest.TestCase):
 
 		dataset = BaseDataset(
 			train_dirs,
-			check_file_sizes=False,
+			check_file_sizes=True,
 			load_weights=False,
 			out_dtypes=self.np_dtype,
 			num_files=2
@@ -78,7 +78,7 @@ class TrainerTest(unittest.TestCase):
 
 		test_dataset = BaseDataset(
 			test_dirs,
-			check_file_sizes=False,
+			check_file_sizes=True,
 			load_weights=False,
 			out_dtypes=self.np_dtype,
 			num_files=2

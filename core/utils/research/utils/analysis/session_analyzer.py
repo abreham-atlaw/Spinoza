@@ -379,9 +379,13 @@ loss: {l[i] if l is not None else "N/A"}
 			channel: int = 0,
 			h: float = 0.0,
 			max_depth: int = 0,
+			checkpoints: typing.List[int] = None,
 	):
 		if instrument is None:
 			instrument = self.__instruments[0]
+
+		if checkpoints is None:
+			checkpoints = []
 
 		X = self.__load_prediction_sequence_input_data(instrument)
 		y_hat = self.__get_y_hat(X, h=h, max_depth=max_depth)
@@ -399,7 +403,7 @@ loss: {l[i] if l is not None else "N/A"}
 		plt.figure(figsize=self.__fig_size)
 
 		plt.subplot(2, 1, 1)
-		self.plot_sequence(instrument, new_figure=False)
+		self.plot_sequence(instrument, new_figure=False, checkpoints=checkpoints)
 
 		plt.subplot(2, 1, 2)
 		plt.title(f"Prediction Sequence of {instrument} on Channel {channel}")
@@ -409,8 +413,10 @@ loss: {l[i] if l is not None else "N/A"}
 		plt.axhline(y=0, color="black")
 		plt.ylim(-max_val, max_val)
 
-
 		plt.xlabel("Timestep")
 		plt.ylabel("Prediction")
+
+		for checkpoint in checkpoints:
+			plt.axvline(x=checkpoint, color="blue")
 
 		plt.show()
