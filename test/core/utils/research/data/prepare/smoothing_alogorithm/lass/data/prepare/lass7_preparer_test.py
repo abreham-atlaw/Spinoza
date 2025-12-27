@@ -1,55 +1,39 @@
-import random
-
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 import os
 import unittest
 
+from matplotlib import pyplot as plt
+
 from core import Config
-from core.utils.research.data.prepare.augmentation import VerticalShiftTransformation, VerticalStretchTransformation, \
-	TimeStretchTransformation, GaussianNoiseTransformation
-from core.utils.research.data.prepare.smoothing_algorithm.lass.data.prepare.lass6_preparer import Lass6Preparer
+from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
+from core.utils.research.data.prepare.smoothing_algorithm.lass.data.prepare.lass3_preparer import Lass3Preparer
+from core.utils.research.data.prepare.smoothing_algorithm.lass.data.prepare.lass7_preparer import Lass7Preparer
 from core.utils.research.data.prepare.splitting import SequentialSplitter
+from core.utils.research.data.prepare.utils.sinusoidal_decomposer import SinusoidalDecomposer
 from lib.utils.logger import Logger
 
 
-class Lass6PreparerTest(unittest.TestCase):
+class Lass7PreparerTest(unittest.TestCase):
 
 	def setUp(self):
-		self.output_path = os.path.join(Config.BASE_DIR, "temp/Data/lass/13")
+		self.output_path = os.path.join(Config.BASE_DIR, "temp/Data/lass/14")
 		Logger.info(f"Cleaning {self.output_path}")
 		os.system(f"rm -fr \"{self.output_path}\"")
-		c_x = int(1e3)
-		f = 0.05 + (1e-4 * (np.arange(c_x)**4))
-		a = (1/f)**0.77
-
-		f = 1.0
-		a = 1.0
-
-		self.preparer = Lass6Preparer(
+		self.preparer = Lass7Preparer(
+			decomposer=SinusoidalDecomposer(min_block_size=1024, block_layers=3, blocks_rate=2.5, plot_progress=False),
+			block_size=32,
+			granularity=2,
+			batch_size=64,
 			output_path=self.output_path,
-
-			seq_size=int(1e3),
-			block_size=128,
-			batch_size=16,
+			order_gran=True,
+			df=pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-10k.csv")),
 			splitter=SequentialSplitter(test_size=0.2),
+			left_align=False,
+			decoder_samples=8,
+			vertical_align=True
 
-			transformations=[
-				VerticalShiftTransformation(shift=1.5),
-			],
-
-			c_x=c_x,
-			c_y=15,
-			noise=0,
-			noise_p=15,
-			f=f,
-			a=a,
-			target_mean=120,
-			target_std=5,
-			lag=8,
-			trim_incomplete_batch=True
 		)
 
 	def test_functionality(self):

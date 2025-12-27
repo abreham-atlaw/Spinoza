@@ -25,3 +25,4 @@ from .pe import PositionalEncoding
 from .identity import Identity
 from .pad_overlay_combiner import PadOverlayCombiner
 from .noise_injection_layer import NoiseInjectionLayer
+from .mc_input_padding import MCInputPadding

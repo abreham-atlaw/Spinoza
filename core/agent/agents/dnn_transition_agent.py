@@ -12,7 +12,7 @@ from core.utils.research.model.model.utils import WrappedModel
 from lib.rl.agent import DNNTransitionAgent
 from lib.rl.agent.dta import TorchModel
 from lib.utils.logger import Logger
-from core.environment.trade_state import TradeState, AgentState
+from core.environment.trade_state import TradeState, AgentState, InsufficientFundsException
 from core.environment.trade_environment import TradeEnvironment
 from core.agent.action import TraderAction, Action, ActionSequence
 from core.agent.utils.dnn_models import KerasModelHandler
@@ -318,7 +318,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		states = self.__simulate_instruments_change(state, involved_instruments, action)
 
 		for mid_state in states:
-			self._simulate_action(mid_state, action)
+			try:
+				self._simulate_action(mid_state, action)
+			except InsufficientFundsException:
+				continue
 
 		return states
 
