@@ -14,7 +14,7 @@ from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
 	ProximalMaskedPenaltyLoss2, ProximalMaskedLoss3
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
-	LayerStack, Identity, NoiseInjectionLayer
+	LayerStack, Identity, NoiseInjectionLayer, MCInputPadding
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
@@ -69,7 +69,7 @@ class TrainerTest(unittest.TestCase):
 
 		dataset = BaseDataset(
 			train_dirs,
-			check_file_sizes=True,
+			check_file_sizes=False,
 			load_weights=False,
 			out_dtypes=self.np_dtype,
 			num_files=2
@@ -78,7 +78,7 @@ class TrainerTest(unittest.TestCase):
 
 		test_dataset = BaseDataset(
 			test_dirs,
-			check_file_sizes=True,
+			check_file_sizes=False,
 			load_weights=False,
 			out_dtypes=self.np_dtype,
 			num_files=2
@@ -201,7 +201,7 @@ class TrainerTest(unittest.TestCase):
 		EMBEDDING_SIZE = 8
 		BLOCK_SIZE = 128 + EXTRA_LEN
 		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/11.json"))) + 1
-		INPUT_CHANNELS = 11
+		INPUT_CHANNELS = 3
 
 		HORIZON_MODE = True
 		USE_MC_HORIZON = INPUT_CHANNELS > 1
@@ -221,6 +221,8 @@ class TrainerTest(unittest.TestCase):
 		LINEAR_COLLAPSE = True
 		AVG_POOL = True
 		NORM = [DynamicLayerNorm(elementwise_affine=True) for _ in CHANNELS]
+
+		EMBEDDING_PREP_LAYER = MCInputPadding(channels=(1, 2))
 
 		INDICATORS_DELTA = [1, 2, 4]
 		INDICATORS_SO = [16, 32, 64]
@@ -272,7 +274,8 @@ class TrainerTest(unittest.TestCase):
 
 			embedding_block=EmbeddingBlock(
 				indicators=indicators,
-				input_norm=INPUT_NORM
+				input_norm=INPUT_NORM,
+				prep_layer=EMBEDDING_PREP_LAYER,
 			),
 
 			cnn_block=CNNBlock(
