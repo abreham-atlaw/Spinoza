@@ -203,7 +203,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(RES_DIR, "core_model.zip"),
+	path=os.path.join(BASE_DIR, "temp/models/abrehamalemu-spinoza-training-cnn-1-it-69-tot.zip"),
 	download=False
 )
 

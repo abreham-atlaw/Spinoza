@@ -2,9 +2,9 @@ from abc import ABC
 from copy import deepcopy
 from typing import List
 
-from .drmca import TraderDeepReinforcementMonteCarloAgent
-from ..action import Computation, Action
-from ...environment.trade_state import TradeState
+from core.agent.action import Computation, Action
+from core.environment.trade_state import TradeState
+from ..drmca import TraderDeepReinforcementMonteCarloAgent
 
 
 class ReflexAgent(TraderDeepReinforcementMonteCarloAgent, ABC):
