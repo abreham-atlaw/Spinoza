@@ -22,7 +22,7 @@ class Lass7PreparerTest(unittest.TestCase):
 		Logger.info(f"Cleaning {self.output_path}")
 		os.system(f"rm -fr \"{self.output_path}\"")
 		self.preparer = Lass7Preparer(
-			decomposer=SinusoidalDecomposer(min_block_size=1024, block_layers=3, blocks_rate=2.5, plot_progress=False),
+			decomposer=SinusoidalDecomposer(min_block_size=2500, block_layers=1, blocks_rate=2.5, plot_progress=False),
 			block_size=32,
 			granularity=2,
 			batch_size=64,
