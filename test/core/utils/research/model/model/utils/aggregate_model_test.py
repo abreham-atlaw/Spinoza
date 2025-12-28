@@ -24,14 +24,15 @@ class AggregateModelTest(unittest.TestCase):
 		self.model = AggregateModel(
 			model=self.raw_model,
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-			a=0.95/3
+			a=0.98/3,
+			temperature=1e-5
 		).eval()
 
 		self.X = torch.from_numpy(np.load("/home/abrehamatlaw/Downloads/1766196639.72487.npy").astype(np.float32))
 
 	def test_aggregate(self):
 		with torch.no_grad():
-			y = self.raw_model(self.X)[..., :-1]
+			y = self.raw_model(self.X)[...,0 , :-1]
 			y_hat = self.model.aggregate(y)
 
 		for i in np.random.randint(0, self.X.shape[0], 5):
@@ -62,4 +63,19 @@ class AggregateModelTest(unittest.TestCase):
 				plt.ylim([0, 1])
 				plt.legend()
 
+		plt.show()
+
+	def test_aggregate_consistency(self):
+		with torch.no_grad():
+			y_hat = torch.stack([
+				self.model(self.X)[..., :-1]
+				for _ in range(10)
+			], dim=0)
+
+		for j in np.random.randint(0, y_hat.shape[1], 3):
+			plt.figure()
+
+			for i in range(y_hat.shape[0]):
+				plt.plot(y_hat[i, j, 0], label=f"Call: {i}")
+			plt.legend()
 		plt.show()

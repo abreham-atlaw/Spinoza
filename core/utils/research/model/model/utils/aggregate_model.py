@@ -14,7 +14,8 @@ class AggregateModel(nn.Module):
 			model: nn.Module,
 			bounds: typing.Union[typing.List[float], torch.Tensor],
 			a: float,
-			y_extra_len: int = 1
+			y_extra_len: int = 1,
+			temperature: float = 1e-5
 	):
 		super().__init__()
 		self.model = model
@@ -22,6 +23,8 @@ class AggregateModel(nn.Module):
 		self.a = a
 		self.n = int(1.0 / a)
 		self.y_extra_len = y_extra_len
+		self.temperature = temperature
+		self.softmax = nn.Softmax(dim=-1)
 		Logger.info(f"Initializing AggregateModel with a={a}")
 
 	def __prepare_bounds(self, bounds: typing.Union[typing.List[float], torch.Tensor]) -> torch.Tensor:
@@ -60,13 +63,16 @@ class AggregateModel(nn.Module):
 
 		return x
 
+	def __apply_certainty(self, x: torch.Tensor) -> torch.Tensor:
+		return self.softmax(x/self.temperature)
+
 	def aggregate(self, x: torch.Tensor) -> torch.Tensor:
 
 		selection_mask = x < self.a
 
-		idx_1 = torch.flatten(torch.multinomial(x * selection_mask, num_samples=1))
+		idx_1 = torch.flatten(torch.multinomial(self.__apply_certainty(x * selection_mask), num_samples=1))
 		idx_2 = torch.flatten(torch.multinomial(
-			self.norm(torch.nan_to_num(x / torch.abs(self.bounds - torch.reshape(self.bounds[idx_1], (-1, 1))), posinf=0.0)) * selection_mask,
+			self.__apply_certainty(self.norm(torch.nan_to_num(x / torch.abs(self.bounds - torch.reshape(self.bounds[idx_1], (-1, 1))), posinf=0.0)) * selection_mask),
 			num_samples=1
 		))
 
