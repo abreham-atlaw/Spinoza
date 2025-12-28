@@ -134,6 +134,29 @@ class TraderAgentTest(unittest.TestCase):
 				0
 			)
 
+	def test_generate_actions(self):
+
+		market_state = MarketState(
+			currencies=["USD", "EUR", "AUD"],
+			tradable_pairs=[
+				("USD", "EUR"),
+				("AUD", "EUR"),
+				("USD", "AUD")
+			],
+			memory_len=5
+		)
+
+		agent_state = AgentState(
+			balance=100,
+			market_state=market_state
+		)
+
+		state = TradeState(market_state, agent_state)
+
+		actions = self.agent._generate_actions(state)
+		print(actions)
+
+
 	def test_perform_timestep(self):
 		environment = LiveEnvironment()
 		environment.start()
