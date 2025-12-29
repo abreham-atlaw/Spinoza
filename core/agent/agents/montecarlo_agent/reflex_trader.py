@@ -5,7 +5,7 @@ from typing import List, Any
 import numpy as np
 
 from core import Config
-from core.agent.action import Computation, Action
+from core.agent.action import Action
 from core.environment.trade_state import TradeState
 from lib.rl.agent.mca import ReflexMonteCarloAgent
 from lib.rl.environment import ModelBasedState
