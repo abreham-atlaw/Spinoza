@@ -18,7 +18,7 @@ class TraderReflexMemoryEvaluator(StochasticMemoryEvaluator):
 	@staticmethod
 	def __evaluate_market_state(state0: MarketState, state1: MarketState) -> float:
 		return np.sum([
-			state0.get_channels_state(base_currency, quote_currency) - state1.get_channels_state(base_currency, quote_currency)
+			np.abs(state0.get_channels_state(base_currency, quote_currency) - state1.get_channels_state(base_currency, quote_currency))
 			for base_currency, quote_currency in state0.get_tradable_pairs()
 		])
 

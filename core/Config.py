@@ -148,6 +148,7 @@ AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
+AGENT_REFLEX_STM_SIZE = 1000
 AGENT_DRMCA_WP = 100
 AGENT_TOP_K_NODES = None
 AGENT_DYNAMIC_K_THRESHOLD = 0.05
@@ -203,7 +204,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "temp/models/abrehamalemu-spinoza-training-cnn-1-it-69-tot.zip"),
+	path=os.path.join(BASE_DIR, "core_model.zip"),
 	download=False
 )
 

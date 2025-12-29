@@ -467,6 +467,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self._set_current_graph(root_node)
 
 		self._monte_carlo_simulation(root_node)
+		root_node = self._get_current_graph()
 
 		Logger.info(
 			f"Simulations Done: Iterations: {stats.iterations['main_loop']}, "

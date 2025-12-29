@@ -50,8 +50,7 @@ class ReflexMonteCarloAgent(MonteCarloAgent, ABC):
 		node = self.__get_approximate_node(new_state)
 		self._set_current_graph(node)
 
-
-	def _monte_carlo_tree_search(self, state) -> None:
-		super()._monte_carlo_tree_search(state)
+	def _monte_carlo_simulation(self, root_node: 'Node'):
+		super()._monte_carlo_simulation(root_node)
 		self._prepare_reflex_action()
 
