@@ -13,7 +13,6 @@ from copy import deepcopy
 import torch
 
 from core import Config
-from core.agent.action import Computation
 from core.environment.live_environment import LiveEnvironment, MarketState, AgentState, TradeState, TraderAction
 from core.agent.agents import TraderMonteCarloAgent, TraderAgent
 from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
@@ -246,7 +245,7 @@ class TraderAgentTest(unittest.TestCase):
 		actions = self.agent._generate_actions(state)
 
 		self.assertEqual(len(actions), 1)
-		self.assertIsInstance(actions[0], Computation)
+		self.assertIsInstance(actions[0], None)
 
 		computed_states: typing.List[TradeState] = self.agent._get_possible_states(state, actions[0])
 		for state in computed_states:
@@ -255,7 +254,7 @@ class TraderAgentTest(unittest.TestCase):
 
 		computed_actions = self.agent._generate_actions(computed_states[0])
 		for action in computed_actions:
-			self.assertNotIsInstance(action, Computation)
+			self.assertNotIsInstance(action, None)
 
 		post_action_states = self.agent._get_possible_states(state, computed_actions[0])
 		for state in post_action_states:
