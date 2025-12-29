@@ -318,10 +318,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		states = self.__simulate_instruments_change(state, involved_instruments, action)
 
 		for mid_state in states:
-			try:
-				self._simulate_action(mid_state, action)
-			except InsufficientFundsException:
-				continue
+			self._simulate_action(mid_state, action)
 
 		return states
 
@@ -418,8 +415,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		if action.action == TraderAction.Action.CLOSE:
 			state.get_agent_state().close_trades(action.base_currency, action.quote_currency)
 			return
-
-		state.get_agent_state().open_trade(
-			action,
-			state.get_market_state().get_current_price(action.base_currency, action.quote_currency)
-		)
+		try:
+			state.get_agent_state().open_trade(
+				action,
+				state.get_market_state().get_current_price(action.base_currency, action.quote_currency)
+			)
+		except InsufficientFundsException:
+			pass

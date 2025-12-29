@@ -22,6 +22,7 @@ class AggregateModel(nn.Module):
 		self.a = a
 		self.n = int(1.0 / a)
 		self.y_extra_len = y_extra_len
+		Logger.info(f"Initializing AggregateModel with a={a}")
 
 	def __prepare_bounds(self, bounds: typing.Union[typing.List[float], torch.Tensor]) -> torch.Tensor:
 		if isinstance(bounds, typing.List):
@@ -82,17 +83,19 @@ class AggregateModel(nn.Module):
 
 		return self.select_and_aggregate(y)
 
-	def forward(self, x: torch.Tensor) -> torch.Tensor:
-
-		y = self.model(x)
-
+	def aggregate_y(self, y: torch.Tensor) -> torch.Tensor:
 		if len(y.shape) == 3:
 			return torch.stack([
-				self(y[:,i])
+				self.aggregate_y(y[:,i])
 				for i in range(y.shape[1])
 			], dim=1)
-
 		return torch.concatenate(
 			[self.aggregate(y[..., :y.shape[-1] - self.y_extra_len]), y[..., y.shape[-1] - self.y_extra_len:]],
 			dim=-1
 		)
+
+	def forward(self, x: torch.Tensor) -> torch.Tensor:
+
+		y = self.model(x)
+
+		return self.aggregate_y(y)
