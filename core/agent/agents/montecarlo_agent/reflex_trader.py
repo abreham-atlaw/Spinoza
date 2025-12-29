@@ -67,3 +67,7 @@ class ReflexAgent(
 			)
 
 		return probabilities
+
+	def _monte_carlo_tree_search(self, state: TradeState) -> None:
+		super()._monte_carlo_tree_search(state)
+		state.pre_computation = False
