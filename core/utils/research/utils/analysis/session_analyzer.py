@@ -234,8 +234,7 @@ class SessionAnalyzer:
 
 	def __get_yv(self, y: np.ndarray) -> np.ndarray:
 		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds)
-		bounds = (bounds[1:] + bounds[:-1])/2
-		return np.sum(y[:, :-1] * bounds, axis=1)
+		return np.sum(y[:] * bounds, axis=1)
 
 	@staticmethod
 	def __evaluate_samples_loss(y_hat: np.ndarray, y: np.ndarray, loss_fn: SpinozaLoss) -> np.ndarray:
