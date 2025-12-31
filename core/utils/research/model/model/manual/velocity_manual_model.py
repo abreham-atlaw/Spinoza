@@ -28,7 +28,7 @@ class VelocityManualModel(SpinozaModule):
 
 	def call(self, x: torch.Tensor) -> torch.Tensor:
 		x = x[..., :x.shape[-1] - self.extra_len]
-		v = x[..., -1] / x[..., -2]
+		v = torch.unsqueeze(x[..., -1] / x[..., -2], dim=-1)
 
 		y = torch.zeros((x.shape[0], self.vocab_size))
 		y[torch.arange(x.shape[0]), torch.sum(v >= self.bounds, dim=-1)] = 1
