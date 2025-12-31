@@ -60,7 +60,7 @@ class TorchModel(Model):
 
 	@staticmethod
 	def __parse_device(model: nn.Module):
-		parameter = next(model.parameters())
+		parameter = next(model.parameters(), None)
 		if parameter is not None:
 			return parameter.device
 		return torch.device("cpu")
