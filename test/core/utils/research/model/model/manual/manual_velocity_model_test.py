@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 from core import Config
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.model.model.manual import VelocityManualModel
+from lib.rl.agent.dta import TorchModel
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -39,3 +40,6 @@ class ManualVelocityModelTest(unittest.TestCase):
 		ModelHandler.save(self.model, SAVE_PATH)
 		self.model = ModelHandler.load(SAVE_PATH)
 		self.test_call()
+
+	def test_torch_model_wrapper(self):
+		model = TorchModel(self.model)
