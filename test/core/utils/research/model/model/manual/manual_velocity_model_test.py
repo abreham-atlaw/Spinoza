@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import numpy as np
@@ -7,6 +8,7 @@ from matplotlib import pyplot as plt
 from core import Config
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.model.model.manual import VelocityManualModel
+from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class ManualVelocityModelTest(unittest.TestCase):
@@ -30,3 +32,10 @@ class ManualVelocityModelTest(unittest.TestCase):
 			plt.plot(self.X[i, :-124])
 			plt.scatter([128], [y_v[i]], color="red")
 			plt.show()
+
+	def test_save_and_load(self):
+
+		SAVE_PATH = os.path.join(Config.BASE_DIR, "temp/models/abrehamalemu-spinoza-training-cnn-1-it-69-tot.zip")
+		ModelHandler.save(self.model, SAVE_PATH)
+		self.model = ModelHandler.load(SAVE_PATH)
+		self.test_call()
