@@ -27,9 +27,12 @@ class Lass7Preparer(Lass3Preparer):
 		y = self.__decomposer.decompose(sequence)
 		return np.stack([sequence, y], axis=0)
 
-	def _stack_noisy_and_smoothed(self, sequences: np.ndarray) -> np.ndarray:
+	def _prepare_sequence_stack(self, x: np.ndarray) -> np.ndarray:
 
 		if self.__vertical_align:
-			sequences[:, 1] += np.mean(sequences[:, 0], axis=-1, keepdims=True) - np.mean(sequences[:, 1], axis=-1, keepdims=True)
+			x[:, 1] += np.mean(x[:, 0], axis=-1, keepdims=True) - np.mean(x[:, 1], axis=-1,
+																		  keepdims=True)
+		return x
 
+	def _stack_noisy_and_smoothed(self, sequences: np.ndarray) -> np.ndarray:
 		return sequences
