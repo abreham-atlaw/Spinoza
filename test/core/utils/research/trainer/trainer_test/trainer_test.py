@@ -452,6 +452,10 @@ class TrainerTest(unittest.TestCase):
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)
 
+	@property
+	def is_regression_only(self) -> bool:
+		return False
+
 	def __init_trainer(self, model):
 
 		callbacks = [
@@ -462,7 +466,7 @@ class TrainerTest(unittest.TestCase):
 				step=2
 			)
 		]
-		trainer = Trainer(model, callbacks=callbacks, skip_nan=True, dtype=self.dtype)
+		trainer = Trainer(model, callbacks=callbacks, skip_nan=True, dtype=self.dtype, full_regression=self.is_regression_only)
 		trainer.cls_loss_function, trainer.reg_loss_function = self._create_losses()
 		trainer.optimizer = Adam(trainer.model.parameters())
 		return trainer
