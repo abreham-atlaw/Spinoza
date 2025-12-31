@@ -54,3 +54,6 @@ class ReflexMonteCarloAgent(MonteCarloAgent, ABC):
 		super()._monte_carlo_simulation(root_node)
 		self._prepare_reflex_action()
 
+	def _get_optimal_action(self, state, **kwargs):
+		self._monte_carlo_tree_search(state)
+		return max(self._get_current_graph().get_children(), key=lambda node: node.get_total_value()).action
