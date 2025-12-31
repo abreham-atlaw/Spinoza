@@ -3,7 +3,7 @@ import typing
 import torch
 import torch.nn as nn
 
-from core.utils.research.model.layers import FlattenLayer
+from core.utils.research.model.layers import FlattenLayer, Axis
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 
@@ -13,6 +13,7 @@ class CollapseBlock(SpinozaModule):
 	def __init__(
 		self,
 		ff_block: LinearModel = None,
+		channel_ff_block: LinearModel = None,
 		dropout: float = 0,
 		extra_mode: bool = True,
 		input_norm: typing.Optional[nn.Module] = None,
@@ -21,12 +22,14 @@ class CollapseBlock(SpinozaModule):
 		super().__init__(auto_build=False)
 		self.args = {
 			'ff_block': ff_block,
+			"channel_ff_block": channel_ff_block,
 			'dropout': dropout,
 			"extra_mode": extra_mode,
 			"input_norm": input_norm,
 			"global_avg_pool": global_avg_pool
 		}
 		self.ff_block = ff_block
+		self.channel_ff_block = Axis(channel_ff_block, axis=1) if channel_ff_block is not None else nn.Identity()
 		self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
 		self.extra_mode = extra_mode
 		self.flatten = FlattenLayer(1, 2)
@@ -38,7 +41,9 @@ class CollapseBlock(SpinozaModule):
 
 		normed = self.global_avg_pool(normed)
 
-		flattened = self.flatten(normed)
+		channeled = self.channel_ff_block(normed)
+
+		flattened = self.flatten(channeled)
 		flattened = flattened.reshape(flattened.size(0), -1)
 		flattened = self.dropout(flattened)
 
