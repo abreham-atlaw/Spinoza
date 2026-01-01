@@ -3,6 +3,7 @@ import typing
 import torch
 
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
+from core.utils.research.model.layers import ReverseSoftmax
 from core.utils.research.model.model.savable import SpinozaModule
 
 
@@ -25,6 +26,7 @@ class VelocityManualModel(SpinozaModule):
 		self.extra_len = extra_len
 		self.vocab_size = self.bounds.shape[0] + 1
 		self.y_extra_len = y_extra_len
+		self.inverse_softmax = ReverseSoftmax()
 
 	def call(self, x: torch.Tensor) -> torch.Tensor:
 		x = x[..., :x.shape[-1] - self.extra_len]
@@ -37,8 +39,7 @@ class VelocityManualModel(SpinozaModule):
 			(y, torch.zeros((y.shape[0], self.y_extra_len))),
 			dim=-1
 		)
-
-		return y
+		return self.inverse_softmax(y)
 
 	def export_config(self) -> typing.Dict[str, typing.Any]:
 		return self.args
