@@ -287,11 +287,17 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 		stop_loss_channel = self.__low_channel if direction == 1 else self.__high_channel
 		take_profit_channel = self.__high_channel if direction == 1 else self.__low_channel
-		if (
-				(trade.get_trade().stop_loss is not None and (direction*percentage[stop_loss_channel] <= direction*trade.get_trade().stop_loss)) or
-				(trade.get_trade().take_profit is not None and (direction*percentage[take_profit_channel] >= direction*trade.get_trade().take_profit))
-		):
-			state.get_agent_state().close_trades(instrument[0], instrument[1])  # TODO: CLOSE SINGLE TRADE
+
+		close_price = None
+
+		if trade.get_trade().stop_loss is not None and (direction * percentage[stop_loss_channel] <= direction * trade.get_trade().stop_loss):
+			close_price = previous_price * trade.get_trade().stop_loss
+
+		elif trade.get_trade().take_profit is not None and (direction * percentage[take_profit_channel] >= direction * trade.get_trade().take_profit):
+			close_price = previous_price * trade.get_trade().take_profit
+
+		if close_price is not None:
+			state.get_agent_state().close_trades(instrument[0], instrument[1], close_price=close_price)  # TODO: CLOSE SINGLE TRADE
 
 	def _simulate_trades_triggers(self, state: TradeState, instrument: Tuple[str, str]):
 		for trade in state.get_agent_state().get_open_trades(instrument[0], instrument[1]):

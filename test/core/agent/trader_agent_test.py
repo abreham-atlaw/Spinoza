@@ -125,6 +125,13 @@ class TraderAgentTest(unittest.TestCase):
 			None
 		)
 
+		self.assertTrue(
+			0 in [
+				len(s.get_agent_state().get_open_trades())
+				for s in result
+			]
+		)
+
 		self.assertEqual(
 			len(result),
 			3*2
