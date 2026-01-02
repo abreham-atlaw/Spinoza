@@ -4,3 +4,4 @@ from .encoder_channel_dropout import EncoderChannelDropout
 from .encoder_dropout import EncoderDropout
 from .decoder_pad_embedding import DecoderPadEmbedding
 from .encoder_vertical_shift import EncoderVerticalShift
+from .revin_norm import RevInNorm
