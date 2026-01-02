@@ -37,7 +37,7 @@ class StochasticShortTermMemory(ShortTermMemory):
 
 		min_idx = np.argmin(values)
 
-		if self._match_threshold is not None and values[min_idx] > self._match_threshold:
+		if (self._match_threshold is not None and values[min_idx] > self._match_threshold) or isinstance(self._memories[min_idx], ShortTermMemory.EmptyMemory):
 			return None
 
 		return self._export_memory(self._memories[min_idx])
