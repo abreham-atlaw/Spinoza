@@ -42,6 +42,10 @@ class LassTrainerTest(TrainerTest):
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)
 
+	@property
+	def is_regression_only(self) -> bool:
+		return True
+
 	def __create_cnn2(self):
 		INPUT_CHANNELS = 2
 
