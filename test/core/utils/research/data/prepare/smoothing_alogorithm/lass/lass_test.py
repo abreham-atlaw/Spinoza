@@ -10,14 +10,18 @@ from core import Config
 from core.di import ServiceProvider
 from core.utils.research.data.prepare.smoothing_algorithm import Lass, MovingAverage
 from core.utils.research.data.prepare.smoothing_algorithm.lass.executors import Lass2Executor, Lass3Executor, \
-	Lass4Executor, Lass5PlainExecutor
+	Lass4Executor, Lass5PlainExecutor, Lass8Executor
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class LassTest(unittest.TestCase):
 
 	def setUp(self):
-		self.lass = ServiceProvider.provide_lass()
+		# self.lass = ServiceProvider.provide_lass()
+		self.lass = Lass(
+			model=ModelHandler.load("/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-lass-training-cnn-0-it-13-tot.zip"),
+			executor=Lass8Executor()
+		)
 		self.df = pd.read_csv(os.path.join(Config.BASE_DIR, "temp/Data/AUD-USD-50k.csv"))
 		self.sequence = self.df["c"].to_numpy()[-int(3e4):]
 		self.gran = 30
@@ -32,7 +36,7 @@ class LassTest(unittest.TestCase):
 		plt.show()
 
 	def test_functionality(self):
-		x = self.sequence[::self.gran]
+		x = self.sequence[::self.gran][:128*5]
 		y = self.lass.apply(x)
 		self.assertIsInstance(y, np.ndarray)
 		plt.plot(np.arange(len(x)), x)
@@ -47,7 +51,7 @@ class LassTest(unittest.TestCase):
 			x[i*batch_size: (i+1)*batch_size]
 			for i in range(batch_size)
 		])
-		y = self.lass.apply(x)
+		y = self.lass.apply_on_batch(x)
 		self.assertIsInstance(y, np.ndarray)
 
 		for i in range(samples):

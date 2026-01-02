@@ -31,9 +31,9 @@ class Lass6PreparerTest(unittest.TestCase):
 		self.preparer = Lass6Preparer(
 			output_path=self.output_path,
 
-			seq_size=int(2e3),
+			seq_size=int(1e3),
 			block_size=128,
-			batch_size=1024,
+			batch_size=16,
 			splitter=SequentialSplitter(test_size=0.2),
 
 			transformations=[
@@ -46,9 +46,10 @@ class Lass6PreparerTest(unittest.TestCase):
 			noise_p=15,
 			f=f,
 			a=a,
-			target_mean=0.7,
-			target_std=7e-3,
-			lag=8
+			target_mean=120,
+			target_std=5,
+			lag=8,
+			trim_incomplete_batch=True
 		)
 
 	def test_functionality(self):
