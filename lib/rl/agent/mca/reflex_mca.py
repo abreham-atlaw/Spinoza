@@ -24,6 +24,10 @@ class ReflexMonteCarloAgent(MonteCarloAgent, ABC):
 
 		state_nodes = self._get_current_graph().get_children()[0].get_children()
 
+		if len(state_nodes) == 0:
+			Logger.error(f"State Node is empty. Using original node")
+			return self._get_current_graph()
+
 		for state_node in state_nodes:
 			state = self._state_repository.retrieve(state_node.id)
 			self.__reflex_stm.memorize(state)
