@@ -13,20 +13,23 @@ class VelocityManualModel(SpinozaModule):
 
 	def __init__(
 			self,
+			input_size: int,
 			extra_len: int,
 			bounds: typing.List[float],
 			y_extra_len: int = 1,
 	):
 		self.args = {
+			"input_size": input_size,
 			"extra_len": extra_len,
 			"bounds": bounds
 		}
-		super(VelocityManualModel, self).__init__()
+		super(VelocityManualModel, self).__init__(input_size=input_size, auto_build=False)
 		self.bounds = torch.Tensor(bounds)
 		self.extra_len = extra_len
 		self.vocab_size = self.bounds.shape[0] + 1
 		self.y_extra_len = y_extra_len
 		self.inverse_softmax = ReverseSoftmax()
+		self.init()
 
 	def call(self, x: torch.Tensor) -> torch.Tensor:
 		x = x[..., :x.shape[-1] - self.extra_len]

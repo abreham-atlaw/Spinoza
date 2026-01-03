@@ -4,6 +4,7 @@ import unittest
 import torch
 import numpy as np
 from matplotlib import pyplot as plt
+from torch import nn
 
 from core import Config
 from core.utils.research.model.model.utils import AggregateModel, WrappedModel, TemperatureScalingModel
@@ -14,25 +15,34 @@ class AggregateModelTest(unittest.TestCase):
 
 
 	def setUp(self):
-		self.raw_model = WrappedModel(
+		self.raw_model =ModelHandler.load(os.path.join(Config.BASE_DIR, "/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-training-cnn-0-it-89-tot_1.zip")).eval()
+		self.wrapped_model = WrappedModel(
 			TemperatureScalingModel(
 				temperature=1.0,
-				model=ModelHandler.load(os.path.join(Config.BASE_DIR, "/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-training-cnn-0-it-89-tot_1.zip")).eval()
+				model=self.raw_model
 			),
 			seq_len=128
 		)
 		self.model = AggregateModel(
-			model=self.raw_model,
+			model=self.wrapped_model,
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			a=0.98/3,
 			temperature=1e-5
 		).eval()
+		self.softmax_model = AggregateModel(
+			model=self.raw_model,
+			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+			a=0.98/3,
+			temperature=1e-5,
+			softmax=True
+		)
+
 
 		self.X = torch.from_numpy(np.load("/home/abrehamatlaw/Downloads/1766196639.72487.npy").astype(np.float32))
 
 	def test_aggregate(self):
 		with torch.no_grad():
-			y = self.raw_model(self.X)[...,0 , :-1]
+			y = self.wrapped_model(self.X)[...,0 , :-1]
 			y_hat = self.model.aggregate(y)
 
 		for i in np.random.randint(0, self.X.shape[0], 5):
@@ -46,7 +56,7 @@ class AggregateModelTest(unittest.TestCase):
 	def test_forward(self):
 
 		with torch.no_grad():
-			y = self.raw_model(self.X)[..., :-1]
+			y = self.wrapped_model(self.X)[..., :-1]
 			y_hat = self.model(self.X)[..., :-1]
 
 		if len(y.shape) == 2:
@@ -78,4 +88,27 @@ class AggregateModelTest(unittest.TestCase):
 			for i in range(y_hat.shape[0]):
 				plt.plot(y_hat[i, j, 0], label=f"Call: {i}")
 			plt.legend()
+		plt.show()
+
+	def test_softmax(self):
+
+		softmax = nn.Softmax(dim=-1)
+		with torch.no_grad():
+			y = self.model(self.X)[..., :-1]
+			y_hat = softmax(self.softmax_model(self.X)[..., :-1])
+
+		if len(y.shape) == 2:
+			y, y_hat = [torch.unsqueeze(arr, dim=1) for arr in [y, y_hat]]
+
+
+		for i in np.random.randint(0, self.X.shape[0], 5):
+			plt.figure()
+
+			for j in range(y.shape[1]):
+				plt.subplot(2, 2, j+1)
+				plt.plot(y[i, j], label="Non-Softmax")
+				plt.plot(y_hat[i, j], label="Softmax")
+				plt.ylim([0, 1])
+				plt.legend()
+
 		plt.show()
