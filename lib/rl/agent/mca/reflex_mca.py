@@ -45,7 +45,7 @@ class ReflexMonteCarloAgent(MonteCarloAgent, ABC):
 		except StopIteration as ex:
 			Logger.error(f"Approximated State Not Found in State Nodes.")
 			Logger.error(f"Approximated State: {approx_state}")
-			Logger.error("State Nodes: {}".format('\n'.join(str(state_node) for state_node in state_nodes)))
+			Logger.error("State Nodes: {}".format('\n'.join(str(self._state_repository.retrieve(state_node.id)) for state_node in state_nodes)))
 			raise ex
 
 		return node
