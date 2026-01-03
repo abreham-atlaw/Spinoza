@@ -37,10 +37,16 @@ class ReflexMonteCarloAgent(MonteCarloAgent, ABC):
 		if approx_state is None:
 			raise ValueError(f"Reflex STM returned None.")
 
-		node = next(filter(
-			lambda sn: self._state_repository.retrieve(sn.id) is approx_state,
-			state_nodes
-		))
+		try:
+			node = next(filter(
+				lambda sn: self._state_repository.retrieve(sn.id) is approx_state,
+				state_nodes
+			))
+		except StopIteration as ex:
+			Logger.error(f"Approximated State Not Found in State Nodes.")
+			Logger.error(f"Approximated State: {approx_state}")
+			Logger.error("State Nodes: {}".format('\n'.join(str(state_node) for state_node in state_nodes)))
+			raise ex
 
 		return node
 
