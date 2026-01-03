@@ -14,6 +14,7 @@ from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
 from lib.network.oanda.exceptions import InsufficientMarginException
+from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.logger import Logger
 from core import Config
 from core.environment.trade_state import TradeState, AgentState, MarketState
@@ -201,6 +202,7 @@ class LiveEnvironment(TradeEnvironment):
 
 		return data
 
+	CacheDecorators.cached_method(timeout=Config.ENVIRONMENT_FETCH_CACHE_TIMEOUT)
 	def __fetch_instrument_state(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
 		size = size + self.__smoothing_algorithm.reduction
 
