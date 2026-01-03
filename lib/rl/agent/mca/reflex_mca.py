@@ -23,30 +23,24 @@ class ReflexMonteCarloAgent(MonteCarloAgent, ABC):
 		self.__reflex_stm.clear()
 
 		state_nodes = self._get_current_graph().get_children()[0].get_children()
+		states = [
+			self._state_repository.retrieve(node.id)
+			for node in state_nodes
+		]
 
 		if len(state_nodes) == 0:
 			Logger.error(f"State Node is empty. Using original node")
 			return self._get_current_graph()
 
-		for state_node in state_nodes:
-			state = self._state_repository.retrieve(state_node.id)
-			self.__reflex_stm.memorize(state)
+		for i in range(len(states)):
+			self.__reflex_stm.memorize(states[i])
 
 		approx_state = self.__reflex_stm.recall(state)
 
 		if approx_state is None:
 			raise ValueError(f"Reflex STM returned None.")
 
-		try:
-			node = next(filter(
-				lambda sn: self._state_repository.retrieve(sn.id) is approx_state,
-				state_nodes
-			))
-		except StopIteration as ex:
-			Logger.error(f"Approximated State Not Found in State Nodes.")
-			Logger.error(f"Approximated State: {approx_state}")
-			Logger.error("State Nodes: {}".format('\n'.join(str(self._state_repository.retrieve(state_node.id)) for state_node in state_nodes)))
-			raise ex
+		node = state_nodes[states.index(approx_state)]
 
 		return node
 
