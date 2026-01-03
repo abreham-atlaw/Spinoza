@@ -15,7 +15,7 @@ from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgori
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import SpinozaLoss
 from core.utils.research.model.model.savable import SpinozaModule
-from core.utils.research.model.model.utils import HorizonModel
+from core.utils.research.model.model.utils import HorizonModel, AggregateModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.rl.agent import Node
 from lib.utils.cache import Cache
@@ -39,7 +39,8 @@ class SessionAnalyzer:
 			dtype: typing.Type = np.float32,
 			model_key: str = "spinoza-training",
 			bounds: typing.Iterable[float] = None,
-			extra_len: int = 124
+			extra_len: int = 124,
+			aggregate_alpha: float = None
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -47,17 +48,16 @@ class SessionAnalyzer:
 		self.__plt_y_grid_count = plt_y_grid_count
 		self.__cache = Cache()
 		self.__instruments = instruments
-		self.__model = model or self.__load_session_model(model_key)
-		self.__dtype = dtype
-
 		if bounds is None:
 			bounds = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 		self.__bounds = bounds
 
+		self.__model = model or self.__load_session_model(model_key, aggregate_alpha)
+		self.__dtype = dtype
 		self.__softmax = nn.Softmax(dim=-1)
 		self.__extra_len = extra_len
 
-	def __load_session_model(self, model_key: str) -> SpinozaModule:
+	def __load_session_model(self, model_key: str, aggregate_alpha: float) -> SpinozaModule:
 		model_path = os.path.join(
 			self.__sessions_path,
 			next(filter(
@@ -66,7 +66,16 @@ class SessionAnalyzer:
 			))
 		)
 		Logger.info(f"Using session model: {os.path.basename(model_path)}")
-		return ModelHandler.load(model_path)
+		model = ModelHandler.load(model_path)
+
+		if aggregate_alpha is not None:
+			model = AggregateModel(
+				model=model,
+				bounds=self.__bounds,
+				a=aggregate_alpha,
+				softmax=True
+			)
+		return model
 
 	@property
 	def __candlesticks_path(self) -> str:
