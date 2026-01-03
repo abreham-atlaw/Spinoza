@@ -15,7 +15,7 @@ from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgori
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import SpinozaLoss
 from core.utils.research.model.model.savable import SpinozaModule
-from core.utils.research.model.model.utils import HorizonModel
+from core.utils.research.model.model.utils import HorizonModel, AggregateModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.rl.agent import Node
 from lib.utils.cache import Cache
@@ -39,7 +39,8 @@ class SessionAnalyzer:
 			dtype: typing.Type = np.float32,
 			model_key: str = "spinoza-training",
 			bounds: typing.Iterable[float] = None,
-			extra_len: int = 124
+			extra_len: int = 124,
+			aggregate_alpha: float = None
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -47,17 +48,16 @@ class SessionAnalyzer:
 		self.__plt_y_grid_count = plt_y_grid_count
 		self.__cache = Cache()
 		self.__instruments = instruments
-		self.__model = model or self.__load_session_model(model_key)
-		self.__dtype = dtype
-
 		if bounds is None:
 			bounds = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 		self.__bounds = bounds
 
+		self.__model = model or self.__load_session_model(model_key, aggregate_alpha)
+		self.__dtype = dtype
 		self.__softmax = nn.Softmax(dim=-1)
 		self.__extra_len = extra_len
 
-	def __load_session_model(self, model_key: str) -> SpinozaModule:
+	def __load_session_model(self, model_key: str, aggregate_alpha: float) -> SpinozaModule:
 		model_path = os.path.join(
 			self.__sessions_path,
 			next(filter(
@@ -66,7 +66,16 @@ class SessionAnalyzer:
 			))
 		)
 		Logger.info(f"Using session model: {os.path.basename(model_path)}")
-		return ModelHandler.load(model_path)
+		model = ModelHandler.load(model_path)
+
+		if aggregate_alpha is not None:
+			model = AggregateModel(
+				model=model,
+				bounds=self.__bounds,
+				a=aggregate_alpha,
+				softmax=True
+			)
+		return model
 
 	@property
 	def __candlesticks_path(self) -> str:
@@ -125,7 +134,7 @@ class SessionAnalyzer:
 		self.__smoothing_algorithms = smoothing_algorithms
 		Logger.info("Using Smoothing Algorithms: {}".format(', '.join([str(sa) for sa in smoothing_algorithms])))
 
-	def plot_sequence(self, instrument: typing.Tuple[str, str], checkpoints: typing.List[int] = None):
+	def plot_sequence(self, instrument: typing.Tuple[str, str], checkpoints: typing.List[int] = None, new_figure=True):
 		if checkpoints is None:
 			checkpoints = []
 
@@ -141,7 +150,8 @@ class SessionAnalyzer:
 			for sa_sequences in self.__get_smoothed_sequences(instrument=instrument)
 		]
 
-		plt.figure(figsize=self.__fig_size)
+		if new_figure:
+			plt.figure(figsize=self.__fig_size)
 		plt.title(" / ".join(instrument))
 		plt.grid()
 
@@ -159,7 +169,8 @@ class SessionAnalyzer:
 			plt.text(checkpoint, max(x), str(checkpoint), verticalalignment="center")
 
 		plt.legend()
-		plt.show()
+		if new_figure:
+			plt.show()
 
 	def plot_timestep_sequence(self, instrument: typing.Tuple[str, str], i: int):
 		x = self.__get_sequences(instrument=instrument)[i]
@@ -227,13 +238,12 @@ class SessionAnalyzer:
 				max_depth=max_depth,
 				bounds=self.__bounds
 			)
-		y_hat = self.__softmax(model(torch.from_numpy(X))[:, :-1]).detach().numpy()
+		y_hat = self.__softmax(model(torch.from_numpy(X))[..., :-1]).detach().numpy()
 		return y_hat
 
 	def __get_yv(self, y: np.ndarray) -> np.ndarray:
 		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds)
-		bounds = (bounds[1:] + bounds[:-1])/2
-		return np.sum(y[:, :-1] * bounds, axis=1)
+		return np.sum(y[:] * bounds, axis=1)
 
 	@staticmethod
 	def __evaluate_samples_loss(y_hat: np.ndarray, y: np.ndarray, loss_fn: SpinozaLoss) -> np.ndarray:
@@ -329,7 +339,10 @@ loss: {l[i] if l is not None else "N/A"}
 			channels = np.arange(seq.shape[0])
 
 		X = self.__prepare_node_input_data(seq)
-		y_hat = self.__softmax(self.__model(X)[:, :-1]).detach().numpy()
+		y_hat = self.__softmax(self.__model(X)[..., :-1]).detach().numpy()
+
+		if y_hat.ndim == 2:
+			y_hat = np.expand_dims(y_hat, axis=1)
 
 		plt.figure(figsize=self.__fig_size)
 		plt.subplot(1, 2, 1)
@@ -345,7 +358,73 @@ loss: {l[i] if l is not None else "N/A"}
 		plt.legend()
 
 		plt.subplot(1, 2, 2)
-		plt.title(f"y_hat={self.__get_yv(y_hat)[0]}")
-		plt.plot(y_hat[0])
+		plt.title(f"y_hat={[self.__get_yv(y_hat[:, c])[0] for c in range(y_hat.shape[1])]}")
+		for c in range(y_hat.shape[1]):
+			plt.plot(y_hat[0, c], label=f"Channel: {c}")
+
+		plt.show()
+
+	@CacheDecorators.cached_method()
+	def __load_prediction_sequence_input_data(self, instrument: typing.Tuple[str, str]) -> np.ndarray:
+
+		X = None
+
+		for i in range(len(os.listdir(self.__graphs_path))):
+			node, repo = self.load_node(i)
+			state: TradeState = repo.retrieve(node.id)
+			x = state.get_market_state().get_channels_state(*instrument)
+			x = self.__prepare_node_input_data(x).numpy()
+			if X is None:
+				X = x
+				continue
+			X = np.concatenate((X, x), axis=0)
+
+		return X
+
+	def plot_prediction_sequence(
+			self,
+			instrument: typing.Tuple[str, str] = None,
+			channel: int = 0,
+			h: float = 0.0,
+			max_depth: int = 0,
+			checkpoints: typing.List[int] = None,
+	):
+		if instrument is None:
+			instrument = self.__instruments[0]
+
+		if checkpoints is None:
+			checkpoints = []
+
+		X = self.__load_prediction_sequence_input_data(instrument)
+		y_hat = self.__get_y_hat(X, h=h, max_depth=max_depth)
+
+		y_hat = np.expand_dims(y_hat, axis=1) if y_hat.ndim == 2 else y_hat
+
+		y_hat = y_hat[:, channel]
+
+		y_hat_v = self.__get_yv(y_hat) - 1
+
+		labels = [str(i) for i in range(y_hat_v.shape[0])]
+		colors = ["green" if v >= 0 else "red" for v in y_hat_v]
+		max_val = max(abs(v) for v in y_hat_v)
+
+		plt.figure(figsize=self.__fig_size)
+
+		plt.subplot(2, 1, 1)
+		self.plot_sequence(instrument, new_figure=False, checkpoints=checkpoints)
+
+		plt.subplot(2, 1, 2)
+		plt.title(f"Prediction Sequence of {instrument} on Channel {channel}")
+		plt.bar(labels, y_hat_v, color=colors)
+		plt.xticks(rotation=90, fontsize=5)
+
+		plt.axhline(y=0, color="black")
+		plt.ylim(-max_val, max_val)
+
+		plt.xlabel("Timestep")
+		plt.ylabel("Prediction")
+
+		for checkpoint in checkpoints:
+			plt.axvline(x=checkpoint, color="blue")
 
 		plt.show()
