@@ -130,7 +130,7 @@ class Trainer:
 	def __split_y(self, y: torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
 		if self.__complete_regression:
 			return torch.Tensor(), y
-		return y[..., :y.shape[-1] - self.__reg_size], y[..., y.shape[-1] - self.__reg_size]
+		return y[..., :y.shape[-1] - self.__reg_size], y[..., y.shape[-1] - self.__reg_size:]
 
 	def __loss(self, y_hat: torch.Tensor, y: torch.Tensor, w: torch.Tensor):
 		cls_y, reg_y = self.__split_y(y)
