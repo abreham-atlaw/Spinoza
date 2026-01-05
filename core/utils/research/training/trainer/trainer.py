@@ -249,6 +249,7 @@ class Trainer:
 
 				if not self.__validate_gradients(gradients):
 					if self.__skip_nan:
+						Logger.warning(f"Found invalid gradients. Skipping...")
 						continue
 					else:
 						raise ValueError("Gradients are not valid")
