@@ -127,10 +127,10 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 
 		return [
 			ActionSequence(
-				actions=[
+				actions=(
 					close_action,
 					action
-				]
+				)
 			)
 			for action in self._generate_lone_actions(state)
 			if (
