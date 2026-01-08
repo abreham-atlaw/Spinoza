@@ -273,8 +273,9 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		))
 
 	def __simulate_trade_trigger(self, state: TradeState, trade: AgentState.OpenTrade):
-		if trade.get_trade().stop_loss is None:
+		if trade.get_trade().stop_loss is None and trade.get_trade().take_profit is None:
 			return
+
 		instrument = trade.get_trade().base_currency, trade.get_trade().quote_currency
 
 		current_price = state.get_market_state().get_channels_state(instrument[0], instrument[1])[:, -1]
@@ -285,8 +286,18 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		direction = -1 if trade.get_trade().action == TraderAction.Action.SELL else 1
 
 		stop_loss_channel = self.__low_channel if direction == 1 else self.__high_channel
-		if direction*percentage[stop_loss_channel] <= direction*trade.get_trade().stop_loss:
-			state.get_agent_state().close_trades(instrument[0], instrument[1])  # TODO: CLOSE SINGLE TRADE
+		take_profit_channel = self.__high_channel if direction == 1 else self.__low_channel
+
+		close_price = None
+
+		if trade.get_trade().stop_loss is not None and (direction * percentage[stop_loss_channel] <= direction * trade.get_trade().stop_loss):
+			close_price = previous_price * trade.get_trade().stop_loss
+
+		elif trade.get_trade().take_profit is not None and (direction * percentage[take_profit_channel] >= direction * trade.get_trade().take_profit):
+			close_price = previous_price * trade.get_trade().take_profit
+
+		if close_price is not None:
+			state.get_agent_state().close_trades(instrument[0], instrument[1], close_price=close_price)  # TODO: CLOSE SINGLE TRADE
 
 	def _simulate_trades_triggers(self, state: TradeState, instrument: Tuple[str, str]):
 		for trade in state.get_agent_state().get_open_trades(instrument[0], instrument[1]):

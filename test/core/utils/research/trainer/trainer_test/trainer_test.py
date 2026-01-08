@@ -58,9 +58,9 @@ class TrainerTest(unittest.TestCase):
 
 	def _get_root_dirs(self):
 		return [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/06/train"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/08/train"
 		], [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/06/test"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/08/test"
 		]
 
 	def __init_dataloader(self):
@@ -69,7 +69,7 @@ class TrainerTest(unittest.TestCase):
 
 		dataset = BaseDataset(
 			train_dirs,
-			check_file_sizes=False,
+			check_file_sizes=True,
 			load_weights=False,
 			out_dtypes=self.np_dtype,
 			num_files=2
@@ -78,7 +78,7 @@ class TrainerTest(unittest.TestCase):
 
 		test_dataset = BaseDataset(
 			test_dirs,
-			check_file_sizes=False,
+			check_file_sizes=True,
 			load_weights=False,
 			out_dtypes=self.np_dtype,
 			num_files=2
@@ -347,7 +347,8 @@ class TrainerTest(unittest.TestCase):
 				h=HORIZON_RANGE[0],
 				max_depth=HORIZON_MAX_DEPTH,
 				X_extra_len=EXTRA_LEN,
-				y_channel_map=Y_CHANNEL_MAP
+				y_channel_map=Y_CHANNEL_MAP,
+				value_correction=True
 			)
 		return model
 
