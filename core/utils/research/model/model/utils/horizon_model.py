@@ -119,15 +119,17 @@ class HorizonModel(SpinozaModule):
 		x_hat = x.clone()
 		sample_mask = torch.rand(x_hat.size(0)) <= self.h
 
-		if self.__check_depth(depth) and torch.any(sample_mask):
+		horizon_check = self.__check_depth(depth) and torch.any(sample_mask)
+
+		if horizon_check:
 			x_hat[sample_mask] = self.process_sample(x_hat[sample_mask], depth)
 
 		y = self.model(x_hat)
 
-		if self.value_correction:
-			y = torch.concatenate([
-				self.apply_value_correction(x, x_hat, y[..., :-self.y_extra_len]),
-				y[..., -self.y_extra_len:]
+		if self.value_correction and horizon_check:
+			y[sample_mask] = torch.concatenate([
+				self.apply_value_correction(x[sample_mask], x_hat[sample_mask], y[sample_mask][..., :-self.y_extra_len]),
+				y[sample_mask][..., -self.y_extra_len:]
 			], dim=-1)
 
 		return y
