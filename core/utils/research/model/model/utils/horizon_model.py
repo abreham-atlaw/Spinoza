@@ -2,6 +2,7 @@ import typing
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from core.utils.research.model.model.savable import SpinozaModule
 from lib.utils.logger import Logger
@@ -16,7 +17,9 @@ class HorizonModel(SpinozaModule):
 			model: SpinozaModule,
 			X_extra_len: int = 124,
 			y_extra_len: int = 1,
-			max_depth: int = None
+			max_depth: int = None,
+			use_gumbel_softmax: bool = False,
+			gumbel_softmax_temperature: float = 0.1
 	):
 		self.args = {
 			"h": h,
@@ -24,7 +27,9 @@ class HorizonModel(SpinozaModule):
 			"model": model,
 			"X_extra_len": X_extra_len,
 			"y_extra_len": y_extra_len,
-			"max_depth": max_depth
+			"max_depth": max_depth,
+			"use_gumbel_softmax": use_gumbel_softmax,
+			"gumbel_softmax_temperature": gumbel_softmax_temperature
 		}
 		super().__init__(input_size=model.input_size, output_size=model.output_size, auto_build=False)
 		Logger.info(f"Initializing HorizonModel(h={h}, max_depth={max_depth})...")
@@ -36,6 +41,9 @@ class HorizonModel(SpinozaModule):
 
 		self.bounds = self.__prepare_bounds(bounds)
 		self.__max_depth = max_depth
+
+		self.use_gumbel_softmax = use_gumbel_softmax
+		self.gumbel_softmax_temperature = gumbel_softmax_temperature
 
 	def set_h(self, h: float):
 		self.h = h
@@ -63,9 +71,17 @@ class HorizonModel(SpinozaModule):
 	def _retrieve_recent_close(self, x: torch.Tensor):
 		return  x[..., -(self.X_extra_len + 1)]
 
+	def _predict(self, x: torch.Tensor, depth: int) -> torch.Tensor:
+		y = self(x, depth+1)[..., :-self.y_extra_len]
+
+		if self.use_gumbel_softmax:
+			return F.gumbel_softmax(y, tau=self.gumbel_softmax_temperature, hard=False, dim=-1)
+
+		return self.softmax(y)
+
 	def shift_and_predict(self, x: torch.Tensor, depth: int) -> torch.Tensor:
 		x[..., 1:x.shape[-1]-self.X_extra_len] = x[..., 0:-(self.X_extra_len + 1)].clone()
-		y = self.softmax(self(x, depth+1)[..., :-self.y_extra_len])
+		y = self._predict(x, depth)
 		if y.ndim == 2:
 			y = torch.unsqueeze(y, dim=1)
 		y = torch.sum(
