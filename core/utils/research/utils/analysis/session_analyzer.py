@@ -137,12 +137,16 @@ class SessionAnalyzer:
 	def plot_sequence(
 			self,
 			instrument: typing.Tuple[str, str],
-			checkpoints: typing.List[int] = None,
+			checkpoints: typing.List[typing.Union[int, typing.Tuple[int, int]]] = None,
 			new_figure=True,
 			channels: typing.Tuple[str]= ('c',)
 	):
 		if checkpoints is None:
 			checkpoints = []
+
+		for i in range(len(checkpoints)):
+			if isinstance(checkpoints[i], int):
+				checkpoints[i] = (checkpoints[i], None)
 
 		x = np.array([
 			[
@@ -174,10 +178,12 @@ class SessionAnalyzer:
 			plt.axhline(y=y, color="black")
 
 		for checkpoint in checkpoints:
-			plt.axvline(x=checkpoint, color="blue")
-			plt.axvline(x=checkpoint+1, color="green")
-			plt.axvline(x=checkpoint+2, color="red")
-			plt.text(checkpoint, np.max(x), str(checkpoint), verticalalignment="center")
+			plt.axvline(x=checkpoint[0], color="blue")
+			plt.axvline(x=checkpoint[0]+1, color="green")
+			plt.text(checkpoint[0], np.max(x), str(checkpoint[0]), verticalalignment="center")
+
+			if checkpoint[1] is not None:
+				plt.plot(np.arange(3) + checkpoint[0]+1, [checkpoint[1]]*3, zorder=10, color="red", linewidth=5)
 
 		plt.legend()
 		if new_figure:
