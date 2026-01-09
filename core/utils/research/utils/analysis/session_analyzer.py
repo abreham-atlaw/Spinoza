@@ -183,7 +183,7 @@ class SessionAnalyzer:
 			plt.text(checkpoint[0], np.max(x), str(checkpoint[0]), verticalalignment="center")
 
 			if checkpoint[1] is not None:
-				plt.scatter([checkpoint[0]+1], [checkpoint[1]], color="red", s=100, zorder=3, marker="^")
+				plt.plot(np.arange(3) + checkpoint[0]+1, [checkpoint[1]]*3, zorder=10, color="red", linewidth=5)
 
 		plt.legend()
 		if new_figure:
