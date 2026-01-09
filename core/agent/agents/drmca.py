@@ -62,7 +62,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			discount=discount,
 			discount_function=discount_function,
 			state_repository=AgentUtilsProvider.provide_state_repository(),
-			graph_plot_rate=graph_plot_rate
+			graph_plot_rate=graph_plot_rate,
 			**kwargs
 		)
 		self.__encode_max_open_trades = encode_max_open_trade
