@@ -27,8 +27,8 @@ class SessionAnalyzerTest(unittest.TestCase):
 		)
 
 	def test_plot_sequence(self):
-		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("AUD", "USD"))
-		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("USD", "ZAR"))
+		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("AUD", "USD"), channels=("c", 'l', 'h'))
+		# self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("USD", "ZAR"))
 
 	def test_plot_timestep_sequence(self):
 		self.session_analyzer.plot_timestep_sequence(i=0, instrument=("AUD", "USD"))
