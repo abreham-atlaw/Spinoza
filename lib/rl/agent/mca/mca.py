@@ -48,6 +48,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			node_serializer: typing.Optional['NodeSerializer'] = None,
 			state_serializer: typing.Optional[Serializer] = None,
 			squash_epsilon: float = 1e-9,
+			graph_plot_rate: float = 0.0,
 			**kwargs
 	):
 
@@ -78,6 +79,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__squash_epsilon = squash_epsilon
 		self.__dynamic_k_threshold = dynamic_k_threshold
 		self.__resource_manager = resource_manager
+		self.__graph_plot_rate = graph_plot_rate
 
 	@property
 	def trim_mode(self) -> bool:
@@ -458,6 +460,8 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._backpropagate(final_node)
 
 			self.__manage_resources()
+			if self.__graph_plot_rate > 0 and random.random() < self.__graph_plot_rate:
+				stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
 			stats.iterations["main_loop"] += 1
 
 	def _monte_carlo_tree_search(self, state) -> None:
