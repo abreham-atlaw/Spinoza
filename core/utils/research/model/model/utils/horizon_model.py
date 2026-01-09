@@ -42,7 +42,6 @@ class HorizonModel(SpinozaModule):
 		self.y_extra_len = y_extra_len
 		self.softmax = nn.Softmax(dim=-1)
 
-		self.raw_bounds, self.bounds = self.__prepare_bounds(bounds)
 		self.__max_depth = max_depth
 
 		self.use_gumbel_softmax = use_gumbel_softmax
@@ -50,6 +49,8 @@ class HorizonModel(SpinozaModule):
 
 		self.value_correction = value_correction
 		self.reverse_softmax = ReverseSoftmax(dim=-1)
+
+		self.raw_bounds, self.bounds = self.__prepare_bounds(bounds)
 
 	def set_h(self, h: float):
 		self.h = h
@@ -70,7 +71,8 @@ class HorizonModel(SpinozaModule):
 
 		bounds = (bounds[1:] + bounds[:-1]) / 2
 
-		self.register_buffer("raw_bounds", bounds)
+		if self.value_correction:
+			self.register_buffer("raw_bounds", bounds)
 		self.register_buffer("bounds", bounds)
 		return raw_bounds, bounds
 
@@ -119,15 +121,17 @@ class HorizonModel(SpinozaModule):
 		x_hat = x.clone()
 		sample_mask = torch.rand(x_hat.size(0)) <= self.h
 
-		if self.__check_depth(depth) and torch.any(sample_mask):
+		horizon_check = self.__check_depth(depth) and torch.any(sample_mask)
+
+		if horizon_check:
 			x_hat[sample_mask] = self.process_sample(x_hat[sample_mask], depth)
 
 		y = self.model(x_hat)
 
-		if self.value_correction:
-			y = torch.concatenate([
-				self.apply_value_correction(x, x_hat, y[..., :-self.y_extra_len]),
-				y[..., -self.y_extra_len:]
+		if self.value_correction and horizon_check:
+			y[sample_mask] = torch.concatenate([
+				self.apply_value_correction(x[sample_mask], x_hat[sample_mask], y[sample_mask][..., :-self.y_extra_len]),
+				y[sample_mask][..., -self.y_extra_len:]
 			], dim=-1)
 
 		return y
