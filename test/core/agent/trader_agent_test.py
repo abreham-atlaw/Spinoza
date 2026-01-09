@@ -163,6 +163,13 @@ class TraderAgentTest(unittest.TestCase):
 			balance=100,
 			market_state=market_state
 		)
+		agent_state.open_trade(
+			action=TraderAction(
+				"USD", "AUD",
+				TraderAction.Action.BUY,
+				60
+			)
+		)
 
 		state = TradeState(market_state, agent_state)
 
