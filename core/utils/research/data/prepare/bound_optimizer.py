@@ -26,7 +26,8 @@ class BoundGenerator:
 			tmp_path="/tmp",
 			smoothing_algorithm=None,
 			prep_block_size: int = 10,
-			dataprep_class: typing.Type = SimulationSimulator
+			dataprep_class: typing.Type = SimulationSimulator,
+			dataprep_kwargs: typing.Dict[str, typing.Any] = {},
 	):
 		self.__start = start
 		self.__end = end
@@ -40,6 +41,7 @@ class BoundGenerator:
 		self.__smoothing_algorithm = smoothing_algorithm
 		self.__granularity = granularity
 		self.__dataprep_class = dataprep_class
+		self.__dataprep_kwargs = dataprep_kwargs
 
 	def __prepare_tmp_path(self):
 		path = os.path.join(self.__tmp_path, f"{uuid.uuid4()}.bo")
@@ -74,7 +76,8 @@ class BoundGenerator:
 			output_path=path,
 			granularity=self.__granularity,
 			smoothing_algorithm=self.__smoothing_algorithm,
-			order_gran=False
+			order_gran=False,
+			**self.__dataprep_kwargs
 		)
 
 		data_preparer.start()

@@ -112,10 +112,10 @@ class SessionAnalyzer:
 		))
 
 	@CacheDecorators.cached_method()
-	def __get_sequences(self, instrument: typing.Tuple[str, str]) -> typing.List[np.ndarray]:
+	def __get_sequences(self, instrument: typing.Tuple[str, str], channel: str = "c") -> typing.List[np.ndarray]:
 		dfs = self.__load_dfs(instrument=instrument)
 		return [
-			df["c"].to_numpy()
+			df[channel].to_numpy()
 			for df in dfs
 		]
 
@@ -134,14 +134,27 @@ class SessionAnalyzer:
 		self.__smoothing_algorithms = smoothing_algorithms
 		Logger.info("Using Smoothing Algorithms: {}".format(', '.join([str(sa) for sa in smoothing_algorithms])))
 
-	def plot_sequence(self, instrument: typing.Tuple[str, str], checkpoints: typing.List[int] = None, new_figure=True):
+	def plot_sequence(
+			self,
+			instrument: typing.Tuple[str, str],
+			checkpoints: typing.List[typing.Union[int, typing.Tuple[int, int]]] = None,
+			new_figure=True,
+			channels: typing.Tuple[str]= ('c',)
+	):
 		if checkpoints is None:
 			checkpoints = []
 
-		x = [
-			seq[-1]
-			for seq in self.__get_sequences(instrument=instrument)
-		]
+		for i in range(len(checkpoints)):
+			if isinstance(checkpoints[i], int):
+				checkpoints[i] = (checkpoints[i], None)
+
+		x = np.array([
+			[
+				seq[-1]
+				for seq in self.__get_sequences(instrument=instrument, channel=c)
+			]
+			for c in channels
+		])
 		x_sa = [
 			[
 				smoothed_sequence[-1]
@@ -155,7 +168,9 @@ class SessionAnalyzer:
 		plt.title(" / ".join(instrument))
 		plt.grid()
 
-		plt.plot(x, label="Clean")
+
+		for i, channel in enumerate(channels):
+			plt.plot(x[i], label=f"Channel:{channel} - Clean")
 		for i in range(len(self.__smoothing_algorithms)):
 			plt.plot(x_sa[i], label=str(self.__smoothing_algorithms[i]))
 
@@ -163,10 +178,12 @@ class SessionAnalyzer:
 			plt.axhline(y=y, color="black")
 
 		for checkpoint in checkpoints:
-			plt.axvline(x=checkpoint, color="blue")
-			plt.axvline(x=checkpoint+1, color="green")
-			plt.axvline(x=checkpoint+2, color="red")
-			plt.text(checkpoint, max(x), str(checkpoint), verticalalignment="center")
+			plt.axvline(x=checkpoint[0], color="blue")
+			plt.axvline(x=checkpoint[0]+1, color="green")
+			plt.text(checkpoint[0], np.max(x), str(checkpoint[0]), verticalalignment="center")
+
+			if checkpoint[1] is not None:
+				plt.plot(np.arange(3) + checkpoint[0]+1, [checkpoint[1]]*3, zorder=10, color="red", linewidth=5)
 
 		plt.legend()
 		if new_figure:
