@@ -29,13 +29,13 @@ class SimulationSimulator2Test(unittest.TestCase):
 				Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 				Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 				Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-				load_json("/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/bounds/1768015739.208787.json")
+				load_json(os.path.join(Config.RES_DIR, "bounds/14.json"))
 			],
 			seq_len=128,
 			extra_len=0,
 			batch_size=10,
 			output_path=self.output_path,
-			granularity=5,
+			granularity=2,
 			smoothing_algorithm=MovingAverage(64),
 			smoothed_columns=(),
 			x_columns=('c', 'l', 'h', 'v'),
