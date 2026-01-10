@@ -63,4 +63,4 @@ class ReflexMonteCarloAgent(MonteCarloAgent, ABC):
 		return max(self._get_current_graph().get_children(), key=lambda node: node.get_total_value()).action
 
 	def _finalize_step(self, root: 'Node'):
-		super()._finalize_step(root.parent)
+		super()._finalize_step(root.parent.parent)
