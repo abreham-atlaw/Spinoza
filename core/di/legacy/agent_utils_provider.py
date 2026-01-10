@@ -1,9 +1,16 @@
 from core import Config
+from core.agent.utils.state_predictor import StatePredictor, BasicStatePredictor
+from core.utils.research.model.model.utils import AggregateModel, WrappedModel, TransitionOnlyModel, \
+	TemperatureScalingModel
+from core.utils.research.model.model.utils.cached_model import CachedModel
+from lib.rl.agent.dta import TorchModel
 from lib.rl.agent.mca.resource_manager import MCResourceManager, TimeMCResourceManager, DiskResourceManager
 from lib.rl.agent.mca.stm import NodeMemoryMatcher, NodeShortTermMemory
 from lib.utils.logger import Logger
 from lib.utils.staterepository import StateRepository, AutoStateRepository, SectionalDictStateRepository, \
 	PickleStateRepository
+from lib.utils.stm import StochasticMemoryEvaluator, StochasticShortTermMemory
+from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class AgentUtilsProvider:
@@ -93,3 +100,58 @@ class AgentUtilsProvider:
 		)
 		Logger.info(f"Using Trade Node STM: {memory.__class__.__name__}")
 		return memory
+
+	@staticmethod
+	def provide_core_torch_model() -> TorchModel:
+		model = TemperatureScalingModel(
+			model=ModelHandler.load(Config.CORE_MODEL_CONFIG.path),
+			temperature=Config.AGENT_MODEL_TEMPERATURE
+		)
+		print(f"Using Temperature: {Config.AGENT_MODEL_TEMPERATURE}")
+		if Config.AGENT_MODEL_USE_CACHED_MODEL:
+			model = CachedModel(
+				model=model,
+			)
+		if Config.AGENT_MODEL_USE_TRANSITION_ONLY:
+			model = TransitionOnlyModel(
+				model=model,
+				extra_len=Config.AGENT_MODEL_EXTRA_LEN
+			)
+		model = WrappedModel(
+			model,
+			seq_len=Config.MARKET_STATE_MEMORY,
+			window_size=Config.AGENT_MA_WINDOW_SIZE,
+			use_ma=Config.AGENT_USE_SMOOTHING,
+		)
+
+		if Config.AGENT_MODEL_USE_AGGREGATION:
+			model = AggregateModel(
+				model=model,
+				a=Config.AGENT_MODEL_AGGREGATION_ALPHA,
+				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+			)
+		return TorchModel(
+			model
+		)
+
+	@staticmethod
+	def provide_state_predictor() -> StatePredictor:
+		return BasicStatePredictor(
+			model=AgentUtilsProvider.provide_core_torch_model(),
+			extra_len=Config.AGENT_MODEL_EXTRA_LEN
+		)
+
+	@staticmethod
+	def provide_reflex_memory_evaluator() -> StochasticMemoryEvaluator:
+		from core.agent.agents.montecarlo_agent.stm.reflex import PredictionReflexMemoryEvaluator
+		return PredictionReflexMemoryEvaluator(
+			state_predictor=AgentUtilsProvider.provide_state_predictor(),
+			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+		)
+
+	@staticmethod
+	def provide_reflex_stm() -> StochasticShortTermMemory:
+		return StochasticShortTermMemory(
+			size=Config.AGENT_REFLEX_STM_SIZE,
+			evaluator=AgentUtilsProvider.provide_reflex_memory_evaluator(),
+		)

@@ -6,6 +6,7 @@ import numpy as np
 
 from core import Config
 from core.agent.action import Action
+from core.di import AgentUtilsProvider
 from core.environment.trade_state import TradeState
 from lib.rl.agent.mca import ReflexMonteCarloAgent
 from lib.rl.environment import ModelBasedState
@@ -27,10 +28,7 @@ class ReflexAgent(
 	):
 		super().__init__(
 			*args,
-			reflex_stm=StochasticShortTermMemory(
-				size=Config.AGENT_REFLEX_STM_SIZE,
-				evaluator=TraderReflexMemoryEvaluator()
-			),
+			reflex_stm=AgentUtilsProvider.provide_reflex_stm(),
 			**kwargs
 		)
 
