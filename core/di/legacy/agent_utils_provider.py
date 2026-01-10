@@ -1,5 +1,4 @@
 from core import Config
-from core.agent.utils.state_predictor import StatePredictor, BasicStatePredictor
 from core.utils.research.model.model.utils import AggregateModel, WrappedModel, TransitionOnlyModel, \
 	TemperatureScalingModel
 from core.utils.research.model.model.utils.cached_model import CachedModel
@@ -135,7 +134,8 @@ class AgentUtilsProvider:
 		)
 
 	@staticmethod
-	def provide_state_predictor() -> StatePredictor:
+	def provide_state_predictor() -> 'StatePredictor':
+		from core.agent.utils.state_predictor import BasicStatePredictor
 		return BasicStatePredictor(
 			model=AgentUtilsProvider.provide_core_torch_model(),
 			extra_len=Config.AGENT_MODEL_EXTRA_LEN
