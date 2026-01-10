@@ -357,7 +357,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		possible_values = original_values[channels][:, -1:] * self._simulation_state_change_delta_bounds
 
 		possible_values = self._enumerate_channel_combinations(possible_values)
-		possible_values = self.__filter_possible_values(possible_values)
+		# possible_values = self.__filter_possible_values(possible_values)
 
 		if original_values.shape[0] > possible_values.shape[0]:
 			y = np.zeros((original_values.shape[0], possible_values.shape[1]))
