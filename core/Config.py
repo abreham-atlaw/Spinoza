@@ -13,6 +13,9 @@ class ModelConfig:
 	url: str
 	path: str
 
+def load_json(path):
+	with open(path, "r") as f:
+		return json.load(f)
 
 IS_LIVE = True
 
@@ -174,8 +177,12 @@ AGENT_MODEL_EXTRA_LEN = 124
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/09.json"), "r") as file:
-	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
+AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = [
+	load_json(os.path.join(RES_DIR, f"bounds/{i}.json"))
+	for i in [
+		"13", "13", "13","14"
+	]
+]
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
