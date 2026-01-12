@@ -14,11 +14,17 @@ class DataPrepUtils:
 
 	@staticmethod
 	def apply_bound_epsilon(bounds: typing.List[float], eps: float = None) -> typing.List[float]:
+		if (isinstance(bounds, np.ndarray) and bounds.ndim == 2) or (isinstance(bounds, list) and isinstance(bounds[0], list)):
+			return np.stack([
+				DataPrepUtils.apply_bound_epsilon(bounds[i], eps)
+				for i in range(len(bounds))
+			])
+
 		if eps is None:
 			eps = (bounds[1] - bounds[0] + bounds[-1] - bounds[-2]) / 2
 		Logger.info(f"Using epsilon: {eps}")
 		bounds = np.concatenate([
-			np.array([bounds[0] - eps]),
+			np.array([max(bounds[0] - eps, 1e-9)]),
 			bounds,
 			np.array([bounds[-1] + eps])
 		])
@@ -61,7 +67,9 @@ class DataPrepUtils:
 		df = df.iloc[:g*(df.shape[0] // g)]
 		df_g = df.iloc[0::g].copy()
 
-		for col, condenser in zip(["l", "h"], [np.min, np.max]):
+		for col, condenser in zip(["l", "h", "v"], [np.min, np.max, np.sum]):
+			if col not in df_g.columns:
+				continue
 			df_g[col] = condenser(df[col].to_numpy().reshape((-1, g)), axis=1)
 
 		return df_g

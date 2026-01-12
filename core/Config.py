@@ -13,6 +13,9 @@ class ModelConfig:
 	url: str
 	path: str
 
+def load_json(path):
+	with open(path, "r") as f:
+		return json.load(f)
 
 IS_LIVE = False
 
@@ -84,9 +87,9 @@ MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = True
-MARKET_STATE_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_CHANNELS = ('c', 'l', 'h', 'v')
 MARKET_STATE_SMOOTHED_CHANNELS = ()
-MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h', 'v')
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TRADE_PENALTY = 0
@@ -163,6 +166,7 @@ AGENT_DUMP_VISITED_ONLY = True
 AGENT_USE_AUTO_STATE_REPOSITORY = True
 AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e4)
 AGENT_FILESYSTEM_STATE_REPOSITORY_PATH = BASE_DIR
+AGENT_MCA_GRAPH_PLOT_RATE = 0.0
 AGENT_MIN_FREE_MEMORY = 2
 AGENT_MIN_DISK_SPACE = 0.1
 AGENT_MIN_ABS_DISK_SPACE = None
@@ -174,8 +178,12 @@ AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/13.json"), "r") as file:
-	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
+AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = [
+	load_json(os.path.join(RES_DIR, f"bounds/{i}.json"))
+	for i in [
+		"13", "13", "13","14"
+	]
+]
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
@@ -233,7 +241,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-89/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-92/"
 
 
 try:
@@ -365,6 +373,8 @@ class RunnerStatsBranches:
 
 	it_91_6 = "it_91_6"
 
+	it_92_6 = "it_92_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -448,10 +458,11 @@ class RunnerStatsBranches:
 		it_88_6,
 		it_89_6,
 		it_90_6,
-		it_91_6
+		it_91_6,
+		it_92_6
 	]
 
-	default = it_89_6
+	default = it_92_6
 
 
 class RunnerStatsLossesBranches:
@@ -517,6 +528,7 @@ class RunnerStatsLossesBranches:
 	it_88_0 = "it_88_0"
 	it_90_0 = "it_90_0"
 	it_91_0 = "it_91_0"
+	it_92_0 = "it_92_0"
 
 	all = [
 		main,
@@ -577,10 +589,11 @@ class RunnerStatsLossesBranches:
 		it_86_0,
 		it_88_0,
 		it_90_0,
-		it_91_0
+		it_91_0,
+		it_92_0,
 	]
 
-	default = it_88_0
+	default = it_92_0
 
 
 

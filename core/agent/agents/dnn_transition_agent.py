@@ -49,6 +49,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__state_change_delta_model_mode = state_change_delta_model_mode
 		if isinstance(state_change_delta_bounds, list):
 			state_change_delta_bounds = np.array(state_change_delta_bounds, dtype=np.float32)
+		if state_change_delta_bounds.ndim == 1:
+			state_change_delta_bounds = np.expand_dims(state_change_delta_bounds, axis=0)
 		self._state_change_delta_bounds = state_change_delta_bounds
 		self._simulation_state_change_delta_bounds = DataPrepUtils.apply_bound_epsilon(self._state_change_delta_bounds)
 		self.__depth_mode = depth_mode
@@ -346,6 +348,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			).reshape(possible_values.shape[0], -1)
 		return possible_values
 
+	def __filter_possible_values(self, values: np.ndarray) -> np.ndarray:
+		values = values[:, (values[self.__high_channel] >= values[self.__close_channel]) & (values[self.__low_channel] <= values[self.__close_channel])]
+		return values
+
 	def _get_possible_channel_values(self, state: TradeState, base_currency: str, quote_currency: str) -> np.ndarray:
 		channels = [i for i in range(len(self.__market_state_channels)) if self.__market_state_channels[i] in self.__simulated_channels]
 
@@ -353,6 +359,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		possible_values = original_values[channels][:, -1:] * self._simulation_state_change_delta_bounds
 
 		possible_values = self._enumerate_channel_combinations(possible_values)
+		# possible_values = self.__filter_possible_values(possible_values)
 
 		if original_values.shape[0] > possible_values.shape[0]:
 			y = np.zeros((original_values.shape[0], possible_values.shape[1]))
