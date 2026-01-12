@@ -15,7 +15,7 @@ from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgori
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import SpinozaLoss
 from core.utils.research.model.model.savable import SpinozaModule
-from core.utils.research.model.model.utils import HorizonModel
+from core.utils.research.model.model.utils import HorizonModel, AggregateModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.rl.agent import Node
 from lib.utils.cache import Cache
@@ -39,7 +39,8 @@ class SessionAnalyzer:
 			dtype: typing.Type = np.float32,
 			model_key: str = "spinoza-training",
 			bounds: typing.Iterable[float] = None,
-			extra_len: int = 124
+			extra_len: int = 124,
+			aggregate_alpha: float = None
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -47,17 +48,16 @@ class SessionAnalyzer:
 		self.__plt_y_grid_count = plt_y_grid_count
 		self.__cache = Cache()
 		self.__instruments = instruments
-		self.__model = model or self.__load_session_model(model_key)
-		self.__dtype = dtype
-
 		if bounds is None:
 			bounds = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 		self.__bounds = bounds
 
+		self.__model = model or self.__load_session_model(model_key, aggregate_alpha)
+		self.__dtype = dtype
 		self.__softmax = nn.Softmax(dim=-1)
 		self.__extra_len = extra_len
 
-	def __load_session_model(self, model_key: str) -> SpinozaModule:
+	def __load_session_model(self, model_key: str, aggregate_alpha: float) -> SpinozaModule:
 		model_path = os.path.join(
 			self.__sessions_path,
 			next(filter(
@@ -66,7 +66,16 @@ class SessionAnalyzer:
 			))
 		)
 		Logger.info(f"Using session model: {os.path.basename(model_path)}")
-		return ModelHandler.load(model_path)
+		model = ModelHandler.load(model_path)
+
+		if aggregate_alpha is not None:
+			model = AggregateModel(
+				model=model,
+				bounds=self.__bounds,
+				a=aggregate_alpha,
+				softmax=True
+			)
+		return model
 
 	@property
 	def __candlesticks_path(self) -> str:
@@ -103,10 +112,10 @@ class SessionAnalyzer:
 		))
 
 	@CacheDecorators.cached_method()
-	def __get_sequences(self, instrument: typing.Tuple[str, str]) -> typing.List[np.ndarray]:
+	def __get_sequences(self, instrument: typing.Tuple[str, str], channel: str = "c") -> typing.List[np.ndarray]:
 		dfs = self.__load_dfs(instrument=instrument)
 		return [
-			df["c"].to_numpy()
+			df[channel].to_numpy()
 			for df in dfs
 		]
 
@@ -125,14 +134,27 @@ class SessionAnalyzer:
 		self.__smoothing_algorithms = smoothing_algorithms
 		Logger.info("Using Smoothing Algorithms: {}".format(', '.join([str(sa) for sa in smoothing_algorithms])))
 
-	def plot_sequence(self, instrument: typing.Tuple[str, str], checkpoints: typing.List[int] = None, new_figure=True):
+	def plot_sequence(
+			self,
+			instrument: typing.Tuple[str, str],
+			checkpoints: typing.List[typing.Union[int, typing.Tuple[int, int]]] = None,
+			new_figure=True,
+			channels: typing.Tuple[str]= ('c',)
+	):
 		if checkpoints is None:
 			checkpoints = []
 
-		x = [
-			seq[-1]
-			for seq in self.__get_sequences(instrument=instrument)
-		]
+		for i in range(len(checkpoints)):
+			if isinstance(checkpoints[i], int):
+				checkpoints[i] = (checkpoints[i], None)
+
+		x = np.array([
+			[
+				seq[-1]
+				for seq in self.__get_sequences(instrument=instrument, channel=c)
+			]
+			for c in channels
+		])
 		x_sa = [
 			[
 				smoothed_sequence[-1]
@@ -146,7 +168,9 @@ class SessionAnalyzer:
 		plt.title(" / ".join(instrument))
 		plt.grid()
 
-		plt.plot(x, label="Clean")
+
+		for i, channel in enumerate(channels):
+			plt.plot(x[i], label=f"Channel:{channel} - Clean")
 		for i in range(len(self.__smoothing_algorithms)):
 			plt.plot(x_sa[i], label=str(self.__smoothing_algorithms[i]))
 
@@ -154,10 +178,12 @@ class SessionAnalyzer:
 			plt.axhline(y=y, color="black")
 
 		for checkpoint in checkpoints:
-			plt.axvline(x=checkpoint, color="blue")
-			plt.axvline(x=checkpoint+1, color="green")
-			plt.axvline(x=checkpoint+2, color="red")
-			plt.text(checkpoint, max(x), str(checkpoint), verticalalignment="center")
+			plt.axvline(x=checkpoint[0], color="blue")
+			plt.axvline(x=checkpoint[0]+1, color="green")
+			plt.text(checkpoint[0], np.max(x), str(checkpoint[0]), verticalalignment="center")
+
+			if checkpoint[1] is not None:
+				plt.plot(np.arange(3) + checkpoint[0]+1, [checkpoint[1]]*3, zorder=10, color="red", linewidth=5)
 
 		plt.legend()
 		if new_figure:
@@ -234,8 +260,7 @@ class SessionAnalyzer:
 
 	def __get_yv(self, y: np.ndarray) -> np.ndarray:
 		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds)
-		bounds = (bounds[1:] + bounds[:-1])/2
-		return np.sum(y[:, :-1] * bounds, axis=1)
+		return np.sum(y[:] * bounds, axis=1)
 
 	@staticmethod
 	def __evaluate_samples_loss(y_hat: np.ndarray, y: np.ndarray, loss_fn: SpinozaLoss) -> np.ndarray:
