@@ -12,7 +12,7 @@ from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
-	ProximalMaskedPenaltyLoss2, ProximalMaskedLoss3
+	ProximalMaskedPenaltyLoss2, ProximalMaskedLoss3, ProximalMaskedLoss
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
 	LayerStack, Identity, NoiseInjectionLayer
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
@@ -58,9 +58,9 @@ class TrainerTest(unittest.TestCase):
 
 	def _get_root_dirs(self):
 		return [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/08/train"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/09/train"
 		], [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/08/test"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/09/test"
 		]
 
 	def __init_dataloader(self):
@@ -200,10 +200,10 @@ class TrainerTest(unittest.TestCase):
 		EXTRA_LEN = 0
 		EMBEDDING_SIZE = 8
 		BLOCK_SIZE = 128 + EXTRA_LEN
-		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/11.json"))) + 1
-		INPUT_CHANNELS = 3
-		OUTPUT_CHANNELS = 3
-		Y_CHANNEL_MAP = (0, 1, 2)
+		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/13.json"))) + 1
+		INPUT_CHANNELS = 4
+		OUTPUT_CHANNELS = 4
+		Y_CHANNEL_MAP = (0, 1, 2, 3)
 
 		HORIZON_MODE = True
 		USE_MC_HORIZON = INPUT_CHANNELS > 1
@@ -348,7 +348,8 @@ class TrainerTest(unittest.TestCase):
 				max_depth=HORIZON_MAX_DEPTH,
 				X_extra_len=EXTRA_LEN,
 				y_channel_map=Y_CHANNEL_MAP,
-				value_correction=True
+				use_gumbel_softmax=True,
+				value_correction=False
 			)
 		return model
 
@@ -453,9 +454,8 @@ class TrainerTest(unittest.TestCase):
 
 	def _create_losses(self):
 		return (
-			ProximalMaskedLoss3(
-				bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
-				weighted_sample=False,
+			ProximalMaskedLoss(
+				n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND[0])+1,
 				multi_channel=True
 			),
 			MeanSquaredErrorLoss(weighted_sample=False)
