@@ -14,11 +14,17 @@ class DataPrepUtils:
 
 	@staticmethod
 	def apply_bound_epsilon(bounds: typing.List[float], eps: float = None) -> typing.List[float]:
+		if (isinstance(bounds, np.ndarray) and bounds.ndim == 2) or (isinstance(bounds, list) and isinstance(bounds[0], list)):
+			return np.stack([
+				DataPrepUtils.apply_bound_epsilon(bounds[i], eps)
+				for i in range(len(bounds))
+			])
+
 		if eps is None:
 			eps = (bounds[1] - bounds[0] + bounds[-1] - bounds[-2]) / 2
 		Logger.info(f"Using epsilon: {eps}")
 		bounds = np.concatenate([
-			np.array([bounds[0] - eps]),
+			np.array([max(bounds[0] - eps, 1e-9)]),
 			bounds,
 			np.array([bounds[-1] + eps])
 		])
