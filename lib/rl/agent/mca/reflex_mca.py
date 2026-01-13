@@ -40,7 +40,10 @@ class ReflexMonteCarloAgent(MonteCarloAgent, ABC):
 		if approx_state is None:
 			raise ValueError(f"Reflex STM returned None.")
 
-		node = state_nodes[states.index(approx_state)]
+		idx = states.index(approx_state)
+		node = state_nodes[idx]
+
+		Logger.info(f"Approximating to node {idx}")
 
 		return node
 
