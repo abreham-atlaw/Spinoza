@@ -9,7 +9,7 @@ from lib.utils.stm import StochasticMemoryEvaluator
 class TraderReflexMemoryEvaluator(StochasticMemoryEvaluator):
 
 	@staticmethod
-	def __evaluate_agent_state(state0: AgentState, state1: AgentState) -> float:
+	def _evaluate_agent_state(state0: AgentState, state1: AgentState) -> float:
 		return (
 			abs(state0.get_balance() - state1.get_balance()) +
 			abs(len(state0.get_open_trades()) - len(state1.get_open_trades()))*100
@@ -24,5 +24,5 @@ class TraderReflexMemoryEvaluator(StochasticMemoryEvaluator):
 		])
 
 	def evaluate(self, cue: TradeState, memory: TradeState) -> float:
-		return self.__evaluate_agent_state(cue.get_agent_state(), memory.get_agent_state()) + \
+		return self._evaluate_agent_state(cue.get_agent_state(), memory.get_agent_state()) + \
 			self._evaluate_market_state(cue, memory)
