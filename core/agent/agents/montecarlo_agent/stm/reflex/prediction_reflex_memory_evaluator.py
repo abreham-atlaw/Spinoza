@@ -3,7 +3,7 @@ import typing
 import numpy as np
 
 from core.agent.utils.state_predictor import StatePredictor, BasicStatePredictor
-from core.environment.trade_state import MarketState, TradeState
+from core.environment.trade_state import MarketState, TradeState, AgentState
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.logger import Logger
@@ -34,3 +34,7 @@ class PredictionReflexMemoryEvaluator(TraderReflexMemoryEvaluator):
 	def _evaluate_market_state(self, state0: TradeState, state1: TradeState) -> float:
 		y0, y1 = self.__predict_state(state0), self.__predict_state(state1)
 		return np.sum(np.abs(y0 - y1))
+
+	@staticmethod
+	def _evaluate_agent_state(state0: AgentState, state1: AgentState) -> float:
+		return 0
