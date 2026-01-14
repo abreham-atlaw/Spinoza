@@ -202,7 +202,7 @@ class LiveEnvironment(TradeEnvironment):
 
 		return data
 
-	CacheDecorators.cached_method(timeout=Config.ENVIRONMENT_FETCH_CACHE_TIMEOUT)
+	@CacheDecorators.cached_method(timeout=Config.ENVIRONMENT_FETCH_CACHE_TIMEOUT)
 	def __fetch_instrument_state(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
 		size = size + self.__smoothing_algorithm.reduction
 
