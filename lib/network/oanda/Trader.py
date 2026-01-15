@@ -197,7 +197,8 @@ class Trader:
 			action: int,
 			margin: float,
 			time_in_force="FOK",
-			stop_loss: float = None
+			stop_loss: float = None,
+			take_profit: float = None
 	) -> CreateOrderResponse:
 		instrument, action = self.__get_proper_instrument_action_pair(instrument, action)
 		available_margin = self.get_margin_available()
@@ -207,13 +208,19 @@ class Trader:
 			action,
 			self.__get_units_for_margin_used(instrument, margin)
 		)
+
+		if take_profit is not None:
+			take_profit = TriggerPrice(round(take_profit, self.get_instrument_precision(instrument)-1))
+
 		if stop_loss is not None:
 			stop_loss = TriggerPrice(round(stop_loss, self.get_instrument_precision(instrument)-1))
+
 		order = Order(
 			units,
 			Trader.format_instrument(instrument),
 			time_in_force,
-			stopLossOnFill=stop_loss
+			stopLossOnFill=stop_loss,
+			takeProfitOnFill=take_profit
 		)
 		return self.__client.execute(
 			CreateOrderRequest(order)

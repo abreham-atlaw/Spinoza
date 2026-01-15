@@ -3,7 +3,7 @@ from typing import *
 
 import math
 
-from core.agent.action import TraderAction
+from core.agent.action import TraderAction, ActionSequence
 from core import Config
 from .market_state import MarketState
 from .exceptions import InsufficientFundsException
@@ -132,13 +132,30 @@ class AgentState:
 			(trade.get_trade().quote_currency == quote_currency or quote_currency is None)
 		]
 
-	def open_trade(self, action: TraderAction, current_value: float = None):
-		if current_value is None:
-			current_value = self.__market_state.get_current_price(action.base_currency, action.quote_currency)
+	def rectify_action(self, action: TraderAction):
+		if action is None:
+			return action
+		if isinstance(action, ActionSequence):
+			[
+				self.rectify_action(a)
+				for a in action.actions
+			]
+			return action
+
+		if action.action == TraderAction.Action.CLOSE:
+			return action
+
 		if action.margin_used is None:
 			action.margin_used = self.calc_required_margin(action.units, action.base_currency, action.quote_currency)
 		elif action.units is None:
 			action.units = self.__units_for(action.margin_used, action.base_currency, action.quote_currency)
+
+		return action
+
+	def open_trade(self, action: TraderAction, current_value: float = None):
+		if current_value is None:
+			current_value = self.__market_state.get_current_price(action.base_currency, action.quote_currency)
+
 		if action.margin_used > self.get_margin_available():
 			raise InsufficientFundsException(
 				available_margin=self.get_margin_available(),
@@ -168,9 +185,14 @@ class AgentState:
 	def add_open_trade(self, trade: OpenTrade):
 		self.__open_trades.append(trade)
 
-	def close_trades(self, base_currency, quote_currency, modify_balance=True):
+	def close_trades(self, base_currency, quote_currency, modify_balance=True, close_price: float = None):
 		self.__update_open_trades()
 		open_trades = self.get_open_trades(base_currency, quote_currency)
+
+		if close_price is not None:
+			for trade in open_trades:
+				trade.update_current_value(close_price)
+
 		if modify_balance:
 			self.update_balance(
 				sum([

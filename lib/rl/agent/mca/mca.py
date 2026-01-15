@@ -289,7 +289,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			]
 		)
 
-	def __finalize_step(self, root: 'Node'):
+	def _finalize_step(self, root: 'Node'):
 
 		if self.__dump_nodes:
 			self.__dump_node(root)
@@ -477,7 +477,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		)
 		optimal_action = max(root_node.get_children(), key=lambda node: node.get_total_value()).action
 		Logger.info(f"Best Action {optimal_action}")
-		self.__finalize_step(root_node)
+		self._finalize_step(root_node)
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
 		for action_node in self.__get_current_graph().get_children():

@@ -56,7 +56,8 @@ class TraderTest(unittest.TestCase):
 	def setUp(self) -> None:
 		self.trader = Trader(
 			Config.OANDA_TOKEN,
-			Config.OANDA_TEST_ACCOUNT_ID
+			Config.OANDA_TEST_ACCOUNT_ID,
+			trading_url = Config.OANDA_TRADING_URL,
 		)
 		self.trader.close_all_trades()
 
@@ -145,6 +146,19 @@ class TraderTest(unittest.TestCase):
 
 		self.assertEqual(len(open_trades), 1)
 		self.assertIsNotNone(open_trades[0].stopLossOrder)
+
+	def test_take_profit_trade(self):
+		self.trader.trade(
+			("AUD", "USD"),
+			action=Trader.TraderAction.BUY,
+			margin=20,
+			take_profit=0.672
+		)
+
+		open_trades: typing.List[Trade] = self.trader.get_open_trades()
+
+		self.assertEqual(len(open_trades), 1)
+		self.assertIsNotNone(open_trades[0].takeProfitOrder)
 
 	def test_get_instrument_precision(self):
 		self.assertEqual(
