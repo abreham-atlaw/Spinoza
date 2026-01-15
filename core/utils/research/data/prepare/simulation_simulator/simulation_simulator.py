@@ -21,6 +21,7 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 		ma_window: int = None,
 		order_gran: bool = True,
 		smoothing_algorithm: typing.Optional[SmoothingAlgorithm] = None,
+		allow_instrument_batching: bool = True,
 		**kwargs
 	):
 		if smoothing_algorithm is None and ma_window not in [None, 0, 1]:
@@ -40,6 +41,7 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 		self.__extra_len = extra_len
 
 		self._smoothing_algorithm = smoothing_algorithm
+		self.__allow_instrument_batching = allow_instrument_batching
 		Logger.info(f"Using Smoothing Algorithm: {self._smoothing_algorithm}")
 
 	def _prepare_sequence_stack(self, x: np.ndarray) -> np.ndarray:
@@ -84,7 +86,7 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 	def _batch_df(self, df: pd.DataFrame) -> typing.List[pd.DataFrame]:
 		instruments = DataPrepUtils.get_instruments(df)
 		Logger.info(f"Found {len(instruments)} instruments: {instruments}")
-		if len(instruments) == 1:
+		if (not self.__allow_instrument_batching) or len(instruments) == 1:
 			return super()._batch_df(df)
 
 		Logger.info(f"Using instrument batching...")
