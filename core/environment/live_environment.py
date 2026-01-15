@@ -39,6 +39,7 @@ class LiveEnvironment(TradeEnvironment):
 			stop_loss_conversion: bool = Config.AGENT_STOP_LOSS_CONVERSION,
 			stop_loss_conversion_bounds: typing.Tuple[float, float] = Config.AGENT_STOP_LOSS_CONVERSION_BOUNDS,
 			stop_loss_conversion_accuracy: int = Config.AGENT_STOP_LOSS_CONVERSION_ACCURACY,
+			trigger_value_absolute_multiplier: float = Config.AGENT_TRIGGER_ABSOLUTE_VALUE_MULTIPLIER,
 			close_channel_label: str = "c",
 			**kwargs
 	):
@@ -69,6 +70,7 @@ class LiveEnvironment(TradeEnvironment):
 		self.__trigger_value_conversion = stop_loss_conversion
 		self.__stop_loss_conversion_bounds = stop_loss_conversion_bounds
 		self.__stop_loss_conversion_accuracy = stop_loss_conversion_accuracy
+		self.__trigger_value_absolute_multiplier = trigger_value_absolute_multiplier
 		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
 
 	def __generate_all_instruments(self, instruments, agent_currency) -> List[Tuple[str, str]]:
@@ -238,9 +240,18 @@ class LiveEnvironment(TradeEnvironment):
 		y = p[np.argmin(np.abs(y - action.stop_loss))]
 		return y
 
+	def __apply_trigger_value_multiplier(self, value: float) -> float:
+		new_value = 1 + (value  - 1)*self.__trigger_value_absolute_multiplier
+		Logger.info(f"Trigger Value Multiplied: {value} -> {new_value}")
+		return new_value
+
 	def __calculate_stop_loss(self, action: TraderAction, trigger_value: float) -> typing.Optional[float]:
+		trigger_value = self.__apply_trigger_value_multiplier(trigger_value)
+
 		if self.__trigger_value_conversion:
 			trigger_value = self.__convert_stop_loss(action)
+
+
 		price = self.__trader.get_price((action.base_currency, action.quote_currency))
 		return price * trigger_value
 
