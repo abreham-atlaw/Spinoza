@@ -19,6 +19,7 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 			trade_size_gap=Config.AGENT_TRADE_SIZE_GAP,
 			trade_size_use_percentage=Config.AGENT_TRADE_SIZE_USE_PERCENTAGE,
 			trade_min_size=Config.AGENT_TRADE_MIN_SIZE,
+			trade_max_margin_used=Config.AGENT_TRADE_MAX_MARGIN_USED,
 			multi_actions=Config.AGENT_SUPPORT_MULTI_ACTION,
 			stop_loss_granularity=Config.AGENT_STOP_LOSS_GRANULARITY,
 			stop_loss_value_bound=Config.AGENT_STOP_LOSS_VALUE_BOUND,
@@ -29,6 +30,7 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 		self.__trade_size_gap = trade_size_gap
 		self.__trade_size_use_percentage = trade_size_use_percentage
 		self.__trade_min_size = trade_min_size
+		self.__trade_max_margin_used = trade_max_margin_used
 		self.__multi_actions = multi_actions
 		self.__stop_loss_granularity = stop_loss_granularity
 		self.__stop_loss_value_bound = stop_loss_value_bound
@@ -56,9 +58,11 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 			else self.__trade_size_gap
 		min_size = self.__trade_min_size * state.get_agent_state().get_balance(original=True) if self.__trade_size_use_percentage \
 			else self.__trade_min_size
+		max_size = (self.__trade_max_margin_used * state.get_agent_state().get_balance(original=True) if self.__trade_size_use_percentage
+			else self.__trade_size_gap) - state.get_agent_state().get_margin_used()
 
 		amounts = list(filter(
-			lambda size: size >= min_size,
+			lambda size: min_size <= size <= max_size,
 			[
 				(i + 1) * gap
 				for i in range(int(state.get_agent_state().get_margin_available() // gap))
@@ -111,6 +115,31 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 			]
 		]
 
+	def __generate_readjust_margin(self, trade: AgentState.OpenTrade, state: TradeState) -> typing.List[ActionSequence]:
+		state = deepcopy(state)
+		close_action = TraderAction(
+			trade.get_trade().base_currency,
+			trade.get_trade().quote_currency,
+			TraderAction.Action.CLOSE
+		)
+
+		self._simulate_action(state, close_action)
+
+		return [
+			ActionSequence(
+				actions=(
+					close_action,
+					action
+				)
+			)
+			for action in self._generate_lone_actions(state)
+			if (
+					action.action == trade.get_trade().action and
+					action.base_currency == trade.get_trade().base_currency and
+					action.quote_currency == trade.get_trade().quote_currency
+			)
+		]
+
 	def __generate_action_sequences(self, state: TradeState) -> typing.List[ActionSequence]:
 		if len(state.get_agent_state().get_open_trades()) == 0:
 			return []
@@ -118,6 +147,7 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 		actions = []
 		for trade in state.get_agent_state().get_open_trades():
 			actions.extend(self.__generate_reversal_actions(trade, state))
+			actions.extend(self.__generate_readjust_margin(trade, state))
 
 		return actions
 

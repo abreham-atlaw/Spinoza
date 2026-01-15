@@ -11,7 +11,7 @@ from core.agent.action import TraderAction, Action, ActionSequence
 from core.agent.utils.cache import Cache
 from core.di import AgentUtilsProvider
 from core.environment.trade_state import TradeState, AgentState
-from core.utils.research.model.model.utils import TransitionOnlyModel
+from core.utils.research.model.model.utils import TransitionOnlyModel, AggregateModel
 from core.utils.research.model.model.utils import WrappedModel
 
 from core.utils.research.model.model.utils import TemperatureScalingModel
@@ -43,6 +43,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
 			use_transition_only_model=Config.AGENT_MODEL_USE_TRANSITION_ONLY,
 			use_extra_data: bool = Config.AGENT_USE_EXTRA_DATA,
+			graph_plot_rate: float = Config.AGENT_MCA_GRAPH_PLOT_RATE,
 			**kwargs
 	):
 		self.__use_transition_only = use_transition_only_model
@@ -61,6 +62,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			discount=discount,
 			discount_function=discount_function,
 			state_repository=AgentUtilsProvider.provide_state_repository(),
+			graph_plot_rate=graph_plot_rate,
 			**kwargs
 		)
 		self.__encode_max_open_trades = encode_max_open_trade
@@ -82,13 +84,21 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 				model=model,
 				extra_len=Config.AGENT_MODEL_EXTRA_LEN
 			)
+		model = WrappedModel(
+				model,
+				seq_len=Config.MARKET_STATE_MEMORY,
+				window_size=Config.AGENT_MA_WINDOW_SIZE,
+				use_ma=Config.AGENT_USE_SMOOTHING,
+			)
+
+		if Config.AGENT_MODEL_USE_AGGREGATION:
+			model = AggregateModel(
+				model=model,
+				a=Config.AGENT_MODEL_AGGREGATION_ALPHA,
+				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+			)
 		return TorchModel(
-				WrappedModel(
-					model,
-					seq_len=Config.MARKET_STATE_MEMORY,
-					window_size=Config.AGENT_MA_WINDOW_SIZE,
-					use_ma=Config.AGENT_USE_SMOOTHING,
-				)
+				model
 			)
 
 	@property

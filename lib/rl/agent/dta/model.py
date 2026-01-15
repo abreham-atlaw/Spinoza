@@ -56,7 +56,14 @@ class TorchModel(Model):
 		self.__model = model
 		self.__model.eval()
 		self.__device = None
-		self.device = next(self.__model.parameters()).device if device is None else device
+		self.device = self.__parse_device(model) if device is None else device
+
+	@staticmethod
+	def __parse_device(model: nn.Module):
+		parameter = next(model.parameters(), None)
+		if parameter is not None:
+			return parameter.device
+		return torch.device("cpu")
 
 	@property
 	def device(self) -> torch.device:

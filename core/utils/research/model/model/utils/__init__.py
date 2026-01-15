@@ -5,3 +5,4 @@ from .horizon_model import HorizonModel
 from .abstract_horizon_model import AbstractHorizonModel
 from .adopted_input_size_model import AdoptedInputSizeModel
 from .mc_horizon_model import MCHorizonModel
+from .aggregate_model import AggregateModel

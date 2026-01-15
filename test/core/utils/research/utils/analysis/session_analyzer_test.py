@@ -13,21 +13,26 @@ class SessionAnalyzerTest(unittest.TestCase):
 
 	def setUp(self):
 		self.session_analyzer = SessionAnalyzer(
-			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/00"),
+			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/03"),
 			instruments=[
 				("AUD", "USD"),
-				# ("USD", "ZAR")
+				("USD", "ZAR")
 			],
 			smoothing_algorithms=[
 				MovingAverage(32),
 			],
 			plt_y_grid_count=10,
-			model_key="176"
+			model_key="it-89",
+			# aggregate_alpha=0.98/3
 		)
 
 	def test_plot_sequence(self):
-		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("AUD", "USD"))
-		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("USD", "ZAR"))
+		self.session_analyzer.plot_sequence(
+			checkpoints=[(2, 0.64), 6],
+			instrument=("AUD", "USD"),
+			channels=("c", 'l', 'h')
+		)
+		# self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("USD", "ZAR"))
 
 	def test_plot_timestep_sequence(self):
 		self.session_analyzer.plot_timestep_sequence(i=0, instrument=("AUD", "USD"))
@@ -58,6 +63,18 @@ class SessionAnalyzerTest(unittest.TestCase):
 	def test_plot_node_prediction(self):
 		self.session_analyzer.plot_node_prediction(
 			0,
-			path=[1, 0, 1, 0, 1, 0],
+			path=[],
 			instrument=("AUD", "USD"),
+		)
+
+	def test_plot_prediction_sequence(self):
+		self.session_analyzer.plot_prediction_sequence(
+			instrument=("AUD", "USD"),
+			channel=0,
+			checkpoints=[4]
+		)
+
+	def test_plot_trades(self):
+		self.session_analyzer.plot_trades(
+			channels=("c", 'l', 'h'),
 		)

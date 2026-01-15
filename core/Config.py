@@ -35,7 +35,7 @@ DROPBOX_API_TOKEN = "sl.BrBqqSAAzJsdIo9x1NG-z51HwPzc6yw0KCrbQ7hn76DvI0vItMEhXBDi
 DROPBOX_FOLDER = "/RForexTrader"
 PCLOUD_TOKENS = [
 	"VVQfe7ZfKQB7ZbFDO0AqnuC0UnJdM10Id3hT42dCV",  # abrishatlaw@gmail.com +
-	"nC2uuVZ6O9B7ZjuXK6ioCWTXjAwmG3WvOFJkUu4PX",  # abrishatlaw@yahoo.com +
+	"HnQuN7Z6O9B7Z8u8NNWHx9Yf871Ahj1uR6Hj7eSVX",  # abrishatlaw@yahoo.com +
 	"AO63UkZIO9B7Z9vy1c4ggwNyT92bwbMIQEyavx2t7",  # abreham.atlaw@yahoo.com -
 	# "aCT8vkZxDks7ZYpOYIhqlahkcknASzvkHKLR8Ai3y",  # abrehamatlaw@outlook.com -
 	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
@@ -92,6 +92,7 @@ TIME_PENALTY = 0
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
+AGENT_TRADE_MAX_MARGIN_USED = 0.75
 AGENT_TRADE_SIZE_USE_PERCENTAGE = True
 AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = False
@@ -161,11 +162,14 @@ AGENT_DUMP_VISITED_ONLY = True
 AGENT_USE_AUTO_STATE_REPOSITORY = True
 AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e4)
 AGENT_FILESYSTEM_STATE_REPOSITORY_PATH = BASE_DIR
+AGENT_MCA_GRAPH_PLOT_RATE = 0.0
 AGENT_MIN_FREE_MEMORY = 2
 AGENT_MIN_DISK_SPACE = 0.1
 AGENT_MIN_ABS_DISK_SPACE = None
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
+AGENT_MODEL_USE_AGGREGATION = False
+AGENT_MODEL_AGGREGATION_ALPHA = 0.3
 AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
@@ -360,6 +364,13 @@ class RunnerStatsBranches:
 
 	it_88_6 = "it_88_6"
 	it_89_6 = "it_89_6"
+	it_89_7 = "it_89_7"
+
+	it_90_6 = "it_90_6"
+
+	it_91_6 = "it_91_6"
+
+	it_92_6 = "it_92_6"
 
 	all = [
 		main,
@@ -442,7 +453,11 @@ class RunnerStatsBranches:
 		it_86_6,
 		it_87_6,
 		it_88_6,
-		it_89_6
+		it_89_6,
+		it_89_7,
+		it_90_6,
+		it_91_6,
+		it_92_6
 	]
 
 	default = it_89_6
@@ -509,6 +524,9 @@ class RunnerStatsLossesBranches:
 	it_85_0 = "it_85_0"
 	it_86_0 = "it_86_0"
 	it_88_0 = "it_88_0"
+	it_90_0 = "it_90_0"
+	it_91_0 = "it_91_0"
+	it_92_0 = "it_92_0"
 
 	all = [
 		main,
@@ -567,7 +585,10 @@ class RunnerStatsLossesBranches:
 		it_84_0,
 		it_85_0,
 		it_86_0,
-		it_88_0
+		it_88_0,
+		it_90_0,
+		it_91_0,
+		it_92_0,
 	]
 
 	default = it_88_0
