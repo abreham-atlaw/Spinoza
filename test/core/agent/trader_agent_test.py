@@ -1,4 +1,5 @@
 import os
+import typing
 from typing import *
 
 import unittest
@@ -115,13 +116,21 @@ class TraderAgentTest(unittest.TestCase):
 		agent_state = AgentState(initial_balance, self.market_state)
 
 		state = TradeState(self.market_state, agent_state)
-		# state.get_agent_state().open_trade(
-		# 	TraderAction("USD", "EUR", TraderAction.Action.BUY, margin_used=40, stop_loss=0.8)
-		# )
+		state.get_agent_state().open_trade(
+			state.get_agent_state().rectify_action(
+				TraderAction("AUD", "USD", TraderAction.Action.BUY, margin_used=40, take_profit=1.0002))
+		)
 
 		result = self.agent._get_possible_states(
 			state,
-			state.get_agent_state().rectify_action(TraderAction("AUD", "USD", TraderAction.Action.BUY, margin_used=40, stop_loss=0.8))
+			None
+		)
+
+		self.assertTrue(
+			0 in [
+				len(s.get_agent_state().get_open_trades())
+				for s in result
+			]
 		)
 
 		self.assertEqual(
@@ -167,7 +176,6 @@ class TraderAgentTest(unittest.TestCase):
 
 		actions = self.agent._generate_actions(state)
 		print(actions)
-
 
 	def test_perform_timestep(self):
 		environment = LiveEnvironment()
@@ -237,3 +245,41 @@ class TraderAgentTest(unittest.TestCase):
 
 		plt.scatter([state.get_market_state().get_current_price("USD","ZAR") for state in final_states], distribution)
 		plt.show()
+
+	def test_reflex_agent(self):
+		market_state = MarketState(
+			currencies=["USD", "EUR", "AUD"],
+			tradable_pairs=[
+				("USD", "EUR"),
+				("AUD", "EUR"),
+				("USD", "AUD")
+			],
+			memory_len=5
+		)
+
+		initial_balance = 100
+		agent_state = AgentState(initial_balance, market_state)
+
+		state = TradeState(market_state, agent_state)
+
+		actions = self.agent._generate_actions(state)
+
+		self.assertEqual(len(actions), 1)
+		self.assertIsInstance(actions[0], None)
+
+		computed_states: typing.List[TradeState] = self.agent._get_possible_states(state, actions[0])
+		for state in computed_states:
+			self.assertEqual(len(state.get_agent_state().get_open_trades()), 0)
+			self.assertFalse(state.pre_computation)
+
+		computed_actions = self.agent._generate_actions(computed_states[0])
+		for action in computed_actions:
+			self.assertNotIsInstance(action, None)
+
+		post_action_states = self.agent._get_possible_states(state, computed_actions[0])
+		for state in post_action_states:
+			self.assertTrue(state.pre_computation)
+
+
+
+
