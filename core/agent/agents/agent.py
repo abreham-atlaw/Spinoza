@@ -2,15 +2,19 @@ from lib.rl.agent.cra import CumulativeRewardAgent
 from .action_choice_trader.action_choice_trader import ActionChoiceTrader
 from .cra import CumulativeRewardTraderAgent
 from .drmca import TraderDeepReinforcementMonteCarloAgent
-from .montecarlo_agent import TraderMonteCarloAgent
-from .montecarlo_agent import ReflexAgent
+from .montecarlo_agent import TraderMonteCarloAgent, ReflexAgent
+from core import Config
 
 
-class TraderAgent(
-	ReflexAgent,
-	CumulativeRewardTraderAgent,
-	TraderDeepReinforcementMonteCarloAgent,
-	TraderMonteCarloAgent,
-	ActionChoiceTrader,
-):
-	pass
+bases = (
+    (ReflexAgent,) if Config.AGENT_MCA_USE_REFLEX else ()
+) + (
+    CumulativeRewardTraderAgent,
+    TraderDeepReinforcementMonteCarloAgent,
+    TraderMonteCarloAgent,
+    ActionChoiceTrader,
+)
+
+
+class TraderAgent(*bases):
+    pass
