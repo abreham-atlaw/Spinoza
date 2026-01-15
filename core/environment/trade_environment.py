@@ -111,3 +111,6 @@ class TradeEnvironment(Environment, ABC):
 
 	def is_episode_over(self, state=None) -> bool:
 		return False
+
+	def get_latest_state(self):
+		return self._refresh_state()

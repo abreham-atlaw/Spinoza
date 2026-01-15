@@ -8,10 +8,17 @@ from .agent_state import AgentState
 
 class TradeState(ModelBasedState):
 
-	def __init__(self, market_state: MarketState = None, agent_state: AgentState = None, recent_balance: float = None):
+	def __init__(
+			self,
+			market_state: MarketState = None,
+			agent_state: AgentState = None,
+			recent_balance: float = None,
+			pre_computation: bool = True
+	):
 		self.market_state = market_state
 		self.agent_state = agent_state
 		self.recent_balance = recent_balance
+		self.pre_computation = pre_computation
 		self.__depth = 0
 		self.__attached_state = {}
 

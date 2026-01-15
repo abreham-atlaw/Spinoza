@@ -3,13 +3,15 @@ from .cra import CumulativeRewardTraderAgent
 from .drmca import TraderDeepReinforcementMonteCarloAgent
 from .montecarlo_agent import TraderMonteCarloAgent
 from .direct_probability_distribution_agent import DirectProbabilityDistributionAgent
+from .montecarlo_agent import ReflexAgent
 
 
 class TraderAgent(
 	DirectProbabilityDistributionAgent,
+	ReflexAgent,
 	CumulativeRewardTraderAgent,
 	TraderDeepReinforcementMonteCarloAgent,
 	TraderMonteCarloAgent,
-	ActionChoiceTrader
+	ActionChoiceTrader,
 ):
 	pass
