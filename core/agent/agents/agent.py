@@ -7,8 +7,8 @@ from .montecarlo_agent import ReflexAgent
 
 
 class TraderAgent(
-	DirectProbabilityDistributionAgent,
 	ReflexAgent,
+	DirectProbabilityDistributionAgent,
 	CumulativeRewardTraderAgent,
 	TraderDeepReinforcementMonteCarloAgent,
 	TraderMonteCarloAgent,
