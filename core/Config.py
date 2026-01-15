@@ -163,6 +163,7 @@ AGENT_DUMP_VISITED_ONLY = True
 AGENT_USE_AUTO_STATE_REPOSITORY = True
 AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e4)
 AGENT_FILESYSTEM_STATE_REPOSITORY_PATH = BASE_DIR
+AGENT_MCA_GRAPH_PLOT_RATE = 0.0
 AGENT_MIN_FREE_MEMORY = 2
 AGENT_MIN_DISK_SPACE = 0.1
 AGENT_MIN_ABS_DISK_SPACE = None
@@ -352,10 +353,13 @@ class RunnerStatsBranches:
 
 	it_88_6 = "it_88_6"
 	it_89_6 = "it_89_6"
+	it_89_7 = "it_89_7"
 
 	it_90_6 = "it_90_6"
 
 	it_91_6 = "it_91_6"
+
+	it_92_6 = "it_92_6"
 
 	all = [
 		main,
@@ -439,8 +443,10 @@ class RunnerStatsBranches:
 		it_87_6,
 		it_88_6,
 		it_89_6,
+		it_89_7,
 		it_90_6,
-		it_91_6
+		it_91_6,
+		it_92_6
 	]
 
 	default = it_89_6
@@ -509,6 +515,7 @@ class RunnerStatsLossesBranches:
 	it_88_0 = "it_88_0"
 	it_90_0 = "it_90_0"
 	it_91_0 = "it_91_0"
+	it_92_0 = "it_92_0"
 
 	all = [
 		main,
@@ -569,7 +576,8 @@ class RunnerStatsLossesBranches:
 		it_86_0,
 		it_88_0,
 		it_90_0,
-		it_91_0
+		it_91_0,
+		it_92_0,
 	]
 
 	default = it_88_0

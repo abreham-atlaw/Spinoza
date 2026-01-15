@@ -43,6 +43,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
 			use_transition_only_model=Config.AGENT_MODEL_USE_TRANSITION_ONLY,
 			use_extra_data: bool = Config.AGENT_USE_EXTRA_DATA,
+			graph_plot_rate: float = Config.AGENT_MCA_GRAPH_PLOT_RATE,
 			**kwargs
 	):
 		self.__use_transition_only = use_transition_only_model
@@ -61,6 +62,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			discount=discount,
 			discount_function=discount_function,
 			state_repository=AgentUtilsProvider.provide_state_repository(),
+			graph_plot_rate=graph_plot_rate,
 			**kwargs
 		)
 		self.__encode_max_open_trades = encode_max_open_trade
