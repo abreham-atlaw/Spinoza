@@ -3,13 +3,13 @@ import typing
 import numpy as np
 
 from core.environment.trade_state import TradeState
-from .state_predictor import StatePredictor
+from lib.rl.agent.utils.state_predictor import StatePredictor
 from ...action import Action
 
 
 class MultiInstrumentPredictor(StatePredictor):
 
-	def _prepare_input(
+	def prepare_input(
 			self,
 			states: typing.List[TradeState],
 			actions: typing.List[Action],

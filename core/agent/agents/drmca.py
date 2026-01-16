@@ -69,41 +69,8 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		self.__dra_input_cache = Cache()
 		self.__use_extra_data = use_extra_data
 
-	def _init_model(self) -> Model:
-		model = TemperatureScalingModel(
-			model=ModelHandler.load(Config.CORE_MODEL_CONFIG.path),
-			temperature=Config.AGENT_MODEL_TEMPERATURE
-		)
-		print(f"Using Temperature: {Config.AGENT_MODEL_TEMPERATURE}")
-		if Config.AGENT_MODEL_USE_CACHED_MODEL:
-			model = CachedModel(
-				model=model,
-			)
-		if Config.AGENT_MODEL_USE_TRANSITION_ONLY:
-			model = TransitionOnlyModel(
-				model=model,
-				extra_len=Config.AGENT_MODEL_EXTRA_LEN
-			)
-		model = WrappedModel(
-				model,
-				seq_len=Config.MARKET_STATE_MEMORY,
-				window_size=Config.AGENT_MA_WINDOW_SIZE,
-				use_ma=Config.AGENT_USE_SMOOTHING,
-			)
-
-		if Config.AGENT_MODEL_USE_AGGREGATION:
-			model = AggregateModel(
-				model=model,
-				a=Config.AGENT_MODEL_AGGREGATION_ALPHA,
-				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
-			)
-		return TorchModel(
-				model
-			)
-
-	@property
-	def _transition_model(self) -> Model:
-		return self._model
+	def _init_predictor(self) -> Model:
+		return AgentUtilsProvider.provide_state_predictor()
 
 	@staticmethod
 	def __encode_action(state: TradeState, action: typing.Optional[TraderAction]) -> np.ndarray:
