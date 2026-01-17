@@ -10,6 +10,7 @@ from core.di import AgentUtilsProvider
 from core.environment.trade_state import TradeState
 from lib.rl.agent.mca import ReflexMonteCarloAgent
 from lib.rl.environment import ModelBasedState
+from lib.utils.logger import Logger
 from lib.utils.stm import StochasticShortTermMemory
 from .stm.reflex import TraderReflexMemoryEvaluator
 from ..drmca import TraderDeepReinforcementMonteCarloAgent
@@ -31,6 +32,7 @@ class ReflexAgent(
 			reflex_stm=AgentUtilsProvider.provide_reflex_stm(),
 			**kwargs
 		)
+		Logger.info(f"Using Reflex Agent...")
 
 	def _generate_actions(self, state: TradeState) -> List[object]:
 		if state.pre_computation:
