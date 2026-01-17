@@ -71,6 +71,8 @@ OANDA_SIM_TIMES_PATH = os.path.join(RES_DIR, "times/times-50-it-4.json")
 OANDA_SIM_MODEL_IN_PATH = PCLOUD_FOLDER
 TIMES_RESOURCE_MANAGER_KEY = "times"
 
+ENVIRONMENT_FETCH_CACHE_TIMEOUT = 1*60
+
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("Africa/Addis_Ababa")
 
@@ -99,6 +101,7 @@ AGENT_USE_STOP_LOSS = False
 AGENT_USE_TAKE_PROFIT = False
 AGENT_STOP_LOSS_GRANULARITY = 0.001
 AGENT_TRADE_TRIGGER_VALUE_BOUND = (0.001, 0.005)
+AGENT_TRIGGER_ABSOLUTE_VALUE_MULTIPLIER = 1.0
 AGENT_STOP_LOSS_CONVERSION = False
 AGENT_STOP_LOSS_CONVERSION_BOUNDS = (0.9995, 1.0005)
 AGENT_STOP_LOSS_CONVERSION_ACCURACY = int(1e2)
@@ -119,6 +122,7 @@ AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
 	("USD", "ZAR")
 ]
+AGENT_USE_MULTI_INSTRUMENT_MODEL = True
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = False
@@ -147,10 +151,12 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 32
 AGENT_USE_LASS = False
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-4-it-12-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
+AGENT_MCA_USE_REFLEX = True
+AGENT_REFLEX_STM_SIZE = 1000
 AGENT_DRMCA_WP = 100
 AGENT_USE_DIRECT_DISTRIBUTION = True
 AGENT_PROBABILITY_STORE_SIZE = int(1e6)
@@ -163,13 +169,14 @@ AGENT_DUMP_VISITED_ONLY = True
 AGENT_USE_AUTO_STATE_REPOSITORY = True
 AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e4)
 AGENT_FILESYSTEM_STATE_REPOSITORY_PATH = BASE_DIR
+AGENT_MCA_GRAPH_PLOT_RATE = 0.0
 AGENT_MIN_FREE_MEMORY = 2
 AGENT_MIN_DISK_SPACE = 0.1
 AGENT_MIN_ABS_DISK_SPACE = None
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
-AGENT_MODEL_USE_AGGREGATION = False
-AGENT_MODEL_AGGREGATION_ALPHA = 0.3
+AGENT_MODEL_USE_AGGREGATION = True
+AGENT_MODEL_AGGREGATION_ALPHA = 0.99/3
 AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
@@ -209,7 +216,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(RES_DIR, "core_model.zip"),
+	path=os.path.join(BASE_DIR, "core_model.zip"),
 	download=False
 )
 
@@ -233,7 +240,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-89/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-93/"
 
 
 try:
@@ -360,10 +367,15 @@ class RunnerStatsBranches:
 
 	it_88_6 = "it_88_6"
 	it_89_6 = "it_89_6"
+	it_89_7 = "it_89_7"
 
 	it_90_6 = "it_90_6"
 
 	it_91_6 = "it_91_6"
+
+	it_92_6 = "it_92_6"
+
+	it_93_6 = "it_93_6"
 
 	all = [
 		main,
@@ -447,11 +459,14 @@ class RunnerStatsBranches:
 		it_87_6,
 		it_88_6,
 		it_89_6,
+		it_89_7,
 		it_90_6,
-		it_91_6
+		it_91_6,
+		it_92_6,
+		it_93_6
 	]
 
-	default = it_89_6
+	default = it_93_6
 
 
 class RunnerStatsLossesBranches:
@@ -517,6 +532,8 @@ class RunnerStatsLossesBranches:
 	it_88_0 = "it_88_0"
 	it_90_0 = "it_90_0"
 	it_91_0 = "it_91_0"
+	it_92_0 = "it_92_0"
+	it_93_0 = "it_93_0"
 
 	all = [
 		main,
@@ -577,10 +594,12 @@ class RunnerStatsLossesBranches:
 		it_86_0,
 		it_88_0,
 		it_90_0,
-		it_91_0
+		it_91_0,
+		it_92_0,
+		it_93_0
 	]
 
-	default = it_88_0
+	default = it_93_0
 
 
 
