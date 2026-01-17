@@ -58,9 +58,9 @@ class TrainerTest(unittest.TestCase):
 
 	def _get_root_dirs(self):
 		return [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/08/train"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/10/train"
 		], [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/08/test"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/10/test"
 		]
 
 	def __init_dataloader(self):
@@ -201,9 +201,10 @@ class TrainerTest(unittest.TestCase):
 		EMBEDDING_SIZE = 8
 		BLOCK_SIZE = 128 + EXTRA_LEN
 		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/11.json"))) + 1
-		INPUT_CHANNELS = 3
-		OUTPUT_CHANNELS = 3
-		Y_CHANNEL_MAP = (0, 1, 2)
+		INSTRUMENTS = 2
+		INPUT_CHANNELS = 3 * INSTRUMENTS
+		OUTPUT_CHANNELS = 3 * INSTRUMENTS
+		Y_CHANNEL_MAP = tuple(range(OUTPUT_CHANNELS))
 
 		HORIZON_MODE = True
 		USE_MC_HORIZON = INPUT_CHANNELS > 1

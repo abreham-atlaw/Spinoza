@@ -1,5 +1,6 @@
 from .action_choice_trader.action_choice_trader import ActionChoiceTrader
 from .cra import CumulativeRewardTraderAgent
+from .direct_probability_distribution_agent import DirectProbabilityDistributionAgent
 from .drmca import TraderDeepReinforcementMonteCarloAgent
 from .montecarlo_agent import TraderMonteCarloAgent, ReflexAgent
 from .direct_probability_distribution_agent import DirectProbabilityDistributionAgent
