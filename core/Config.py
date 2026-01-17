@@ -154,6 +154,7 @@ AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
+AGENT_MCA_USE_REFLEX = False
 AGENT_REFLEX_STM_SIZE = 1000
 AGENT_DRMCA_WP = 100
 AGENT_USE_DIRECT_DISTRIBUTION = True
@@ -365,6 +366,8 @@ class RunnerStatsBranches:
 
 	it_92_6 = "it_92_6"
 
+	it_93_6 = "it_93_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -450,7 +453,8 @@ class RunnerStatsBranches:
 		it_89_7,
 		it_90_6,
 		it_91_6,
-		it_92_6
+		it_92_6,
+		it_93_6
 	]
 
 	default = it_89_6
@@ -520,6 +524,7 @@ class RunnerStatsLossesBranches:
 	it_90_0 = "it_90_0"
 	it_91_0 = "it_91_0"
 	it_92_0 = "it_92_0"
+	it_93_0 = "it_93_0"
 
 	all = [
 		main,
@@ -582,6 +587,7 @@ class RunnerStatsLossesBranches:
 		it_90_0,
 		it_91_0,
 		it_92_0,
+		it_93_0
 	]
 
 	default = it_88_0
