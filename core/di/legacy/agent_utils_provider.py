@@ -1,5 +1,4 @@
 from core import Config
-from core.agent.utils.state_predictor import MultiInstrumentPredictor
 from core.utils.research.model.model.utils import AggregateModel, WrappedModel, TransitionOnlyModel, \
 	TemperatureScalingModel
 from core.utils.research.model.model.utils.cached_model import CachedModel
@@ -136,8 +135,7 @@ class AgentUtilsProvider:
 
 	@staticmethod
 	def provide_state_predictor() -> 'StatePredictor':
-		from core.agent.utils.state_predictor import BasicStatePredictor
-		from core.agent.utils.state_predictor import LegacyStatePredictor
+		from core.agent.utils.state_predictor import BasicStatePredictor, LegacyStatePredictor, MultiInstrumentPredictor
 
 		if Config.AGENT_USE_MULTI_INSTRUMENT_MODEL:
 			Logger.info(f"Using MultiInstrumentPredictor...")
