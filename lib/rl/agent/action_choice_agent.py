@@ -24,11 +24,14 @@ class ActionChoiceAgent(Agent):
 		self._explore_exploit_tradeoff = explore_exploit_tradeoff
 		self._update_agent = update_agent
 
+	def _validate_action(self, action, state) -> bool:
+		return self._get_environment().is_action_valid(action, state)
+
 	def _get_available_actions(self, state) -> List[object]:
 		return [
 			action
 			for action in self._generate_actions(state)
-			if self._get_environment().is_action_valid(action, state)
+			if self._validate_action(action, state)
 		]
 
 	@abstractmethod

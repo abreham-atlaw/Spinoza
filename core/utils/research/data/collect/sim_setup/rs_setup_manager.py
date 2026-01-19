@@ -90,6 +90,8 @@ class RSSetupManager:
 		return tom_model
 
 	def __evaluate_model_loss(self, model_path: str, temperature: float) -> float:
+		if self.__model_evaluator is None:
+			return 0.0
 		Logger.info(f"Evaluating Model Loss...")
 		model = self.__load_model(path=model_path, temperature=temperature)
 		losses = self.__model_evaluator.evaluate(model)
