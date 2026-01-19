@@ -252,7 +252,7 @@ class LiveEnvironment(TradeEnvironment):
 		return new_value
 
 	def __calculate_stop_loss(self, action: TraderAction, trigger_value: float) -> typing.Optional[float]:
-		trigger_value = self.__apply_trigger_value_multiplier(trigger_value)
+		trigger_value = self.__apply_trigger_value_multiplier(trigger_value, action)
 
 		if self.__trigger_value_conversion:
 			trigger_value = self.__convert_stop_loss(action)
