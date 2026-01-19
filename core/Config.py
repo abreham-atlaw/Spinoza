@@ -101,7 +101,8 @@ AGENT_USE_STOP_LOSS = False
 AGENT_USE_TAKE_PROFIT = False
 AGENT_STOP_LOSS_GRANULARITY = 0.001
 AGENT_TRADE_TRIGGER_VALUE_BOUND = (0.001, 0.005)
-AGENT_TRIGGER_ABSOLUTE_VALUE_MULTIPLIER = 1.0
+AGENT_STOP_LOSS_ABSOLUTE_VALUE_MULTIPLIER = 1.0
+AGENT_TAKE_PROFIT_ABSOLUTE_VALUE_MULTIPLIER = 1.0
 AGENT_STOP_LOSS_CONVERSION = False
 AGENT_STOP_LOSS_CONVERSION_BOUNDS = (0.9995, 1.0005)
 AGENT_STOP_LOSS_CONVERSION_ACCURACY = int(1e2)
@@ -154,6 +155,7 @@ AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
+AGENT_MCA_USE_REFLEX = True
 AGENT_REFLEX_STM_SIZE = 1000
 AGENT_DRMCA_WP = 100
 AGENT_USE_DIRECT_DISTRIBUTION = True
@@ -365,12 +367,17 @@ class RunnerStatsBranches:
 
 	it_88_6 = "it_88_6"
 	it_89_6 = "it_89_6"
+	it_89_7 = "it_89_7"
 
 	it_90_6 = "it_90_6"
 
 	it_91_6 = "it_91_6"
 
 	it_92_6 = "it_92_6"
+
+	it_93_6 = "it_93_6"
+
+	it_94_6 = "it_94_6"
 
 	all = [
 		main,
@@ -454,9 +461,12 @@ class RunnerStatsBranches:
 		it_87_6,
 		it_88_6,
 		it_89_6,
+		it_89_7,
 		it_90_6,
 		it_91_6,
-		it_92_6
+		it_92_6,
+		it_93_6,
+		it_94_6
 	]
 
 	default = it_88_6
@@ -526,6 +536,8 @@ class RunnerStatsLossesBranches:
 	it_90_0 = "it_90_0"
 	it_91_0 = "it_91_0"
 	it_92_0 = "it_92_0"
+	it_93_0 = "it_93_0"
+	it_94_0 = "it_94_0"
 
 	all = [
 		main,
@@ -588,6 +600,8 @@ class RunnerStatsLossesBranches:
 		it_90_0,
 		it_91_0,
 		it_92_0,
+		it_93_0,
+		it_94_0
 	]
 
 	default = it_88_0
