@@ -7,7 +7,7 @@ from flask_socketio import SocketIO, emit
 
 import time
 
-from lib.rl.agent import MonteCarloAgent
+from lib.rl.agent import MonteCarloAgent, Node
 from lib.network.rest_interface.serializers import Serializer
 from lib.utils.staterepository import StateRepository
 from lib.concurrency.mc.data.staterepository import DistributedStateRepository, FlaskSocketIOChannel
@@ -19,7 +19,7 @@ from temp import stats
 
 class MonteCarloServerAgent(MonteCarloAgent, ABC):
 
-	def select(self, parent_state_node: 'MonteCarloAgent.Node', lock_checker) -> Union[None, 'MonteCarloAgent.Node']:
+	def select(self, parent_state_node: 'Node', lock_checker) -> Union[None, 'Node']:
 		prioritized_children = sorted(
 			[node for node in parent_state_node.get_children() if not lock_checker(node)],
 			key=self._uct,
@@ -27,7 +27,7 @@ class MonteCarloServerAgent(MonteCarloAgent, ABC):
 		)
 
 		for child in prioritized_children:
-			chosen_state_node: MonteCarloAgent.Node = self._get_random_state_node(child)
+			chosen_state_node: Node = self._get_random_state_node(child)
 			if not chosen_state_node.has_children():
 				return chosen_state_node
 
@@ -37,8 +37,9 @@ class MonteCarloServerAgent(MonteCarloAgent, ABC):
 
 		return None
 
-	def backpropagate(self, node: MonteCarloAgent.Node):
+	def backpropagate(self, node: Node):
 		self._backpropagate(node)
+
 
 
 class PassThroughSerializer(Serializer):
@@ -99,10 +100,10 @@ class MonteCarloServer(ABC):
 			("end", self.__handle_end),
 		]
 
-	def _set_graph(self, graph: MonteCarloAgent.Node):
+	def _set_graph(self, graph: Node):
 		self.__current_graph = graph
 
-	def _get_graph(self) -> MonteCarloAgent.Node:
+	def _get_graph(self) -> Node:
 		return self.__current_graph
 
 	def _set_active(self, active):
@@ -121,21 +122,21 @@ class MonteCarloServer(ABC):
 		for event, handler in self._map_events():
 			self._socketio.on_event(event, handler)
 
-	def __is_locked(self, node: MonteCarloAgent.Node):
+	def __is_locked(self, node: Node):
 		return node.id in self.__locked_nodes
 		# return self.__lock_manager.lock_and_do(
 		# 	var=self.__locked_nodes,
 		# 	func=lambda: node.id in self.__locked_nodes
 		# )
 
-	def __lock(self, node: MonteCarloAgent.Node):
+	def __lock(self, node: Node):
 		self.__locked_nodes.append(node.id)
 		# self.__lock_manager.lock_and_do(
 		# 	var=self.__locked_nodes,
 		# 	func=lambda: self.__locked_nodes.append(node.id)
 		# )
 
-	def __unlock(self, node: MonteCarloAgent.Node):
+	def __unlock(self, node: Node):
 		self.__locked_nodes.remove(node.id)
 		# self.__lock_manager.lock_and_do(
 		# 	var=self.__locked_nodes,
@@ -161,7 +162,7 @@ class MonteCarloServer(ABC):
 
 	def __handle_new(self, state):
 		print("Received New Request")
-		self._set_graph(MonteCarloAgent.Node(None, None, MonteCarloAgent.Node.NodeType.STATE))
+		self._set_graph(Node(None, None, Node.NodeType.STATE))
 		self.__repository.store(self._get_graph().id, self.__state_serializer.deserialize(state))
 		self._set_active(True)
 
@@ -181,7 +182,7 @@ class MonteCarloServer(ABC):
 		emit("select", self.__graph_serializer.serialize_json(leaf_node), broadcast=False)
 
 	def __handle_backpropagate(self, node):
-		node: MonteCarloAgent.Node = self.__graph_serializer.deserialize_json(node)
+		node: Node = self.__graph_serializer.deserialize_json(node)
 		parent = self._get_graph().find_node_by_id(node.id).parent
 		if parent is None:
 			self._set_graph(node)

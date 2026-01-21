@@ -7,6 +7,7 @@ from .staterepository import StateRepository, StateNotFoundException
 class DictStateRepository(StateRepository):
 
 	def __init__(self):
+		super().__init__()
 		self.__states = {}
 
 	def store(self, key: str, state):
@@ -27,6 +28,8 @@ class DictStateRepository(StateRepository):
 	def destroy(self):
 		del self.__states
 
+	def get_keys(self) -> typing.List[str]:
+		return list(self.__states.keys())
 
 class SectionalDictStateRepository(StateRepository):
 

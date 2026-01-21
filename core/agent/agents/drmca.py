@@ -19,6 +19,7 @@ from core.utils.research.model.model.utils.cached_model import CachedModel
 from lib.rl.agent.drmca import DeepReinforcementMonteCarloAgent
 from lib.rl.agent.dta import Model, TorchModel
 from lib.rl.environment import ModelBasedState
+from lib.utils.staterepository import StateRepository
 from lib.utils.torch_utils.model_handler import ModelHandler
 
 
@@ -44,6 +45,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			use_transition_only_model=Config.AGENT_MODEL_USE_TRANSITION_ONLY,
 			use_extra_data: bool = Config.AGENT_USE_EXTRA_DATA,
 			graph_plot_rate: float = Config.AGENT_MCA_GRAPH_PLOT_RATE,
+			state_repository: StateRepository = None,
 			**kwargs
 	):
 		self.__use_transition_only = use_transition_only_model
@@ -61,7 +63,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			node_serializer=TraderNodeSerializer(),
 			discount=discount,
 			discount_function=discount_function,
-			state_repository=AgentUtilsProvider.provide_state_repository(),
+			state_repository=state_repository if state_repository is not None else AgentUtilsProvider.provide_state_repository(),
 			graph_plot_rate=graph_plot_rate,
 			**kwargs
 		)
@@ -169,7 +171,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 
 			return data
 
-		return self.__dra_input_cache.cached_or_execute((state, action, target_instrument), lambda: prepare_model_input(state, action, target_instrument))
+		return self.__dra_input_cache.cached_or_execute((state, action, (target_instrument)), lambda: prepare_model_input(state, action, target_instrument))
 
 	def _prepare_single_dta_input(self, state: TradeState, action: Action, final_state: TradeState) -> np.ndarray:
 		return self._prepare_model_input(state, action, self._get_target_instrument(state, action, final_state))
@@ -179,7 +181,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			action = action.actions[0]
 
 		if action is None:
-			instrument = random.choice(state.get_market_state().get_tradable_pairs())
+			instrument = tuple(random.choice(state.get_market_state().get_tradable_pairs()))
 		else:
 			instrument = action.base_currency, action.quote_currency
 		return self._prepare_model_input(state, action, instrument)

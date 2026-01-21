@@ -290,6 +290,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			]
 		)
 
+	def _plot_node(self, node: Node):
+		if self.__graph_plot_rate > 0 and random.random() < self.__graph_plot_rate:
+			stats.draw_graph_live(node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
+
 	def _finalize_step(self, root: 'Node'):
 
 		if self.__dump_nodes:
@@ -460,8 +464,8 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._backpropagate(final_node)
 
 			self.__manage_resources()
-			if self.__graph_plot_rate > 0 and random.random() < self.__graph_plot_rate:
-				stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
+			self._plot_node(root_node)
+
 			stats.iterations["main_loop"] += 1
 
 	def _monte_carlo_tree_search(self, state) -> None:

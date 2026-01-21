@@ -12,21 +12,17 @@ from lib.utils.logger import Logger
 
 class MonteCarloWorkerAgent(MonteCarloAgent, ABC):
 
-	def __init__(self, server_url, *args, state_repository=None, **kwargs):
-		self.__socketio = socketio.Client(logger=True)
+	def __init__(self, server_url, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.__socketio = self._init_socket_io()
 		self.__state_serializer = self._init_state_serializer()
-		if state_repository is None:
-			state_repository = DistributedStateRepository(
-				SocketIOChannel(
-					self.__socketio
-				),
-				self.__state_serializer,
-				is_server=False
-			)
-		super().__init__(*args, state_repository=state_repository, **kwargs)
 		self.__graph_serializer = self._init_graph_serializer()
 		self.__active = False
 		self.__url = server_url
+
+	@abstractmethod
+	def _init_socket_io(self) -> socketio.Client:
+		pass
 
 	@abstractmethod
 	def _init_state_serializer(self) -> Serializer:

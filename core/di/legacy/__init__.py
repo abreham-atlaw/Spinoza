@@ -2,3 +2,4 @@ from .research_provider import ResearchProvider
 from .service_provider import ServiceProvider
 from .agent_utils_provider import AgentUtilsProvider
 from .environment_utils_provider import EnvironmentUtilsProvider
+from .distributed_agent_utils_provider import DistributedAgentUtilsProvider

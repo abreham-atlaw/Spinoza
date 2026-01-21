@@ -36,9 +36,8 @@ class MarketState:
 		else:
 			self.__state = state
 
-		self.__tradable_pairs: List[Tuple[str, str]] = tradable_pairs
-		if tradable_pairs is None:
-			self.__tradable_pairs = [
+		self.__tradable_pairs: List[Tuple[str, str]] = list(map(lambda ins: tuple(ins), tradable_pairs)) if tradable_pairs is not None else \
+			[
 				(base_currency, quote_currency)
 				for base_currency in self.__currencies
 				for quote_currency in self.__currencies
@@ -183,7 +182,7 @@ class MarketState:
 		)
 
 	def __hash__(self):
-		return hash((tuple(self.__currencies), tuple(self.__tradable_pairs), self.__state.tobytes(), self.__spread_state.tobytes()))
+		return hash((tuple(self.__currencies), tuple(map(lambda ins: tuple(ins), self.__tradable_pairs)), self.__state.tobytes(), self.__spread_state.tobytes()))
 
 	def __eq__(self, other):
 		if not isinstance(other, MarketState):

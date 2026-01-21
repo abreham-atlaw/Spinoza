@@ -1,3 +1,4 @@
+import typing
 from abc import ABC, abstractmethod
 
 from flask_socketio import emit
@@ -6,8 +7,9 @@ import json
 from datetime import datetime
 import time
 
-from lib.utils.staterepository import PickleStateRepository, StateNotFoundException, DictStateRepository
+from lib.utils.staterepository import PickleStateRepository, DictStateRepository
 from lib.network.rest_interface.serializers import Serializer
+from lib.utils.staterepository.staterepository import StateNotFoundException
 
 
 class Channel(ABC):
@@ -97,3 +99,6 @@ class DistributedStateRepository(DictStateRepository):
 			else:
 				raise StateNotFoundException()
 		return value
+
+	def get_keys(self) -> typing.List[str]:
+		pass

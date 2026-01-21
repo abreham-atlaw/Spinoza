@@ -1,9 +1,12 @@
+import typing
 from datetime import datetime
 
 from .cache import Cache
 
 
 class CacheDecorators:
+
+	__caches_store = {}
 
 	@staticmethod
 	def __get_method_cache(instance, method, size):
@@ -37,6 +40,26 @@ class CacheDecorators:
 				return cache.cached_or_execute(
 					CacheDecorators.__get_cache_keys(args, kwargs, timeout=timeout),
 					func=lambda: func(self, *args, **kwargs)
+				)
+			return wrapper
+		return decorator
+
+	@staticmethod
+	def __get_function_cache(func: typing.Callable) -> Cache:
+		cache = CacheDecorators.__caches_store.get(func)
+		if cache is None:
+			cache = Cache()
+			CacheDecorators.__caches_store[func] = cache
+		return cache
+
+	@staticmethod
+	def singleton(timeout: int = None):
+		def decorator(func):
+			def wrapper(*args, **kwargs):
+				cache = CacheDecorators.__get_function_cache(func)
+				return cache.cached_or_execute(
+					CacheDecorators.__get_cache_keys(args, kwargs, timeout=timeout),
+					func=lambda: func(*args, **kwargs)
 				)
 			return wrapper
 		return decorator

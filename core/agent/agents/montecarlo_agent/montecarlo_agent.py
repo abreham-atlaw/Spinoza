@@ -4,6 +4,7 @@ from abc import ABC
 from core import Config
 from core.di import AgentUtilsProvider
 from lib.rl.agent import MonteCarloAgent
+from lib.rl.agent.mca.resource_manager import MCResourceManager
 
 
 class TraderMonteCarloAgent(MonteCarloAgent, ABC):
@@ -18,6 +19,7 @@ class TraderMonteCarloAgent(MonteCarloAgent, ABC):
 			use_stm=Config.AGENT_STM,
 			probability_correction=Config.AGENT_PROBABILITY_CORRECTION,
 			min_probability=Config.AGENT_MIN_PROBABILITY,
+			resource_manager: MCResourceManager = None,
 			**kwargs
 	):
 		super(TraderMonteCarloAgent, self).__init__(
@@ -30,7 +32,7 @@ class TraderMonteCarloAgent(MonteCarloAgent, ABC):
 			short_term_memory=AgentUtilsProvider.provide_trader_node_stm(),
 			probability_correction=probability_correction,
 			min_probability=min_probability,
-			resource_manager=AgentUtilsProvider.provide_resource_manager(),
+			resource_manager=resource_manager if resource_manager is not None else AgentUtilsProvider.provide_resource_manager(),
 			**kwargs
 		)
 

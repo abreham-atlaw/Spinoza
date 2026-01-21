@@ -68,3 +68,7 @@ class MonteCarloQueen(MonteCarloAgent, ABC):
 			time.sleep(self.__wait_time)
 
 		return self.__get_received_action()
+
+	def _get_optimal_action(self, state, **kwargs):
+		self._monte_carlo_tree_search(state)
+		return self.__get_received_action()
