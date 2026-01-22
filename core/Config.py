@@ -244,9 +244,10 @@ PREDICTION_MODELS = [
 MAX_LOSS = 1.5
 
 WEIGHTED_MSE_ALPHA = 1e-3
-TEMPERATURES = [0.1, 0.25, 1.0]
+TEMPERATURES = [1.0]
+AGGREGATE_ALPHAS = [99/2, 99/3, 99/5]
 HORIZON_MODE = True
-HORIZON_H = 0.9
+HORIZON_H = 0.0
 HORIZON_USE_MC = True
 HORIZON_Y_CHANNEL_MAP = (0, 1, 2)
 
@@ -479,7 +480,7 @@ class RunnerStatsBranches:
 		it_95_6
 	]
 
-	default = it_89_7
+	default = it_89_8
 
 
 class RunnerStatsLossesBranches:
@@ -618,7 +619,7 @@ class RunnerStatsLossesBranches:
 		it_95_0
 	]
 
-	default = it_88_0
+	default = it_88_1
 
 
 
