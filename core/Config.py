@@ -104,6 +104,7 @@ AGENT_STOP_LOSS_GRANULARITY = 0.001
 AGENT_TRADE_TRIGGER_VALUE_BOUND = (0.001, 0.005)
 AGENT_STOP_LOSS_ABSOLUTE_VALUE_MULTIPLIER = 1.0
 AGENT_TAKE_PROFIT_ABSOLUTE_VALUE_MULTIPLIER = 1.0
+AGENT_TRIGGER_PRICE_GRANULARITY = None
 AGENT_STOP_LOSS_CONVERSION = False
 AGENT_STOP_LOSS_CONVERSION_BOUNDS = (0.9995, 1.0005)
 AGENT_STOP_LOSS_CONVERSION_ACCURACY = int(1e2)
@@ -383,6 +384,8 @@ class RunnerStatsBranches:
 
 	it_95_6 = "it_95_6"
 
+	it_96_6 = "it_96_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -472,7 +475,8 @@ class RunnerStatsBranches:
 		it_92_6,
 		it_93_6,
 		it_94_6,
-		it_95_6
+		it_95_6,
+		it_96_6
 	]
 
 	default = it_88_6
@@ -546,6 +550,7 @@ class RunnerStatsLossesBranches:
 	it_93_0 = "it_93_0"
 	it_94_0 = "it_94_0"
 	it_95_0 = "it_95_0"
+	it_96_0 = "it_96_0"
 
 	all = [
 		main,
@@ -611,7 +616,8 @@ class RunnerStatsLossesBranches:
 		it_92_0,
 		it_93_0,
 		it_94_0,
-		it_95_0
+		it_95_0,
+		it_96_0
 	]
 
 	default = it_88_0
