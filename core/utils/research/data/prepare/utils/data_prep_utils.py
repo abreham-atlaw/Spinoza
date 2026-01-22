@@ -61,7 +61,9 @@ class DataPrepUtils:
 		df = df.iloc[:g*(df.shape[0] // g)]
 		df_g = df.iloc[0::g].copy()
 
-		for col, condenser in zip(["l", "h"], [np.min, np.max]):
+		for col, condenser in zip(["l", "h", "v"], [np.min, np.max, np.sum]):
+			if col not in df_g.columns:
+				continue
 			df_g[col] = condenser(df[col].to_numpy().reshape((-1, g)), axis=1)
 
 		return df_g

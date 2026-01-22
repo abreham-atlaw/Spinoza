@@ -58,6 +58,9 @@ class Environment(ABC):
 	def _initialize(self):
 		self.render()
 
+	def get_latest_state(self):
+		return self.get_state()
+
 	def start(self):
 		self._initialize()
 
