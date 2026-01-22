@@ -108,7 +108,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 	@staticmethod
 	def __encode_action(state: TradeState, action: typing.Optional[TraderAction]) -> np.ndarray:
 		encoded = np.zeros((4,))
-		if action is None:
+		if not isinstance(action, TraderAction):
 			return encoded
 		encoded[action.action] = 1
 		if action.action != TraderAction.Action.CLOSE:
@@ -178,7 +178,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		if isinstance(action, ActionSequence):  # TODO: ENCODE ALL ACTIONS
 			action = action.actions[0]
 
-		if action is None:
+		if not isinstance(action, TraderAction):
 			instrument = random.choice(state.get_market_state().get_tradable_pairs())
 		else:
 			instrument = action.base_currency, action.quote_currency

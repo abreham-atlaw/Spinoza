@@ -67,7 +67,8 @@ class AgentState:
 			open_trades=None,
 			core_pricing=Config.AGENT_CORE_PRICING,
 			commission_cost=Config.AGENT_COMMISSION_COST,
-			trade_penalty=Config.AGENT_TRADE_PENALTY
+			trade_penalty=Config.AGENT_TRADE_PENALTY,
+			initial_balance=None
 	):
 		self.__balance = balance
 		self.__market_state = market_state
@@ -79,6 +80,9 @@ class AgentState:
 		self.__open_trades: List[AgentState.OpenTrade] = open_trades
 		if open_trades is None:
 			self.__open_trades: List[AgentState.OpenTrade] = []
+		if initial_balance is None:
+			initial_balance = self.get_balance()
+		self.initial_balance = initial_balance
 
 	def __update_open_trades(self):
 		for trade in self.__open_trades:
@@ -220,7 +224,8 @@ class AgentState:
 			market_state,
 			margin_rate=self.__margin_rate,
 			currency=self.__currency,
-			open_trades=open_trades
+			open_trades=open_trades,
+			initial_balance=self.initial_balance
 		)
 
 	def __hash__(self):
