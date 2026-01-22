@@ -71,7 +71,7 @@ OANDA_SIM_TIMES_PATH = os.path.join(RES_DIR, "times/times-50-it-4.json")
 OANDA_SIM_MODEL_IN_PATH = PCLOUD_FOLDER
 TIMES_RESOURCE_MANAGER_KEY = "times"
 
-ENVIRONMENT_FETCH_CACHE_TIMEOUT = 1*60
+ENVIRONMENT_FETCH_CACHE_TIMEOUT = 1
 
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("UTC")
@@ -383,6 +383,8 @@ class RunnerStatsBranches:
 
 	it_95_6 = "it_95_6"
 
+	it_96_6 = "it_96_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -472,7 +474,8 @@ class RunnerStatsBranches:
 		it_92_6,
 		it_93_6,
 		it_94_6,
-		it_95_6
+		it_95_6,
+		it_96_6
 	]
 
 	default = it_89_8
@@ -546,6 +549,7 @@ class RunnerStatsLossesBranches:
 	it_93_0 = "it_93_0"
 	it_94_0 = "it_94_0"
 	it_95_0 = "it_95_0"
+	it_96_0 = "it_96_0"
 
 	all = [
 		main,
@@ -611,7 +615,8 @@ class RunnerStatsLossesBranches:
 		it_92_0,
 		it_93_0,
 		it_94_0,
-		it_95_0
+		it_95_0,
+		it_96_0
 	]
 
 	default = it_88_1
