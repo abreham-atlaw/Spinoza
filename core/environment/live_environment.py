@@ -293,5 +293,7 @@ class LiveEnvironment(TradeEnvironment):
 		if state is None:
 			state = self.get_state()
 		new_state = self._initiate_state()
+		new_state.get_agent_state().initial_balance = state.get_agent_state().initial_balance
+		new_state.is_running = state.is_running
 		new_state._TradeState__attached_state = state._TradeState__attached_state
 		return new_state

@@ -71,7 +71,7 @@ OANDA_SIM_TIMES_PATH = os.path.join(RES_DIR, "times/times-50-it-4.json")
 OANDA_SIM_MODEL_IN_PATH = PCLOUD_FOLDER
 TIMES_RESOURCE_MANAGER_KEY = "times"
 
-ENVIRONMENT_FETCH_CACHE_TIMEOUT = 1*60
+ENVIRONMENT_FETCH_CACHE_TIMEOUT = 1
 
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("UTC")
@@ -91,6 +91,7 @@ MARKET_STATE_SMOOTHED_CHANNELS = ()
 MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h')
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks")
 TIME_PENALTY = 0
+AGENT_TARGET_RETURN = None
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
@@ -368,6 +369,7 @@ class RunnerStatsBranches:
 	it_88_6 = "it_88_6"
 	it_89_6 = "it_89_6"
 	it_89_7 = "it_89_7"
+	it_89_8 = "it_89_8"
 
 	it_90_6 = "it_90_6"
 
@@ -378,6 +380,10 @@ class RunnerStatsBranches:
 	it_93_6 = "it_93_6"
 
 	it_94_6 = "it_94_6"
+
+	it_95_6 = "it_95_6"
+
+	it_96_6 = "it_96_6"
 
 	all = [
 		main,
@@ -462,11 +468,14 @@ class RunnerStatsBranches:
 		it_88_6,
 		it_89_6,
 		it_89_7,
+		it_89_8,
 		it_90_6,
 		it_91_6,
 		it_92_6,
 		it_93_6,
-		it_94_6
+		it_94_6,
+		it_95_6,
+		it_96_6
 	]
 
 	default = it_89_7
@@ -533,11 +542,14 @@ class RunnerStatsLossesBranches:
 	it_85_0 = "it_85_0"
 	it_86_0 = "it_86_0"
 	it_88_0 = "it_88_0"
+	it_88_1 = "it_88_1"
 	it_90_0 = "it_90_0"
 	it_91_0 = "it_91_0"
 	it_92_0 = "it_92_0"
 	it_93_0 = "it_93_0"
 	it_94_0 = "it_94_0"
+	it_95_0 = "it_95_0"
+	it_96_0 = "it_96_0"
 
 	all = [
 		main,
@@ -597,11 +609,14 @@ class RunnerStatsLossesBranches:
 		it_85_0,
 		it_86_0,
 		it_88_0,
+		it_88_1,
 		it_90_0,
 		it_91_0,
 		it_92_0,
 		it_93_0,
-		it_94_0
+		it_94_0,
+		it_95_0,
+		it_96_0
 	]
 
 	default = it_88_0
