@@ -2,8 +2,8 @@ import typing
 
 import numpy as np
 
-from core.agent.utils.state_predictor import StatePredictor, BasicStatePredictor
-from core.environment.trade_state import MarketState, TradeState, AgentState
+from core.agent.utils.state_predictor import BasicStatePredictor
+from core.environment.trade_state import TradeState, AgentState
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.logger import Logger
@@ -25,7 +25,7 @@ class PredictionReflexMemoryEvaluator(TraderReflexMemoryEvaluator):
 	@CacheDecorators.cached_method(size=10000)
 	def __predict_state(self, state0: TradeState) -> np.ndarray:
 		y = np.concatenate([
-			self.__state_predictor.predict([state0], [None], instrument=instrument)
+			self.__state_predictor.predict([state0], [None], instrument=instrument)[..., :-1]
 			for instrument in state0.get_market_state().get_tradable_pairs()
 		], axis=1)[0]
 

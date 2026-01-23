@@ -28,7 +28,7 @@ class ChessDRCNNModel(LinearModel):
 
 class ChessDeepReinforcementAgent(DeepReinforcementAgent, ABC):
 
-	def _init_model(self) -> Model:
+	def _init_predictor(self) -> Model:
 		return TorchModel(ChessDRCNNModel(
 			layer_sizes=[1024, 2048],
 			hidden_activation=nn.ReLU(),

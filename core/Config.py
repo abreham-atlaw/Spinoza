@@ -126,6 +126,7 @@ AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
 	("USD", "ZAR")
 ]
+AGENT_USE_MULTI_INSTRUMENT_MODEL = True
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = False
@@ -154,11 +155,11 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 32
 AGENT_USE_LASS = False
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-4-it-12-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
-AGENT_MCA_USE_REFLEX = False
+AGENT_MCA_USE_REFLEX = True
 AGENT_REFLEX_STM_SIZE = 1000
 AGENT_DRMCA_WP = 100
 AGENT_USE_DIRECT_DISTRIBUTION = True
@@ -243,7 +244,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-89/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-93/"
 
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
@@ -479,7 +480,7 @@ class RunnerStatsBranches:
 		it_96_6
 	]
 
-	default = it_89_8
+	default = it_93_6
 
 
 class RunnerStatsLossesBranches:
@@ -620,7 +621,7 @@ class RunnerStatsLossesBranches:
 		it_96_0
 	]
 
-	default = it_88_1
+	default = it_93_0
 
 
 
