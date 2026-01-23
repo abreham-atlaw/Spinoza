@@ -1,15 +1,25 @@
 from .action_choice_trader.action_choice_trader import ActionChoiceTrader
 from .cra import CumulativeRewardTraderAgent
 from .drmca import TraderDeepReinforcementMonteCarloAgent
-from .montecarlo_agent import TraderMonteCarloAgent
 from .direct_probability_distribution_agent import DirectProbabilityDistributionAgent
+from .montecarlo_agent import TraderMonteCarloAgent, ReflexAgent
+from .episodic_agent import EpisodicAgent
+from core import Config
 
 
-class TraderAgent(
-	DirectProbabilityDistributionAgent,
-	CumulativeRewardTraderAgent,
-	TraderDeepReinforcementMonteCarloAgent,
-	TraderMonteCarloAgent,
-	ActionChoiceTrader
-):
-	pass
+bases = (
+	EpisodicAgent,
+) + (
+    (ReflexAgent,) if Config.AGENT_MCA_USE_REFLEX else ()
+) + (
+	(DirectProbabilityDistributionAgent,) if Config.AGENT_USE_DIRECT_DISTRIBUTION else ()
+) + (
+    CumulativeRewardTraderAgent,
+    TraderDeepReinforcementMonteCarloAgent,
+    TraderMonteCarloAgent,
+    ActionChoiceTrader,
+)
+
+
+class TraderAgent(*bases):
+    pass

@@ -73,3 +73,8 @@ class SessionAnalyzerTest(unittest.TestCase):
 			channel=0,
 			checkpoints=[4]
 		)
+
+	def test_plot_trades(self):
+		self.session_analyzer.plot_trades(
+			channels=("c", 'l', 'h'),
+		)

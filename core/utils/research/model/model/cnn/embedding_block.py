@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from positional_encodings.torch_encodings import PositionalEncodingPermute1D
 
-from core.utils.research.model.layers import Indicators, DynamicLayerNorm
+from core.utils.research.model.layers import Indicators, DynamicLayerNorm, IndicatorsSet
 from core.utils.research.model.model.savable import SpinozaModule
 
 
@@ -12,7 +12,7 @@ class EmbeddingBlock(SpinozaModule):
 
 	def __init__(
 			self,
-			indicators: typing.Optional[Indicators] = None,
+			indicators: typing.Union[Indicators, IndicatorsSet] = None,
 			positional_encoding: bool = False,
 			norm_positional_encoding: bool = False,
 			input_norm: nn.Module = None,
