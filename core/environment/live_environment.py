@@ -37,6 +37,7 @@ class LiveEnvironment(TradeEnvironment):
 			use_smoothing: int = Config.MARKET_STATE_SMOOTHING,
 			channels: typing.Tuple[str,...] = Config.MARKET_STATE_CHANNELS,
 			smoothed_channels: typing.Tuple[str,...] = Config.MARKET_STATE_SMOOTHED_CHANNELS,
+			trigger_price_granularity: float = Config.AGENT_TRIGGER_PRICE_GRANULARITY,
 			stop_loss_conversion: bool = Config.AGENT_STOP_LOSS_CONVERSION,
 			stop_loss_conversion_bounds: typing.Tuple[float, float] = Config.AGENT_STOP_LOSS_CONVERSION_BOUNDS,
 			stop_loss_conversion_accuracy: int = Config.AGENT_STOP_LOSS_CONVERSION_ACCURACY,
@@ -69,6 +70,7 @@ class LiveEnvironment(TradeEnvironment):
 		self.__smoothed_channels = smoothed_channels
 		self.__smoothing_algorithm = None if not use_smoothing else ServiceProvider.provide_smoothing_algorithm()
 
+		self.__trigger_price_granularity = trigger_price_granularity
 		self.__trigger_value_conversion = stop_loss_conversion
 		self.__stop_loss_conversion_bounds = stop_loss_conversion_bounds
 		self.__stop_loss_conversion_accuracy = stop_loss_conversion_accuracy
@@ -251,6 +253,13 @@ class LiveEnvironment(TradeEnvironment):
 		Logger.info(f"Trigger Value Multiplied: {value} -> {new_value}")
 		return new_value
 
+	def __get_price(self, instrument) -> float:
+		if self.__trigger_price_granularity is None:
+			return self.__trader.get_price(instrument)
+		cs = self.__fetch_instrument_state(instrument[0], instrument[1], 1, self.__trigger_price_granularity)
+		price = float(cs[self.__channels.index(self.__close_channel_label), -1])
+		return price
+
 	def __calculate_stop_loss(self, action: TraderAction, trigger_value: float) -> typing.Optional[float]:
 		trigger_value = self.__apply_trigger_value_multiplier(trigger_value, action)
 
@@ -258,7 +267,7 @@ class LiveEnvironment(TradeEnvironment):
 			trigger_value = self.__convert_stop_loss(action)
 
 
-		price = self.__trader.get_price((action.base_currency, action.quote_currency))
+		price = self.__get_price((action.base_currency, action.quote_currency))
 		return price * trigger_value
 
 	def _open_trade(self, action: TraderAction):
@@ -293,5 +302,7 @@ class LiveEnvironment(TradeEnvironment):
 		if state is None:
 			state = self.get_state()
 		new_state = self._initiate_state()
+		new_state.get_agent_state().initial_balance = state.get_agent_state().initial_balance
+		new_state.is_running = state.is_running
 		new_state._TradeState__attached_state = state._TradeState__attached_state
 		return new_state

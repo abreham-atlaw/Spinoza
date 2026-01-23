@@ -2,6 +2,7 @@ import typing
 from abc import ABC, abstractmethod
 
 from lib.rl.environment import Environment
+from lib.utils.logger import Logger
 
 
 class Agent(ABC):
@@ -32,6 +33,7 @@ class Agent(ABC):
 	def perform_episode(self):
 		while not self._get_environment().is_episode_over():
 			self.perform_timestep()
+		Logger.success("Episode over. Exiting...")
 
 	def loop(self):
 		if self._get_environment().is_episodic():
