@@ -44,6 +44,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			use_transition_only_model=Config.AGENT_MODEL_USE_TRANSITION_ONLY,
 			use_extra_data: bool = Config.AGENT_USE_EXTRA_DATA,
 			graph_plot_rate: float = Config.AGENT_MCA_GRAPH_PLOT_RATE,
+			update_agent: bool = Config.UPDATE_AGENT,
 			**kwargs
 	):
 		self.__use_transition_only = use_transition_only_model
@@ -63,6 +64,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			discount_function=discount_function,
 			state_repository=AgentUtilsProvider.provide_state_repository(),
 			graph_plot_rate=graph_plot_rate,
+			update_agent=update_agent,
 			**kwargs
 		)
 		self.__encode_max_open_trades = encode_max_open_trade
@@ -75,7 +77,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 	@staticmethod
 	def __encode_action(state: TradeState, action: typing.Optional[TraderAction]) -> np.ndarray:
 		encoded = np.zeros((4,))
-		if action is None:
+		if not isinstance(action, TraderAction):
 			return encoded
 		encoded[action.action] = 1
 		if action.action != TraderAction.Action.CLOSE:
@@ -145,7 +147,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		if isinstance(action, ActionSequence):  # TODO: ENCODE ALL ACTIONS
 			action = action.actions[0]
 
-		if action is None:
+		if not isinstance(action, TraderAction):
 			instrument = random.choice(state.get_market_state().get_tradable_pairs())
 		else:
 			instrument = action.base_currency, action.quote_currency
