@@ -13,6 +13,9 @@ class ModelConfig:
 	url: str
 	path: str
 
+def load_json(path):
+	with open(path, "r") as f:
+		return json.load(f)
 
 IS_LIVE = False
 
@@ -86,9 +89,9 @@ MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = True
-MARKET_STATE_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_CHANNELS = ('c', 'l', 'h', 'v')
 MARKET_STATE_SMOOTHED_CHANNELS = ()
-MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h', 'v')
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks")
 TIME_PENALTY = 0
 AGENT_TARGET_RETURN = None
@@ -100,11 +103,11 @@ AGENT_TRADE_SIZE_USE_PERCENTAGE = True
 AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = True
 AGENT_USE_TAKE_PROFIT = True
-AGENT_USE_TAKE_PROFIT = False
 AGENT_STOP_LOSS_GRANULARITY = 0.0005
 AGENT_TRADE_TRIGGER_VALUE_BOUND = (0.0001, 0.002)
 AGENT_STOP_LOSS_ABSOLUTE_VALUE_MULTIPLIER = 1.0
 AGENT_TAKE_PROFIT_ABSOLUTE_VALUE_MULTIPLIER = 1.0
+AGENT_TRIGGER_PRICE_GRANULARITY = None
 AGENT_STOP_LOSS_CONVERSION = False
 AGENT_STOP_LOSS_CONVERSION_BOUNDS = (0.9995, 1.0005)
 AGENT_STOP_LOSS_CONVERSION_ACCURACY = int(1e2)
@@ -183,8 +186,12 @@ AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/13.json"), "r") as file:
-	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
+AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = [
+	load_json(os.path.join(RES_DIR, f"bounds/{i}.json"))
+	for i in [
+		"13", "13", "13","14"
+	]
+]
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
@@ -242,7 +249,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-89/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-92/"
 
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
@@ -478,7 +485,7 @@ class RunnerStatsBranches:
 		it_96_6
 	]
 
-	default = it_89_8
+	default = it_92_6
 
 
 class RunnerStatsLossesBranches:
@@ -619,7 +626,7 @@ class RunnerStatsLossesBranches:
 		it_96_0
 	]
 
-	default = it_88_1
+	default = it_92_0
 
 
 
