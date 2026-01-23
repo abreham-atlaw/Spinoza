@@ -86,9 +86,9 @@ MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = True
-MARKET_STATE_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_CHANNELS = ('c', 'l', 'h', "time.year", "time.month", "time.day", "time.hour", "time.minute")
 MARKET_STATE_SMOOTHED_CHANNELS = ()
-MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h', "time.year", "time.month", "time.day", "time.hour", "time.minute")
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks")
 TIME_PENALTY = 0
 AGENT_TARGET_RETURN = None
@@ -100,7 +100,6 @@ AGENT_TRADE_SIZE_USE_PERCENTAGE = True
 AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = True
 AGENT_USE_TAKE_PROFIT = True
-AGENT_USE_TAKE_PROFIT = False
 AGENT_STOP_LOSS_GRANULARITY = 0.0005
 AGENT_TRADE_TRIGGER_VALUE_BOUND = (0.0001, 0.002)
 AGENT_STOP_LOSS_ABSOLUTE_VALUE_MULTIPLIER = 1.0
@@ -243,7 +242,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-89/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-95/"
 
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
@@ -479,7 +478,7 @@ class RunnerStatsBranches:
 		it_96_6
 	]
 
-	default = it_89_8
+	default = it_95_6
 
 
 class RunnerStatsLossesBranches:
@@ -620,7 +619,7 @@ class RunnerStatsLossesBranches:
 		it_96_0
 	]
 
-	default = it_88_1
+	default = it_95_0
 
 
 
