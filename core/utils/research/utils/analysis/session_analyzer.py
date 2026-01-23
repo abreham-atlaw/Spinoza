@@ -1,5 +1,8 @@
 import os.path
+import sqlite3
 import typing
+from dataclasses import dataclass
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -15,7 +18,7 @@ from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgori
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import SpinozaLoss
 from core.utils.research.model.model.savable import SpinozaModule
-from core.utils.research.model.model.utils import HorizonModel
+from core.utils.research.model.model.utils import HorizonModel, AggregateModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.rl.agent import Node
 from lib.utils.cache import Cache
@@ -24,6 +27,16 @@ from lib.utils.logger import Logger
 from lib.utils.staterepository import StateRepository
 from lib.utils.torch_utils.model_handler import ModelHandler
 from temp import stats
+
+
+@dataclass
+class Checkpoint:
+	start: int
+	end: int
+	take_profit: float
+	stop_loss: float
+	note: str
+	note_color: str = "black"
 
 
 class SessionAnalyzer:
@@ -39,7 +52,8 @@ class SessionAnalyzer:
 			dtype: typing.Type = np.float32,
 			model_key: str = "spinoza-training",
 			bounds: typing.Iterable[float] = None,
-			extra_len: int = 124
+			extra_len: int = 124,
+			aggregate_alpha: float = None
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -47,17 +61,16 @@ class SessionAnalyzer:
 		self.__plt_y_grid_count = plt_y_grid_count
 		self.__cache = Cache()
 		self.__instruments = instruments
-		self.__model = model or self.__load_session_model(model_key)
-		self.__dtype = dtype
-
 		if bounds is None:
 			bounds = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 		self.__bounds = bounds
 
+		self.__model = model or self.__load_session_model(model_key, aggregate_alpha)
+		self.__dtype = dtype
 		self.__softmax = nn.Softmax(dim=-1)
 		self.__extra_len = extra_len
 
-	def __load_session_model(self, model_key: str) -> SpinozaModule:
+	def __load_session_model(self, model_key: str, aggregate_alpha: float) -> SpinozaModule:
 		model_path = os.path.join(
 			self.__sessions_path,
 			next(filter(
@@ -66,7 +79,16 @@ class SessionAnalyzer:
 			))
 		)
 		Logger.info(f"Using session model: {os.path.basename(model_path)}")
-		return ModelHandler.load(model_path)
+		model = ModelHandler.load(model_path)
+
+		if aggregate_alpha is not None:
+			model = AggregateModel(
+				model=model,
+				bounds=self.__bounds,
+				a=aggregate_alpha,
+				softmax=True
+			)
+		return model
 
 	@property
 	def __candlesticks_path(self) -> str:
@@ -79,6 +101,10 @@ class SessionAnalyzer:
 	@property
 	def __data_path(self) -> str:
 		return os.path.join(self.__sessions_path, "outs")
+
+	@property
+	def __db_path(self) -> str:
+		return os.path.join(self.__sessions_path, "oanda-simulation/db.sqlite3")
 
 	def __get_df_files(self, instrument: typing.Tuple[str, str]) -> typing.List[str]:
 
@@ -93,20 +119,31 @@ class SessionAnalyzer:
 		return all_files[idx::len(self.__instruments)]
 
 	@CacheDecorators.cached_method()
+	def __load_db(self) -> pd.DataFrame:
+		cnx = sqlite3.connect(self.__db_path)
+		df = pd.read_sql_query("SELECT * FROM core_trade", cnx)
+		df["open_time"] = pd.to_datetime(df["open_time"])
+		df["close_time"] = pd.to_datetime(df["close_time"])
+		return df
+
+	@CacheDecorators.cached_method()
 	def __load_dfs(self, instrument: typing.Tuple[str, str]) -> pd.DataFrame:
-		return list(filter(
+		dfs = list(filter(
 			lambda df: df.shape[0] > 0,
 			[
 				pd.read_csv(os.path.join(self.__candlesticks_path, f))
 				for f in self.__get_df_files(instrument)
 			]
 		))
+		for df in dfs:
+			df["time"] = pd.to_datetime(df["time"])
+		return dfs
 
 	@CacheDecorators.cached_method()
-	def __get_sequences(self, instrument: typing.Tuple[str, str]) -> typing.List[np.ndarray]:
+	def __get_sequences(self, instrument: typing.Tuple[str, str], channel: str = "c") -> typing.List[np.ndarray]:
 		dfs = self.__load_dfs(instrument=instrument)
 		return [
-			df["c"].to_numpy()
+			df[channel].to_numpy()
 			for df in dfs
 		]
 
@@ -125,14 +162,36 @@ class SessionAnalyzer:
 		self.__smoothing_algorithms = smoothing_algorithms
 		Logger.info("Using Smoothing Algorithms: {}".format(', '.join([str(sa) for sa in smoothing_algorithms])))
 
-	def plot_sequence(self, instrument: typing.Tuple[str, str], checkpoints: typing.List[int] = None, new_figure=True):
+	def plot_sequence(
+			self,
+			instrument: typing.Tuple[str, str],
+			checkpoints: typing.List[typing.Union[int, typing.Tuple[int, int], Checkpoint]] = None,
+			new_figure=True,
+			channels: typing.Tuple[str]= ('c',)
+	):
 		if checkpoints is None:
 			checkpoints = []
 
-		x = [
-			seq[-1]
-			for seq in self.__get_sequences(instrument=instrument)
-		]
+		for i in range(len(checkpoints)):
+			if isinstance(checkpoints[i], int):
+				checkpoints[i] = (checkpoints[i], None)
+			if isinstance(checkpoints[i], tuple):
+				checkpoints[i] = Checkpoint(
+					start=checkpoints[i][0],
+					take_profit=checkpoints[i][1],
+					stop_loss=None,
+					end=checkpoints[i][0] + 3,
+					note=f"{checkpoints[i][0]}"
+				)
+
+
+		x = np.array([
+			[
+				seq[-1]
+				for seq in self.__get_sequences(instrument=instrument, channel=c)
+			]
+			for c in channels
+		])
 		x_sa = [
 			[
 				smoothed_sequence[-1]
@@ -146,7 +205,9 @@ class SessionAnalyzer:
 		plt.title(" / ".join(instrument))
 		plt.grid()
 
-		plt.plot(x, label="Clean")
+
+		for i, channel in enumerate(channels):
+			plt.plot(x[i], label=f"Channel:{channel} - Clean")
 		for i in range(len(self.__smoothing_algorithms)):
 			plt.plot(x_sa[i], label=str(self.__smoothing_algorithms[i]))
 
@@ -154,10 +215,20 @@ class SessionAnalyzer:
 			plt.axhline(y=y, color="black")
 
 		for checkpoint in checkpoints:
-			plt.axvline(x=checkpoint, color="blue")
-			plt.axvline(x=checkpoint+1, color="green")
-			plt.axvline(x=checkpoint+2, color="red")
-			plt.text(checkpoint, max(x), str(checkpoint), verticalalignment="center")
+			plt.axvline(x=int(checkpoint.start), color="blue")
+			plt.axvline(x=int(checkpoint.start) + 1, color="green")
+			plt.text(
+				checkpoint.start, np.random.random() * (np.max(x) - np.min(x)) + np.min(x),
+				checkpoint.note,
+				verticalalignment="center",
+				fontweight="bold",
+				color=checkpoint.note_color,
+				zorder=20
+			)
+
+			for trigger, color in zip([checkpoint.take_profit, checkpoint.stop_loss], ["green", "red"]):
+				if trigger is not None:
+					plt.plot([checkpoint.start+1, checkpoint.end], [trigger, trigger], zorder=10, color=color, linewidth=5)
 
 		plt.legend()
 		if new_figure:
@@ -234,8 +305,7 @@ class SessionAnalyzer:
 
 	def __get_yv(self, y: np.ndarray) -> np.ndarray:
 		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds)
-		bounds = (bounds[1:] + bounds[:-1])/2
-		return np.sum(y[:, :-1] * bounds, axis=1)
+		return np.sum(y[:] * bounds, axis=1)
 
 	@staticmethod
 	def __evaluate_samples_loss(y_hat: np.ndarray, y: np.ndarray, loss_fn: SpinozaLoss) -> np.ndarray:
@@ -420,3 +490,55 @@ loss: {l[i] if l is not None else "N/A"}
 			plt.axvline(x=checkpoint, color="blue")
 
 		plt.show()
+
+	@staticmethod
+	def __get_timestep(time: datetime, dfs: typing.List[pd.DataFrame]) -> int:
+		times = [df["time"].iloc[-1] for df in dfs]
+		gran = round(np.mean([
+			(times[i+1] - times[i]).total_seconds() // 60
+			for i in range(len(times) - 1)
+		]))
+
+		for i, t in enumerate(times):
+			if t.replace(tzinfo=None) > time.replace(tzinfo=None):
+				return i-1 + (time.replace(tzinfo=None) - times[i-1].replace(tzinfo=None)).total_seconds() / (gran * 60)
+		return len(times)
+
+	def plot_trades(
+			self,
+			channels: typing.Tuple[str,...] = ("c",),
+			instrument: typing.Tuple[str, str] = None
+	):
+
+
+		def parse_action(row):
+			return "BUY" if row["units"] > 0 else "SELL"
+
+		if instrument is None:
+			instrument = self.__instruments[0]
+
+		db = self.__load_db()
+		db = db[(db["base_currency"] == instrument[0]) & (db["quote_currency"] == instrument[1])]
+
+		dfs = self.__load_dfs(instrument=instrument)
+
+
+
+		checkpoints = [
+			Checkpoint(
+				start=self.__get_timestep(row["open_time"], dfs) - 1,
+				end=self.__get_timestep(row["close_time"], dfs) ,
+				take_profit=row["take_profit"],
+				stop_loss=row["stop_loss"],
+				note=f"{int(self.__get_timestep(row['open_time'], dfs)) - 1}.\n{parse_action(row)}\n{row['realized_pl'] :.2f}",
+				note_color="darkgreen" if row["realized_pl"] > 0 else "darkred"
+			)
+			for i, row in db.iterrows()
+		]
+
+		self.plot_sequence(
+			instrument=instrument,
+			channels=channels,
+			checkpoints=checkpoints,
+		)
+

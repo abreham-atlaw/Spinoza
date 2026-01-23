@@ -31,9 +31,9 @@ class LassTrainerTest(TrainerTest):
 
 	def _get_root_dirs(self):
 		return [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/13/train")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/15/train")
 		], [
-			os.path.join(Config.BASE_DIR, "temp/Data/lass/13/test")
+			os.path.join(Config.BASE_DIR, "temp/Data/lass/15/test")
 		]
 
 	def _create_losses(self):
@@ -41,6 +41,10 @@ class LassTrainerTest(TrainerTest):
 			None,
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)
+
+	@property
+	def is_regression_only(self) -> bool:
+		return True
 
 	def __create_cnn2(self):
 		INPUT_CHANNELS = 2
@@ -327,6 +331,9 @@ class LassTrainerTest(TrainerTest):
 		COLLAPSE_FF_LINEAR_NORM = [nn.Identity() for _ in COLLAPSE_FF_LINEAR_LAYERS]
 		COLLAPSE_FF_LINEAR_DROPOUT = [0] * (len(COLLAPSE_FF_LINEAR_LAYERS) - 1)
 
+		# CHANNEL_COLLAPSE
+		COLLAPSE_CHANNEL_FF_LINEAR_LAYERS = [EMBEDDING_SIZE // 2, EMBEDDING_SIZE // 4, 1]
+
 
 		encoder_indicators = Indicators(
 			delta=ENCODER_EMBEDDING_INDICATORS_DELTA
@@ -379,6 +386,9 @@ class LassTrainerTest(TrainerTest):
 					layer_sizes=COLLAPSE_FF_LINEAR_LAYERS,
 					norm=COLLAPSE_FF_LINEAR_NORM,
 					hidden_activation=COLLAPSE_FF_LINEAR_ACTIVATION
+				),
+				channel_ff_block=LinearModel(
+					layer_sizes=COLLAPSE_CHANNEL_FF_LINEAR_LAYERS
 				)
 			),
 
@@ -395,9 +405,9 @@ class LassTrainerTest(TrainerTest):
 		# 	model=self.__create_lass3_transformer(),
 		# 	max_depth=5
 		# )
-		return self.__create_lass3_transformer()
+		# return self.__create_lass3_transformer()
 		# return self.__create_lass5_model()
-		# return self.__create_lass8_transformer()
+		return self.__create_lass8_transformer()
 
 	def _get_sequence_length(self):
 		return 32

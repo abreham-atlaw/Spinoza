@@ -75,7 +75,7 @@ class RTraderApplication:
 
 		agent = TraderAgent()
 		agent.set_environment(environment)
-		agent.loop()
+		agent.perform_episode()
 
 	def __run_live(self):
 		from core.environment import LiveEnvironment

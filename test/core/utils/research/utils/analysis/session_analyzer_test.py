@@ -13,7 +13,7 @@ class SessionAnalyzerTest(unittest.TestCase):
 
 	def setUp(self):
 		self.session_analyzer = SessionAnalyzer(
-			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/00"),
+			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/03"),
 			instruments=[
 				("AUD", "USD"),
 				("USD", "ZAR")
@@ -22,12 +22,17 @@ class SessionAnalyzerTest(unittest.TestCase):
 				MovingAverage(32),
 			],
 			plt_y_grid_count=10,
-			model_key="176"
+			model_key="it-89",
+			# aggregate_alpha=0.98/3
 		)
 
 	def test_plot_sequence(self):
-		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("AUD", "USD"))
-		self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("USD", "ZAR"))
+		self.session_analyzer.plot_sequence(
+			checkpoints=[(2, 0.64), 6],
+			instrument=("AUD", "USD"),
+			channels=("c", 'l', 'h')
+		)
+		# self.session_analyzer.plot_sequence(checkpoints=[2, 6], instrument=("USD", "ZAR"))
 
 	def test_plot_timestep_sequence(self):
 		self.session_analyzer.plot_timestep_sequence(i=0, instrument=("AUD", "USD"))
@@ -67,4 +72,9 @@ class SessionAnalyzerTest(unittest.TestCase):
 			instrument=("AUD", "USD"),
 			channel=0,
 			checkpoints=[4]
+		)
+
+	def test_plot_trades(self):
+		self.session_analyzer.plot_trades(
+			channels=("c", 'l', 'h'),
 		)

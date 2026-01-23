@@ -18,6 +18,7 @@ from lib.rl.environment import ModelBasedState
 from lib.utils.logger import Logger
 from lib.utils.math import sigmoid
 from lib.utils.staterepository import StateRepository, SectionalDictStateRepository
+from lib.utils.stm import ShortTermMemory
 from temp import stats
 from .node import Node
 from .stm.node_memory_matcher import NodeMemoryMatcher
@@ -47,6 +48,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			node_serializer: typing.Optional['NodeSerializer'] = None,
 			state_serializer: typing.Optional[Serializer] = None,
 			squash_epsilon: float = 1e-9,
+			graph_plot_rate: float = 0.0,
 			**kwargs
 	):
 
@@ -77,6 +79,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__squash_epsilon = squash_epsilon
 		self.__dynamic_k_threshold = dynamic_k_threshold
 		self.__resource_manager = resource_manager
+		self.__graph_plot_rate = graph_plot_rate
 
 	@property
 	def trim_mode(self) -> bool:
@@ -97,10 +100,10 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 	def _has_resource(self, resources) -> bool:
 		return self.__resource_manager.has_resource(resources)
 
-	def __init_current_graph(self, graph: 'Node'):
+	def _set_current_graph(self, graph: 'Node'):
 		self.__current_graph = graph
 
-	def __get_current_graph(self) -> 'Node':
+	def _get_current_graph(self) -> 'Node':
 		if self.__current_graph is None:
 			raise ValueError("Graph not set. Make sure __init_current_graph was called.")
 		return self.__current_graph
@@ -208,7 +211,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 	def __sync_repository(self):
 		Logger.info(f"Syncing state repository({len(self._state_repository)} states present)...")
-		descendants = [self.__get_current_graph()] + self.__get_descendant_state_nodes(self.__get_current_graph())
+		descendants = [self._get_current_graph()] + self.__get_descendant_state_nodes(self._get_current_graph())
 		state_backups = {node.id: self._state_repository.retrieve(node.id) for node in descendants}
 		self._state_repository.clear()
 		for id_, state in state_backups.items():
@@ -287,7 +290,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			]
 		)
 
-	def __finalize_step(self, root: 'Node'):
+	def _finalize_step(self, root: 'Node'):
 
 		if self.__dump_nodes:
 			self.__dump_node(root)
@@ -457,15 +460,17 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			self._backpropagate(final_node)
 
 			self.__manage_resources()
-			# stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
+			if self.__graph_plot_rate > 0 and random.random() < self.__graph_plot_rate:
+				stats.draw_graph_live(root_node, visited=True, state_repository=self._state_repository, uct_fn=self._uct)
 			stats.iterations["main_loop"] += 1
 
 	def _monte_carlo_tree_search(self, state) -> None:
 		root_node = Node(None, None, Node.NodeType.STATE)
 		self._state_repository.store(root_node.id, state)
-		self.__init_current_graph(root_node)
+		self._set_current_graph(root_node)
 
 		self._monte_carlo_simulation(root_node)
+		root_node = self._get_current_graph()
 
 		Logger.info(
 			f"Simulations Done: Iterations: {stats.iterations['main_loop']}, "
@@ -474,14 +479,14 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		)
 		optimal_action = max(root_node.get_children(), key=lambda node: node.get_total_value()).action
 		Logger.info(f"Best Action {optimal_action}")
-		self.__finalize_step(root_node)
+		self._finalize_step(root_node)
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
-		for action_node in self.__get_current_graph().get_children():
+		for action_node in self._get_current_graph().get_children():
 			if action_node.action == action:
 				return action_node.get_total_value()
 
-		raise Exception(f"Action Not Found in Graph.\nGiven Action={action}.\nAvailable Actions={[node.action for node in self.__get_current_graph().get_children()]}")
+		raise Exception(f"Action Not Found in Graph.\nGiven Action={action}.\nAvailable Actions={[node.action for node in self._get_current_graph().get_children()]}")
 
 	def _get_optimal_action(self, state, **kwargs):
 		self._monte_carlo_tree_search(state)
