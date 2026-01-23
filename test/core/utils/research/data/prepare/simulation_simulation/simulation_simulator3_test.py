@@ -20,16 +20,16 @@ class SimulationSimulator2Test(unittest.TestCase):
 		df = pd.read_csv(os.path.join(BASE_DIR, "temp/Data/AUD-USD.2-day.csv"))
 		self.output_path = os.path.join(BASE_DIR, "temp/Data/simulation_simulator_data/09")
 
+		self.columns = ('c', 'l', 'h', 'v', "time.year", "time.month", "time.day", "time.hour", "time.minute")
+
 		Logger.warning(f"Cleaning output path: {self.output_path}...")
 		os.system(f"rm -fr \"{self.output_path}\"")
 
 		self.simulator = SimulationSimulator3(
 			df=df,
 			bounds=[
-				Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-				Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-				Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-				load_json(os.path.join(Config.RES_DIR, "bounds/14.json"))
+				Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+				for _ in self.columns
 			],
 			seq_len=128,
 			extra_len=0,
@@ -38,8 +38,8 @@ class SimulationSimulator2Test(unittest.TestCase):
 			granularity=2,
 			smoothing_algorithm=MovingAverage(64),
 			smoothed_columns=(),
-			x_columns=('c', 'l', 'h', 'v'),
-			y_columns=('c', 'l', 'h', 'v'),
+			x_columns=self.columns,
+			y_columns=self.columns,
 			order_gran=True,
 			trim_extra_gran=True,
 			trim_incomplete_batch=True,
@@ -69,11 +69,11 @@ class SimulationSimulator2Test(unittest.TestCase):
 			X, y = [np.load(files[f]) for files in [X_FILES, Y_FILES]]
 			for idx, i in enumerate(np.argsort(np.mean(X[:, 0], axis=1))[:4]):
 				plt.subplot(4, 2, 2*idx+1)
-				for j in range(4):
-					plt.plot(X[i, j], label=["c", "l", "h", "v"][j])
+				for j in range(len(self.columns)):
+					plt.plot(X[i, j], label=self.columns[j])
 
 				plt.subplot(4, 2, 2*idx+2)
-				for j in range(4):
-					plt.plot(y[i, j], label=["c", "l", "h", "v"][j])
+				for j in range(len(self.columns)):
+					plt.plot(y[i, j], label=self.columns[j])
 				plt.legend()
 			plt.show()
