@@ -442,6 +442,21 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		self.__logical_backpropagate(node.parent)
 
+	def _monte_carlo_loop(self, root_node: Node):
+		start_time = datetime.now()
+		leaf_node = self._select(root_node)
+		stats.durations["select"] += (datetime.now() - start_time).total_seconds()
+
+		start_time = datetime.now()
+		self._expand(leaf_node, stm=False)
+		stats.durations["expand"] += (datetime.now() - start_time).total_seconds()
+
+		start_time = datetime.now()
+		final_node = self.__simulate(leaf_node)
+		stats.durations["simulate"] += (datetime.now() - start_time).total_seconds()
+
+		self._backpropagate(final_node)
+
 	def _monte_carlo_simulation(self, root_node: 'Node'):
 		self._expand(root_node)
 
@@ -449,20 +464,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 
 		stats.iterations["main_loop"] = 0
 		while self._has_resource(resources):
-			start_time = datetime.now()
-			leaf_node = self._select(root_node)
-			stats.durations["select"] += (datetime.now() - start_time).total_seconds()
-
-			start_time = datetime.now()
-			self._expand(leaf_node, stm=False)
-			stats.durations["expand"] += (datetime.now() - start_time).total_seconds()
-
-			start_time = datetime.now()
-			final_node = self.__simulate(leaf_node)
-			stats.durations["simulate"] += (datetime.now() - start_time).total_seconds()
-
-			self._backpropagate(final_node)
-
+			self._monte_carlo_loop(root_node)
 			self.__manage_resources()
 			self._plot_node(root_node)
 
