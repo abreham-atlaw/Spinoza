@@ -22,7 +22,7 @@ class LiveEnvironmentTest(unittest.TestCase):
 		)
 		Config.MARKET_STATE_SMOOTHED_CHANNELS = ("c",)
 
-		self.trader = Trader(Config.OANDA_TOKEN, Config.OANDA_TRADING_ACCOUNT_ID)
+		self.trader = Trader(Config.OANDA_TOKEN, Config.OANDA_TRADING_ACCOUNT_ID, trading_url=Config.OANDA_TRADING_URL)
 		Config.MARKET_STATE_MEMORY = 128
 		self.live_environment = LiveEnvironment()
 		self.live_environment.start()
@@ -36,7 +36,7 @@ class LiveEnvironmentTest(unittest.TestCase):
 				quote_currency,
 				TraderAction.Action.SELL,
 				margin_used=20,
-				stop_loss=1.0
+				take_profit=0.8
 			)
 		)
 

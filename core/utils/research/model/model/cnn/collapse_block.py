@@ -17,7 +17,8 @@ class CollapseBlock(SpinozaModule):
 		dropout: float = 0,
 		extra_mode: bool = True,
 		input_norm: typing.Optional[nn.Module] = None,
-		global_avg_pool: bool = False
+		global_avg_pool: bool = False,
+		flatten: bool = True
 	):
 		super().__init__(auto_build=False)
 		self.args = {
@@ -26,13 +27,14 @@ class CollapseBlock(SpinozaModule):
 			'dropout': dropout,
 			"extra_mode": extra_mode,
 			"input_norm": input_norm,
-			"global_avg_pool": global_avg_pool
+			"global_avg_pool": global_avg_pool,
+			"flatten": flatten
 		}
 		self.ff_block = ff_block
 		self.channel_ff_block = Axis(channel_ff_block, axis=1) if channel_ff_block is not None else nn.Identity()
 		self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
 		self.extra_mode = extra_mode
-		self.flatten = FlattenLayer(1, 2)
+		self.flatten = FlattenLayer(1, 2) if flatten else nn.Identity()
 		self.input_norm = input_norm if input_norm is not None else nn.Identity()
 		self.global_avg_pool = nn.AdaptiveAvgPool1d(1) if global_avg_pool else nn.Identity()
 
@@ -44,7 +46,6 @@ class CollapseBlock(SpinozaModule):
 		channeled = self.channel_ff_block(normed)
 
 		flattened = self.flatten(channeled)
-		flattened = flattened.reshape(flattened.size(0), -1)
 		flattened = self.dropout(flattened)
 
 		concat = flattened
