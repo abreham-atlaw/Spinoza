@@ -8,8 +8,11 @@ class SIOAgent(ABC):
 
 	def __init__(
 			self,
-			socket_client: Client = None
+			*args,
+			socket_client: Client = None,
+			**kwargs
 	):
+		super().__init__(*args, **kwargs)
 		if socket_client is None:
 			socket_client = Client(logger=True)
 		self._sio = socket_client

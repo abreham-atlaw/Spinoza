@@ -14,7 +14,7 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 			self,
 			*args,
 			node_serializer: Serializer,
-			queue_wait_time: float = 0.0,
+			queue_wait_time: float = 0.5,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
@@ -24,7 +24,9 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		self.__queued_nodes = []
 
 	def _map_events(self) -> typing.Dict[str, typing.Callable[[typing.Any], None]]:
-		pass
+		return {
+			"backpropagate": self.__handle_backpropagate,
+		}
 
 	def __queue_node(self, node: Node):
 		self._sio.emit(

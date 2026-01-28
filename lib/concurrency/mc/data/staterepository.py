@@ -50,7 +50,15 @@ class FlaskSocketIOChannel(SocketIOChannel):
 
 class DistributedStateRepository(DictStateRepository):
 
-	def __init__(self, channel: Channel, serializer: Serializer, *args, timeout=3, is_server=False, **kwargs):
+	def __init__(
+			self,
+			channel: Channel,
+			serializer: Serializer,
+			*args,
+			timeout=3,
+			is_server=False,
+			**kwargs
+	):
 		super().__init__(*args, **kwargs)
 		self.__serializer = serializer
 		self.__channel = channel
@@ -63,7 +71,6 @@ class DistributedStateRepository(DictStateRepository):
 		self.__channel.map("state_request", self.__handle_request)
 
 	def __handle_response(self, response):
-		response = json.loads(response)
 		self.store(response["id"], self.__serializer.deserialize(response["state"]))
 
 	def __handle_request(self, key):
@@ -73,10 +80,10 @@ class DistributedStateRepository(DictStateRepository):
 			return
 		self.__channel.emit(
 			"state_response",
-			json.dumps({
+			{
 				"id": key,
 				"state": self.__serializer.serialize(state)
-			})
+			}
 		)
 
 	def __wait_retrieve(self, key) -> object:

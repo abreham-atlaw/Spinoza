@@ -241,6 +241,8 @@ def draw_graph(root_node, depth=None, top=None, visited=False, state_repository=
 	graph = nx.Graph()
 	nodes = get_nodes(root_node, depth=depth, top=top, visited=visited) + [root_node]
 	print(f"About to draw {len(nodes)}")
+	if len(nodes) < 2:
+		return
 	for i, node in enumerate(nodes):
 		if node is not root_node:
 			graph.add_edge(i, nodes.index(node.parent))
@@ -328,6 +330,8 @@ def draw_graph_live(root_node, depth=None, top=None, visited=False, state_reposi
 
 	graph = nx.Graph()
 	nodes = get_nodes(root_node, depth=depth, top=top, visited=visited) + [root_node]
+	if len(nodes) < 2:
+		return
 	print(f"About to draw {len(nodes)}")
 	for i, node in enumerate(nodes):
 		if node is not root_node:

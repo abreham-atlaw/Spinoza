@@ -1,3 +1,4 @@
+import os.path
 import time
 import typing
 
@@ -17,7 +18,7 @@ class SwarmQueenSetupManager(SwarmSetupManager):
 	def __construct_session() -> Session:
 		return Session(
 			branch=Config.RunnerStatsBranches.default,
-			model=Config.CORE_MODEL_CONFIG.path,
+			model=os.path.basename(Config.CORE_MODEL_CONFIG.path),
 			model_temperature=Config.AGENT_MODEL_TEMPERATURE,
 			model_alpha=Config.AGENT_MODEL_AGGREGATION_ALPHA
 		)
