@@ -19,8 +19,7 @@ class ConfidencePreparer:
 			export_path: str,
 			model: SpinozaModule,
 			loss: SpinozaLoss,
-			x_encoder_dir_name = "X_Encoder",
-			x_decoder_dir_name = "X_Decoder",
+			x_dir_name = "X",
 			y_dir_name = "y",
 			x_input_dir_name = "X",
 			y_input_dir_name = "y",
@@ -29,8 +28,7 @@ class ConfidencePreparer:
 	):
 		self.__x_path = os.path.join(data_path, x_input_dir_name)
 		self.__y_path = os.path.join(data_path, y_input_dir_name)
-		self.__x_encoder_dir = x_encoder_dir_name
-		self.__x_decoder_dir = x_decoder_dir_name
+		self.__x_dir = x_dir_name
 		self.__y_dir = y_dir_name
 		self.__export_path = export_path
 		self.__model = model.eval()
@@ -43,7 +41,7 @@ class ConfidencePreparer:
 			Logger.warning(f"Received collapsed loss.")
 
 	def __setup_dirs(self):
-		for dir_name in [self.__x_encoder_dir, self.__x_decoder_dir, self.__y_dir]:
+		for dir_name in [self.__x_dir, self.__y_dir]:
 			path = os.path.join(self.__export_path, dir_name)
 			Logger.info(f"Setting up {path}...")
 			os.makedirs(path, exist_ok=True)
@@ -66,9 +64,9 @@ class ConfidencePreparer:
 	def __load_file(path: str) -> torch.Tensor:
 		return torch.from_numpy(np.load(path).astype(np.float32))
 
-	def __save_batch(self, x_encoder: torch.Tensor, x_decoder: torch.Tensor, y: torch.Tensor):
+	def __save_batch(self, x: torch.Tensor, y: torch.Tensor):
 		filename = f"{datetime.now().timestamp()}.npy"
-		for arr, dir_name in zip([x_encoder, x_decoder, y], [self.__x_encoder_dir, self.__x_decoder_dir, self.__y_dir]):
+		for arr, dir_name in zip([x, y], [self.__x_dir, self.__y_dir]):
 			path = os.path.join(self.__export_path, dir_name, filename)
 			np.save(path, arr.numpy())
 
@@ -76,7 +74,12 @@ class ConfidencePreparer:
 		x, y = [self.__load_file(os.path.join(container, filename)) for container in [self.__x_path, self.__y_path]]
 		y_hat, c = self.__process_batch(x, y)
 
-		self.__save_batch(x, y_hat, c)
+		x = torch.concatenate(
+			(x, y_hat),
+			dim=-1
+		)
+
+		self.__save_batch(x, c)
 
 	def __main(self):
 		for i, filename in enumerate( self.__files):

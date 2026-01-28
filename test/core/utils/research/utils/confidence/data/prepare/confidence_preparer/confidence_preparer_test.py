@@ -5,8 +5,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from core import Config
-from core.utils.research.data.prepare.confidence_preparer import ConfidencePreparer
 from core.utils.research.losses import ProximalMaskedLoss
+from core.utils.research.utils.confidence.data.prepare.confidence_preparer import ConfidencePreparer
 from lib.utils.logger import Logger
 from lib.utils.torch_utils.model_handler import ModelHandler
 
@@ -36,14 +36,16 @@ class ConfidencePreparerTest(unittest.TestCase):
 	def test_preparation(self):
 		self.preparer.start()
 
-		filenames = os.listdir(os.path.join(self.export_path, "X_Encoder"))
+		filenames = os.listdir(os.path.join(self.export_path, "X"))
 
 		for i, idx in enumerate(np.random.randint(0, len(filenames), 10)):
 
-			x_encoder, x_decoder, y = [
+			x, y = [
 				np.load(os.path.join(self.export_path, dir_name, filenames[idx]))
 				for dir_name in os.listdir(self.export_path)
 			]
+
+			x_encoder, x_decoder = x[..., :128], x[..., 128:]
 
 			plt.figure()
 			plt.subplot(1, 2, 1)
