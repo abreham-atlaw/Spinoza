@@ -55,7 +55,7 @@ class ConfidencePreparer:
 			os.listdir(path)
 		))
 
-	def __process_batch(self, x: torch.Tensor, y:torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tuple]:
+	def __process_batch(self, x: torch.Tensor, y:torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tensor]:
 		with torch.no_grad():
 			y_hat = self.__model(x)
 
