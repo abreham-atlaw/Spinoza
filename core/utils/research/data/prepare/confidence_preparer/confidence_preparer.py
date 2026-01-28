@@ -20,7 +20,7 @@ class ConfidencePreparer:
 			loss: SpinozaLoss,
 			x_encoder_dir_name = "X_Encoder",
 			x_decoder_dir_name = "X_Decoder",
-			y_dir_name = "Y_Encoder",
+			y_dir_name = "y",
 			x_input_dir_name = "X",
 			y_input_dir_name = "y",
 			y_extra_len: int = 1,
