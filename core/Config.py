@@ -1,5 +1,7 @@
 import json
 
+import numpy as np
+import torch
 from pytz import timezone
 import os
 import random
@@ -240,6 +242,16 @@ PREDICTION_MODELS = [
 	DELTA_MODEL_CONFIG,
 	ARA_MODEL_CONFIG
 ]
+
+
+DEFAULT_NP_DTYPE = np.float64
+DEFAULT_TORCH_DTYPE = torch.float64
+try:
+	import torch_xla
+	from torch_xla.distributed import parallel_loader
+	TIMEOUT = 8*60*60
+except ImportError:
+	TIMEOUT = 11*60*60
 
 
 class ResourceCategories:
