@@ -4,6 +4,7 @@ from datetime import datetime
 
 import numpy as np
 import torch
+from torch import nn
 
 from core.utils.research.losses import SpinozaLoss
 from core.utils.research.model.model.savable import SpinozaModule
@@ -24,6 +25,7 @@ class ConfidencePreparer:
 			x_input_dir_name = "X",
 			y_input_dir_name = "y",
 			y_extra_len: int = 1,
+			use_softmax: bool = False
 	):
 		self.__x_path = os.path.join(data_path, x_input_dir_name)
 		self.__y_path = os.path.join(data_path, y_input_dir_name)
@@ -35,6 +37,7 @@ class ConfidencePreparer:
 		self.__loss = loss
 		self.__y_extra_len = y_extra_len
 		self.__files = self.__get_filenames(self.__x_path)
+		self.__softmax = nn.Softmax(dim=-1) if use_softmax else nn.Identity()
 
 		if loss.collapsed:
 			Logger.warning(f"Received collapsed loss.")
@@ -52,12 +55,12 @@ class ConfidencePreparer:
 			os.listdir(path)
 		))
 
-	def __process_batch(self, x: torch.Tensor, y:torch.Tensor) -> torch.Tensor:
+	def __process_batch(self, x: torch.Tensor, y:torch.Tensor) -> typing.Tuple[torch.Tensor, torch.Tuple]:
 		with torch.no_grad():
 			y_hat = self.__model(x)
 
 		loss = self.__loss(y_hat[..., :y_hat.shape[-1] - self.__y_extra_len], y[..., :y_hat.shape[-1] - self.__y_extra_len])
-		return 1/loss
+		return self.__softmax(y_hat), 1/loss
 
 	@staticmethod
 	def __load_file(path: str) -> torch.Tensor:
@@ -71,9 +74,9 @@ class ConfidencePreparer:
 
 	def __process_file(self, filename: str):
 		x, y = [self.__load_file(os.path.join(container, filename)) for container in [self.__x_path, self.__y_path]]
-		c = self.__process_batch(x, y)
+		y_hat, c = self.__process_batch(x, y)
 
-		self.__save_batch(x, y, c)
+		self.__save_batch(x, y_hat, c)
 
 	def __main(self):
 		for i, filename in enumerate( self.__files):

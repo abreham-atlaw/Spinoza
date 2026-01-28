@@ -18,7 +18,7 @@ class ConfidencePreparerTest(unittest.TestCase):
 		self.export_path = os.path.join(Config.BASE_DIR, "temp/Data/confidence_data/00")
 
 		Logger.info(f"Cleaning export path: {self.export_path}")
-		os.system("rm -fr '{}'".format(os.path.join(self.export_path, "*")))
+		os.system("rm -fr '{}'".format(self.export_path))
 
 		self.model = ModelHandler.load(os.path.join(Config.BASE_DIR, "abrehamalemu-spinoza-training-cnn-1-it-89-tot.0.zip"))
 		self.loss = ProximalMaskedLoss(
