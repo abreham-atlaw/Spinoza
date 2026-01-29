@@ -14,7 +14,7 @@ class AggregateModel(SpinozaModule):
 			self,
 			model: SpinozaModule,
 			bounds: typing.Union[typing.List[float], torch.Tensor],
-			a: float,
+			a: typing.Union[float, typing.List[float]],
 			y_extra_len: int = 1,
 			temperature: float = 1e-5,
 			softmax: bool = False
@@ -34,8 +34,10 @@ class AggregateModel(SpinozaModule):
 		)
 		self.model = model
 		self.raw_bounds, self.bounds = self.__prepare_bounds(bounds)
-		self.a = a
-		self.n = int(1.0 / a)
+		self.a_list = a if isinstance(a, list) else [a]
+		self.a = self.a_list[0]
+		self.n_list = [int(1.0/alpha) for alpha in self.a_list]
+		self.n = self.n_list[0]
 		self.y_extra_len = y_extra_len
 		self.temperature = temperature
 		self.temperature_softmax = nn.Softmax(dim=-1)
@@ -63,6 +65,12 @@ class AggregateModel(SpinozaModule):
 		self.register_buffer("raw_bounds", bounds)
 		self.register_buffer("bounds", bounds)
 		return raw_bounds, bounds
+
+	def __activate_channel(self, i: int):
+		if len(self.a_list) == 1:
+			return
+		self.a = self.a_list[i]
+		self.n = self.n_list[i]
 
 	def norm(self, x: torch.Tensor) -> torch.Tensor:
 		return x / torch.sum(x, dim=-1, keepdim=True)
@@ -108,10 +116,11 @@ class AggregateModel(SpinozaModule):
 
 	def aggregate_y(self, y: torch.Tensor) -> torch.Tensor:
 		if len(y.shape) == 3:
-			return torch.stack([
-				self.aggregate_y(y[:,i])
-				for i in range(y.shape[1])
-			], dim=1)
+			aggregated = []
+			for i in range(y.shape[1]):
+				self.__activate_channel(i)
+				aggregated.append(self.aggregate_y(y[:,i]))
+			return torch.stack(aggregated, dim=1)
 
 		return torch.concatenate(
 			[
