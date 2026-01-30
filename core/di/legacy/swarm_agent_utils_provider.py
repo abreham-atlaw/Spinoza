@@ -46,7 +46,7 @@ class SwarmAgentUtilsProvider:
 	@staticmethod
 	def provide_mc_worker_resource_manager() -> MCResourceManager:
 		manager = TimeMCResourceManager(
-			step_time=Config.MC_WORKER_STEP_TIME
+			step_time=Config.SWARM_WORKER_STEP_TIME
 		)
 		Logger.info(f"Using MC Worker Resource Manager: {manager.__class__.__name__}")
 		return manager
