@@ -52,7 +52,13 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 
 		node: Node = self.__node_serializer.deserialize(data)
 		Logger.info(f"Backpropagating node: {node.id}")
-		parent = self._get_current_graph().find_node_by_id(node.id).parent
+
+		old_node = self._get_current_graph().find_node_by_id(node.id)
+		if old_node is None:
+			Logger.warning(f"Received Backpropagate to an unknown node. Skipping...")
+			return
+
+		parent = old_node.parent
 
 		parent.children.remove(node)
 		parent.add_child(node)
