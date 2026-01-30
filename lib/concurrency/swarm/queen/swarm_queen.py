@@ -43,12 +43,15 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 
 	def __handle_backpropagate(self, data = None):
 		if not self.__is_active:
+			Logger.warning(f"Received Backpropagate while inactive. Skipping...")
 			return
 
 		if data is None:
 			Logger.error(f"Received data=None on backpropagate")
 			return
+
 		node: Node = self.__node_serializer.deserialize(data)
+		Logger.info(f"Backpropagating node: {node.id}")
 		parent = self._get_current_graph().find_node_by_id(node.id).parent
 
 		parent.children.remove(node)
@@ -56,9 +59,8 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		self._backpropagate(node)
 
 	def _finalize_step(self, root: 'Node'):
+		self.__deactivate_simulation()
 		super()._finalize_step(root)
-		self.__clear_queue()
-		self.__queued_nodes = []
 
 	def __activate_simulation(self):
 		self.__is_active = True
@@ -78,3 +80,6 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 
 		time.sleep(self.__queue_wait_time)
 
+	def _monte_carlo_simulation(self, root_node: 'Node'):
+		self.__activate_simulation()
+		return super()._monte_carlo_simulation(root_node)
