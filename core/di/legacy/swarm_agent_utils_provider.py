@@ -16,7 +16,7 @@ class SwarmAgentUtilsProvider:
 	@staticmethod
 	@CacheDecorators.singleton()
 	def provide_socketio_client() -> Client:
-		return Client(logger=True)
+		return Client(logger=Config.SWARM_SOCKETIO_LOGGING)
 
 	@staticmethod
 	def provide_queen_setup_manager() -> SwarmQueenSetupManager:
