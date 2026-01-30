@@ -17,7 +17,7 @@ class ModelConfig:
 IS_LIVE = True
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-EXPORT_DIR = os.path.join(BASE_DIR, "temp/session_dumps/04")
+EXPORT_DIR = os.path.join(BASE_DIR, "temp/")
 RES_DIR = os.path.join(BASE_DIR, "res/")
 
 NETWORK_TRIES = 10
@@ -83,7 +83,7 @@ UPDATE_SAVE_PATH = os.path.join(EXPORT_DIR, "Data/drmca_export")
 UPDATE_TRAIN = False
 MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
-MARKET_STATE_GRANULARITY = "M5"
+MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = True
 MARKET_STATE_CHANNELS = ('c', 'l', 'h')
@@ -164,13 +164,13 @@ AGENT_PROBABILITY_STORE_SIZE = int(1e6)
 AGENT_POSSIBLE_STATES_IMPORTANCE_THRESHOLD = 0.05
 AGENT_TOP_K_NODES = None
 AGENT_DYNAMIC_K_THRESHOLD = 0.05
-AGENT_DUMP_NODES = False
+AGENT_DUMP_NODES = True
 AGENT_DUMP_NODES_PATH = os.path.join(EXPORT_DIR, "graph_dumps")
 AGENT_DUMP_VISITED_ONLY = True
 AGENT_USE_AUTO_STATE_REPOSITORY = False
 AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e5)
 AGENT_FILESYSTEM_STATE_REPOSITORY_PATH = BASE_DIR
-AGENT_MCA_GRAPH_PLOT_RATE = 0.2
+AGENT_MCA_GRAPH_PLOT_RATE = 0.0
 AGENT_MIN_FREE_MEMORY = 2
 AGENT_MIN_DISK_SPACE = 0.1
 AGENT_MIN_ABS_DISK_SPACE = None
@@ -191,7 +191,7 @@ TPU_OS_KEY = "COLAB_TPU_ADDR"
 
 
 # SWARM CONFIGS
-SWARM_HUB_HOST = "http://127.0.0.1:8888"
+SWARM_HUB_HOST = "http://swarmhub.alwaysdata.net/"
 
 
 MC_WORKER_STEP_TIME = int(0.05 * 60)
@@ -221,7 +221,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "abrehamalemu-spinoza-training-cnn-1-it-89-tot.0.zip"),
+	path=os.path.join(BASE_DIR, "core_model.zip"),
 	download=False
 )
 
