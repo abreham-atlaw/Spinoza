@@ -22,6 +22,7 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		self.__queue_wait_time = queue_wait_time
 
 		self.__queued_nodes = []
+		self.__is_active = False
 
 	def _map_events(self) -> typing.Dict[str, typing.Callable[[typing.Any], None]]:
 		return {
@@ -34,7 +35,16 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 			data=self.__node_serializer.serialize(node)
 		)
 
+	def __clear_queue(self):
+		Logger.info(f"Clearing Queue...")
+		self._sio.emit(
+			"clear-queue"
+		)
+
 	def __handle_backpropagate(self, data = None):
+		if not self.__is_active:
+			return
+
 		if data is None:
 			Logger.error(f"Received data=None on backpropagate")
 			return
@@ -47,6 +57,15 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 
 	def _finalize_step(self, root: 'Node'):
 		super()._finalize_step(root)
+		self.__clear_queue()
+		self.__queued_nodes = []
+
+	def __activate_simulation(self):
+		self.__is_active = True
+
+	def __deactivate_simulation(self):
+		self.__is_active = False
+		self.__clear_queue()
 		self.__queued_nodes = []
 
 	def _monte_carlo_loop(self, root_node: Node):
