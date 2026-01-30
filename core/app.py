@@ -18,6 +18,7 @@ class RTraderApplication:
 		MC_WORKER_POOL = "mc-worker-pool"
 		SWARM_QUEEN = "swarm-queen"
 		SWARM_WORKER = "swarm-worker"
+		SWARM_WORKER_POOL = "swarm-worker-pool"
 		ARBITRAGE = "arbitrage"
 
 	def __init__(self, config=None):
@@ -30,7 +31,8 @@ class RTraderApplication:
 			RTraderApplication.Mode.MC_WORKER_POOL: self.__run_mc_worker_pool,
 			RTraderApplication.Mode.ARBITRAGE: self.__run_arbitrage,
 			RTraderApplication.Mode.SWARM_QUEEN: self.__run_swarm_queen,
-			RTraderApplication.Mode.SWARM_WORKER: self.__run_swarm_worker
+			RTraderApplication.Mode.SWARM_WORKER: self.__run_swarm_worker,
+			RTraderApplication.Mode.SWARM_WORKER_POOL: self.__run_swarm_worker_pool,
 		}
 		self.config = config
 		self.is_setup = False
@@ -152,6 +154,14 @@ class RTraderApplication:
 		worker = SwarmWorkerTrader()
 		self.__setup_agent(worker)
 		worker.loop()
+
+	def __run_swarm_worker_pool(self):
+		print("Running Swarm Worker Pool")
+
+		from core.agent.concurrency.swarm.worker import SwarmWorkerPool
+		pool = SwarmWorkerPool()
+		self.__setup_agent(pool)
+		pool.start()
 
 	def __run_arbitrage(self):
 		print("Running Arbitrage Trader...")
