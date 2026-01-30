@@ -4,3 +4,6 @@ dropbox
 pymongo==4.3.3
 dependency-injector
 python-socketio==5.6.0
+Flask-SocketIO==5.2.0
+Flask==2.1.2
+Werkzeug==2.0.1
