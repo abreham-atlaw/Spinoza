@@ -3,3 +3,4 @@ positional-encodings
 dropbox
 pymongo==4.3.3
 dependency-injector
+python-socketio==5.6.0
