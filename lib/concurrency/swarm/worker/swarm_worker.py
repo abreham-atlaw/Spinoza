@@ -1,11 +1,9 @@
 import typing
 from abc import ABC
-from typing import List, Any
 
 from lib.concurrency.swarm.sio_agent import SIOAgent
 from lib.network.rest_interface import Serializer
 from lib.rl.agent import MonteCarloAgent, Node
-from lib.rl.environment import ModelBasedState
 from lib.utils.logger import Logger
 
 
@@ -33,7 +31,10 @@ class SwarmWorker(SIOAgent, MonteCarloAgent, ABC):
 
 		node = self.__node_serializer.deserialize(data)
 		Logger.info(f"Working on node: {node.id}")
+
 		self._monte_carlo_simulation(node)
+
+		Logger.info(f"Backpropagating node: {node.id}")
 		self._sio.emit(
 			"backpropagate",
 			self.__node_serializer.serialize(node),
