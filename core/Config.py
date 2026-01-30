@@ -14,7 +14,7 @@ class ModelConfig:
 	path: str
 
 
-IS_LIVE = False
+IS_LIVE = True
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 EXPORT_DIR = os.path.join(BASE_DIR, "temp/")
