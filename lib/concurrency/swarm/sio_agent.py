@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 
 from socketio import Client
 
+from lib.utils.logger import Logger
+
 
 class SIOAgent(ABC):
 
@@ -22,6 +24,18 @@ class SIOAgent(ABC):
 	def _map_events(self) -> typing.Dict[str, typing.Callable[[typing.Any], None]]:
 		pass
 
+	def __default_map_events(self) -> typing.Dict[str, typing.Callable[[typing.Any], None]]:
+		return {
+			"disconnect", self._handle_disconnect
+		}
+
 	def __map_events(self):
-		for event, handler in self._map_events().items():
+
+		handler_map = self.__default_map_events()
+		handler_map.update(self._map_events())
+
+		for event, handler in handler_map.items():
 			self._sio.on(event, handler)
+
+	def _handle_disconnect(self):
+		Logger.error(f"Socket disconnected.")
