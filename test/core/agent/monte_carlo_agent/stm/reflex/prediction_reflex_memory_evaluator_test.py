@@ -12,13 +12,14 @@ from lib.utils.stm import StochasticShortTermMemory
 class TraderReflexMemoryEvaluatorTest(unittest.TestCase):
 
 	def __init_state(self, m: float, b: float, t: int):
+		channels = 4
 		market_state = MarketState(
 			currencies=["AUD", "USD"],
 			memory_len=128,
-			channels=3
+			channels=channels
 		)
-		market_state.update_state_of("AUD", "USD", np.arange(128*3).reshape((3, -1)))
-		market_state.update_state_of("AUD", "USD", np.array([[128*m] for _ in range(3)]))
+		market_state.update_state_of("AUD", "USD", np.arange(128*channels).reshape((channels, -1)))
+		market_state.update_state_of("AUD", "USD", np.array([[128*m] for _ in range(channels)]))
 
 
 		agent_state = AgentState(
