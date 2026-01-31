@@ -326,10 +326,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		states = self.__simulate_instruments_change(state, involved_instruments, action)
 
 		for mid_state in states:
-			try:
-				self._simulate_action(mid_state, action)
-			except InsufficientFundsException:
-				continue
+			self._simulate_action(mid_state, action)
 
 		return states
 
@@ -342,29 +339,25 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 
 	@staticmethod
 	def _enumerate_channel_combinations(possible_values: np.ndarray) -> np.ndarray:
-		if possible_values.ndim > 1 and possible_values.shape[0] > 1:
+		if isinstance(possible_values[0], Iterable) and len(possible_values) > 1:
 			possible_values = np.array(
-				np.meshgrid(*[possible_values[i] for i in range(possible_values.shape[0])], indexing="ij")
-			).reshape(possible_values.shape[0], -1)
+				np.meshgrid(*[possible_values[i] for i in range(len(possible_values))], indexing="ij")
+			).reshape(len(possible_values), -1)
 		return possible_values
 
-	def __filter_possible_values(self, values: np.ndarray) -> np.ndarray:
-		values = values[:, (values[self.__high_channel] >= values[self.__close_channel]) & (values[self.__low_channel] <= values[self.__close_channel])]
-		return values
-
-	def _get_possible_channel_values(self, state: TradeState, base_currency: str, quote_currency: str) -> np.ndarray:
-		channels = [i for i in range(len(self.__market_state_channels)) if self.__market_state_channels[i] in self.__simulated_channels]
+	def _get_possible_channeled_values(self, state: TradeState, base_currency: str, quote_currency: str) -> np.ndarray:
+		channels = [i for i in range(len(self.__market_state_channels)) if
+					self.__market_state_channels[i] in self.__simulated_channels]
 
 		original_values = state.get_market_state().get_channels_state(base_currency, quote_currency)
 		possible_values = original_values[channels][:, -1:] * self._simulation_state_change_delta_bounds
+		return possible_values
+
+	def _get_possible_channel_values(self, state: TradeState, base_currency: str, quote_currency: str) -> np.ndarray:
+		possible_values = self._get_possible_channeled_values(state, base_currency, quote_currency)
 
 		possible_values = self._enumerate_channel_combinations(possible_values)
 		# possible_values = self.__filter_possible_values(possible_values)
-
-		if original_values.shape[0] > possible_values.shape[0]:
-			y = np.zeros((original_values.shape[0], possible_values.shape[1]))
-			y[channels] = possible_values
-			possible_values = y
 
 		return possible_values
 
@@ -431,8 +424,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		if action.action == TraderAction.Action.CLOSE:
 			state.get_agent_state().close_trades(action.base_currency, action.quote_currency)
 			return
-
-		state.get_agent_state().open_trade(
-			action,
-			state.get_market_state().get_current_price(action.base_currency, action.quote_currency)
-		)
+		try:
+			state.get_agent_state().open_trade(
+				action,
+				state.get_market_state().get_current_price(action.base_currency, action.quote_currency)
+			)
+		except InsufficientFundsException:
+			pass

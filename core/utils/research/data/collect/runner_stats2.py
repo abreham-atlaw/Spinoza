@@ -28,6 +28,7 @@ class RunnerStats2Session:
 class RunnerStats2(RunnerStats):
 
 	sessions: typing.List[RunnerStats2Session] = field(default_factory=lambda: [])
+	aggregate_alpha: float = None
 
 	@property
 	def profits(self) -> typing.List[float]:
