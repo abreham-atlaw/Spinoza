@@ -26,7 +26,7 @@ class SIOAgent(ABC):
 
 	def __default_map_events(self) -> typing.Dict[str, typing.Callable[[typing.Any], None]]:
 		return {
-			"disconnect", self._handle_disconnect
+			"disconnect": self._handle_disconnect
 		}
 
 	def __map_events(self):
