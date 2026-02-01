@@ -36,7 +36,7 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 			**kwargs
 		)
 
-		self.__bounds = bounds
+		self._bounds = bounds
 		self.__extra_len = extra_len
 
 		self._smoothing_algorithm = smoothing_algorithm
@@ -57,9 +57,9 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 		)
 
 	def _prepare_y(self, sequences: np.ndarray) -> np.ndarray:
-		percentages = sequences[:, -1] / sequences[:, -2]
+		percentages = sequences[:, -1] / (sequences[:, -2] + 1e-9)
 		classes = np.array([self.__find_gap_index(p) for p in percentages])
-		encoding = self.__one_hot_encode(classes, len(self.__bounds) + 1)
+		encoding = self.__one_hot_encode(classes, len(self._bounds) + 1)
 		return np.concatenate(
 			(
 				encoding,
@@ -69,10 +69,10 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 		)
 
 	def __find_gap_index(self, number: float) -> int:
-		for i, bound in enumerate(self.__bounds):
+		for i, bound in enumerate(self._bounds):
 			if number < bound:
 				return i
-		return len(self.__bounds)
+		return len(self._bounds)
 
 	@staticmethod
 	def __one_hot_encode(classes: np.ndarray, length: int) -> np.ndarray:

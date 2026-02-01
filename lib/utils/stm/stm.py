@@ -35,7 +35,7 @@ class ShortTermMemory:
 
 	def __init__(self, size, matcher: CueMemoryMatcher):
 		self.size = size
-		self.__memories: List[Optional[object]] = None
+		self._memories: List[Optional[object]] = None
 		self._matcher = matcher
 		self.clear()
 
@@ -56,27 +56,27 @@ class ShortTermMemory:
 
 	def recall(self, cue) -> Optional[object]:
 
-		for i, memory in enumerate(self.__memories):
+		for i, memory in enumerate(self._memories):
 			if (not isinstance(memory, ShortTermMemory.EmptyMemory)) and self._matcher.is_match(cue, memory):
-				self.__memories = self.__sort_memories(self.__memories, i)
+				self._memories = self.__sort_memories(self._memories, i)
 				return self._export_memory(memory)
 
 		return None
 
 	def memorize(self, memory):
-		self.__memories.pop()
-		self.__memories.insert(
+		self._memories.pop()
+		self._memories.insert(
 			0,
 			self._import_memory(memory)
 		)
-		self.__memories = self.__sort_memories(self.__memories)
+		self._memories = self.__sort_memories(self._memories)
 
 	def clear(self):
-		self.__memories = [ShortTermMemory.EmptyMemory() for _ in range(self.size)]
+		self._memories = [ShortTermMemory.EmptyMemory() for _ in range(self.size)]
 
 	def __iter__(self):
-		for memory in self.__memories:
+		for memory in self._memories:
 			yield self._export_memory(memory)
 
 	def __getitem__(self, idx) -> object:
-		return self._export_memory(self.__memories[idx])
+		return self._export_memory(self._memories[idx])
