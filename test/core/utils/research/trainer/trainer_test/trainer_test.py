@@ -14,7 +14,7 @@ from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
 	ProximalMaskedPenaltyLoss2, ProximalMaskedLoss3
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
-	LayerStack, Identity, NoiseInjectionLayer
+	LayerStack, Identity, NoiseInjectionLayer, IndicatorsSet
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
@@ -58,9 +58,9 @@ class TrainerTest(unittest.TestCase):
 
 	def _get_root_dirs(self):
 		return [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/06/train"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/09/train"
 		], [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/06/test"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/09/test"
 		]
 
 	def __init_dataloader(self):
@@ -201,7 +201,9 @@ class TrainerTest(unittest.TestCase):
 		EMBEDDING_SIZE = 8
 		BLOCK_SIZE = 128 + EXTRA_LEN
 		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/11.json"))) + 1
-		INPUT_CHANNELS = 11
+		INPUT_CHANNELS = 9
+		OUTPUT_CHANNELS = 9
+		Y_CHANNEL_MAP = tuple(range(OUTPUT_CHANNELS))
 
 		HORIZON_MODE = True
 		USE_MC_HORIZON = INPUT_CHANNELS > 1
@@ -222,14 +224,22 @@ class TrainerTest(unittest.TestCase):
 		AVG_POOL = True
 		NORM = [DynamicLayerNorm(elementwise_affine=True) for _ in CHANNELS]
 
-		INDICATORS_DELTA = [1, 2, 4]
-		INDICATORS_SO = [16, 32, 64]
-		INDICATORS_RSI = None
-		INDICATORS_MMA = None
-		INDICATORS_MSD = None
-		INDICATORS_KSF = [
-
+		INDICATORS_CHANNELS = [
+			tuple(range(4)),
+			tuple(range(4, 9))
 		]
+
+		INDICATORS = IndicatorsSet(
+			channels=INDICATORS_CHANNELS,
+			indicators=[
+				Indicators(
+					delta=[1, 2, 4],
+					so=[16, 32, 64],
+					input_channels=len(INDICATORS_CHANNELS[0])
+				),
+				Identity()
+			]
+		)
 
 		INPUT_NORM = nn.Identity()
 
@@ -256,27 +266,22 @@ class TrainerTest(unittest.TestCase):
 		FF_LINEAR_NORM = [DynamicLayerNorm(elementwise_affine=True) for _ in FF_LINEAR_LAYERS[:]]
 		FF_DROPOUT = [0 for _ in FF_LINEAR_LAYERS[:-1]]
 
-		indicators = Indicators(
-			delta=INDICATORS_DELTA,
-			so=INDICATORS_SO,
-			rsi=INDICATORS_RSI,
-			mma=INDICATORS_MMA,
-			msd=INDICATORS_MSD,
-			ksf=INDICATORS_KSF,
-			input_channels=INPUT_CHANNELS,
-		)
+		COLLAPSE_CHANNEL_FF_LAYERS = [32, 16, OUTPUT_CHANNELS]
+		COLLAPSE_FLATTEN = OUTPUT_CHANNELS == 1
+
+
 
 		model = CNN2(
 			extra_len=EXTRA_LEN,
 			input_size=(None, INPUT_CHANNELS, BLOCK_SIZE),
 
 			embedding_block=EmbeddingBlock(
-				indicators=indicators,
+				indicators=INDICATORS,
 				input_norm=INPUT_NORM
 			),
 
 			cnn_block=CNNBlock(
-				input_channels=indicators.indicators_len,
+				input_channels=INDICATORS.indicators_len,
 				conv_channels=CHANNELS,
 				kernel_sizes=KERNEL_SIZES,
 				pool_sizes=POOL_SIZES,
@@ -318,6 +323,7 @@ class TrainerTest(unittest.TestCase):
 
 			collapse_block=CollapseBlock(
 				extra_mode=False,
+				flatten=COLLAPSE_FLATTEN,
 				dropout=DROPOUT_BRIDGE,
 				ff_block=LinearModel(
 					dropout_rate=FF_DROPOUT,
@@ -325,6 +331,9 @@ class TrainerTest(unittest.TestCase):
 					hidden_activation=FF_LINEAR_ACTIVATION,
 					init_fn=FF_LINEAR_INIT,
 					norm=FF_LINEAR_NORM
+				),
+				channel_ff_block=LinearModel(
+					layer_sizes=COLLAPSE_CHANNEL_FF_LAYERS
 				)
 			)
 
@@ -337,7 +346,9 @@ class TrainerTest(unittest.TestCase):
 				bounds=HORIZON_BOUNDS,
 				h=HORIZON_RANGE[0],
 				max_depth=HORIZON_MAX_DEPTH,
-				X_extra_len=EXTRA_LEN
+				X_extra_len=EXTRA_LEN,
+				y_channel_map=Y_CHANNEL_MAP,
+				value_correction=True
 			)
 		return model
 
@@ -444,10 +455,15 @@ class TrainerTest(unittest.TestCase):
 		return (
 			ProximalMaskedLoss3(
 				bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
-				weighted_sample=False
+				weighted_sample=False,
+				multi_channel=True
 			),
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)
+
+	@property
+	def is_regression_only(self) -> bool:
+		return False
 
 	def __init_trainer(self, model):
 
@@ -459,7 +475,7 @@ class TrainerTest(unittest.TestCase):
 				step=2
 			)
 		]
-		trainer = Trainer(model, callbacks=callbacks, skip_nan=True, dtype=self.dtype)
+		trainer = Trainer(model, callbacks=callbacks, skip_nan=True, dtype=self.dtype, full_regression=self.is_regression_only)
 		trainer.cls_loss_function, trainer.reg_loss_function = self._create_losses()
 		trainer.optimizer = Adam(trainer.model.parameters())
 		return trainer
@@ -481,7 +497,7 @@ class TrainerTest(unittest.TestCase):
 		self.trainer.train(
 			self.dataloader,
 			val_dataloader=self.test_dataloader,
-			epochs=1,
+			epochs=10,
 			progress=True,
 			reg_loss_only=self._get_reg_loss_only()
 		)

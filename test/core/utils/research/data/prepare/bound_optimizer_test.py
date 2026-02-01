@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from core import Config
+from core.utils.research.data.prepare import SimulationSimulator3
 from core.utils.research.data.prepare.bound_optimizer import BoundGenerator
 
 
@@ -13,16 +14,21 @@ class BoundOptimizerTest(unittest.TestCase):
 
 	def setUp(self):
 		self.generator = BoundGenerator(
-			start=0.9527526705012326,
-			end=1.0336048383163439,
+			start=0.001,
+			end=20,
 			csv_path="/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/AUD-USD-50k.csv",
-			threshold=0.05,
-			granularity=30
+			threshold=0.005,
+			granularity=30,
+			dataprep_class=SimulationSimulator3,
+			dataprep_kwargs={
+				"x_columns": ("v",),
+				"y_columns": ("v",)
+			}
 		)
 
 	def test_functionality(self):
 
-		N = 200
+		N = 64
 		EXPORT_PATH = f"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/bounds/{datetime.now().timestamp()}.json"
 
 		bounds = self.generator.generate(N, plot=True)

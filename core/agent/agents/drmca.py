@@ -11,7 +11,7 @@ from core.agent.action import TraderAction, Action, ActionSequence
 from core.agent.utils.cache import Cache
 from core.di import AgentUtilsProvider
 from core.environment.trade_state import TradeState, AgentState
-from core.utils.research.model.model.utils import TransitionOnlyModel
+from core.utils.research.model.model.utils import TransitionOnlyModel, AggregateModel
 from core.utils.research.model.model.utils import WrappedModel
 
 from core.utils.research.model.model.utils import TemperatureScalingModel
@@ -43,6 +43,8 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
 			use_transition_only_model=Config.AGENT_MODEL_USE_TRANSITION_ONLY,
 			use_extra_data: bool = Config.AGENT_USE_EXTRA_DATA,
+			graph_plot_rate: float = Config.AGENT_MCA_GRAPH_PLOT_RATE,
+			update_agent: bool = Config.UPDATE_AGENT,
 			**kwargs
 	):
 		self.__use_transition_only = use_transition_only_model
@@ -61,6 +63,8 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			discount=discount,
 			discount_function=discount_function,
 			state_repository=AgentUtilsProvider.provide_state_repository(),
+			graph_plot_rate=graph_plot_rate,
+			update_agent=update_agent,
 			**kwargs
 		)
 		self.__encode_max_open_trades = encode_max_open_trade
@@ -82,13 +86,21 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 				model=model,
 				extra_len=Config.AGENT_MODEL_EXTRA_LEN
 			)
+		model = WrappedModel(
+				model,
+				seq_len=Config.MARKET_STATE_MEMORY,
+				window_size=Config.AGENT_MA_WINDOW_SIZE,
+				use_ma=Config.AGENT_USE_SMOOTHING,
+			)
+
+		if Config.AGENT_MODEL_USE_AGGREGATION:
+			model = AggregateModel(
+				model=model,
+				a=Config.AGENT_MODEL_AGGREGATION_ALPHA,
+				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+			)
 		return TorchModel(
-				WrappedModel(
-					model,
-					seq_len=Config.MARKET_STATE_MEMORY,
-					window_size=Config.AGENT_MA_WINDOW_SIZE,
-					use_ma=Config.AGENT_USE_SMOOTHING,
-				)
+				model
 			)
 
 	@property
@@ -98,7 +110,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 	@staticmethod
 	def __encode_action(state: TradeState, action: typing.Optional[TraderAction]) -> np.ndarray:
 		encoded = np.zeros((4,))
-		if action is None:
+		if not isinstance(action, TraderAction):
 			return encoded
 		encoded[action.action] = 1
 		if action.action != TraderAction.Action.CLOSE:
@@ -122,7 +134,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			encoded[i*self.__OPEN_TRADE_ENCODE_SIZE: (i+1)*self.__OPEN_TRADE_ENCODE_SIZE] = self.__encode_open_trade(trade, state)
 		return encoded
 
-	def __prepare_model_input(
+	def _prepare_model_input(
 			self,
 			state: TradeState,
 			action: typing.Optional[Action],
@@ -162,22 +174,22 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		return self.__dra_input_cache.cached_or_execute((state, action, target_instrument), lambda: prepare_model_input(state, action, target_instrument))
 
 	def _prepare_single_dta_input(self, state: TradeState, action: Action, final_state: TradeState) -> np.ndarray:
-		return self.__prepare_model_input(state, action, self._get_target_instrument(state, action, final_state))
+		return self._prepare_model_input(state, action, self._get_target_instrument(state, action, final_state))
 
 	def _prepare_dra_input(self, state: TradeState, action: Action) -> np.ndarray:
 		if isinstance(action, ActionSequence):  # TODO: ENCODE ALL ACTIONS
 			action = action.actions[0]
 
-		if action is None:
+		if not isinstance(action, TraderAction):
 			instrument = random.choice(state.get_market_state().get_tradable_pairs())
 		else:
 			instrument = action.base_currency, action.quote_currency
-		return self.__prepare_model_input(state, action, instrument)
+		return self._prepare_model_input(state, action, instrument)
 
 	@staticmethod
 	def _parse_model_output(output: np.ndarray) -> typing.Tuple[np.ndarray, float]:
-		probability_distribution = output[:-1]
-		value = output[-1]
+		probability_distribution = output[..., :-1]
+		value = np.array(output[..., -1]).reshape(-1)[0]
 		return probability_distribution, value
 
 	def _prepare_dra_output(self, state: TradeState, action: Action, output: np.ndarray) -> float:
