@@ -71,6 +71,8 @@ OANDA_SIM_TIMES_PATH = os.path.join(RES_DIR, "times/times-50.json")
 OANDA_SIM_MODEL_IN_PATH = PCLOUD_FOLDER
 TIMES_RESOURCE_MANAGER_KEY = "times"
 
+ENVIRONMENT_FETCH_CACHE_TIMEOUT = 1
+
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("Africa/Addis_Ababa")
 
@@ -86,8 +88,10 @@ MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = False
 MARKET_STATE_CHANNELS = ('c',)
 MARKET_STATE_SMOOTHED_CHANNELS = ('c',)
+MARKET_STATE_SIMULATED_CHANNELS = ('c',)
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks/real")
 TIME_PENALTY = 0
+AGENT_TARGET_RETURN = None
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
@@ -95,9 +99,13 @@ AGENT_TRADE_MAX_MARGIN_USED = 0.75
 AGENT_TRADE_SIZE_USE_PERCENTAGE = True
 AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = False
+AGENT_USE_TAKE_PROFIT = False
 AGENT_STOP_LOSS_GRANULARITY = 0.001
-AGENT_STOP_LOSS_VALUE_BOUND = (0.001, 0.005)
-AGENT_STOP_LOSS_CONVERSION = True
+AGENT_TRADE_TRIGGER_VALUE_BOUND = (0.001, 0.005)
+AGENT_STOP_LOSS_ABSOLUTE_VALUE_MULTIPLIER = 1.0
+AGENT_TAKE_PROFIT_ABSOLUTE_VALUE_MULTIPLIER = 1.0
+AGENT_TRIGGER_PRICE_GRANULARITY = None
+AGENT_STOP_LOSS_CONVERSION = False
 AGENT_STOP_LOSS_CONVERSION_BOUNDS = (0.9995, 1.0005)
 AGENT_STOP_LOSS_CONVERSION_ACCURACY = int(1e2)
 AGENT_DEPTH = 30  # TODO: DEPRECATED
@@ -144,11 +152,17 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = True
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-31-it-11-tot.0.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-17-it-11-tot.1.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
+AGENT_MCA_USE_REFLEX = False
+AGENT_REFLEX_STM_SIZE = 1000
+AGENT_PREDICTION_REFLEX_EVALUATOR_EFFECTIVE_CHANNELS = [0, 1, 2]
 AGENT_DRMCA_WP = 100
+AGENT_USE_DIRECT_DISTRIBUTION = False
+AGENT_PROBABILITY_STORE_SIZE = int(1e6)
+AGENT_POSSIBLE_STATES_IMPORTANCE_THRESHOLD = 0.05
 AGENT_TOP_K_NODES = None
 AGENT_DYNAMIC_K_THRESHOLD = 0.05
 AGENT_DUMP_NODES = True
@@ -157,6 +171,7 @@ AGENT_DUMP_VISITED_ONLY = True
 AGENT_USE_AUTO_STATE_REPOSITORY = False
 AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e5)
 AGENT_FILESYSTEM_STATE_REPOSITORY_PATH = BASE_DIR
+AGENT_MCA_GRAPH_PLOT_RATE = 0.0
 AGENT_MIN_FREE_MEMORY = 2
 AGENT_MIN_DISK_SPACE = 0.1
 AGENT_MIN_ABS_DISK_SPACE = None
@@ -203,7 +218,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(RES_DIR, "core_model.zip"),
+	path=os.path.join(BASE_DIR, "core_model.zip"),
 	download=False
 )
 
@@ -227,6 +242,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
+
 MAX_LOSS = 1.5
 
 WEIGHTED_MSE_ALPHA = 1e-3
@@ -236,7 +252,7 @@ HORIZON_H = 0.9
 HORIZON_MAX_DEPTH = 40
 CHECKPIONTED_RSP = True
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-87/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-73.1/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -337,10 +353,12 @@ class RunnerStatsBranches:
 
 	it_72_6 = "it_72_6"
 	it_73_6 = "it_73_6"
+	it_73_7 = "it_73_7"
 
 	it_74_6 = "it_74_6"
 	it_75_6 = "it_75_6"
 	it_75_7 = "it_75_7"
+	it_75_8 = "it_75_8"
 
 	it_76_6 = "it_76_6"
 
@@ -353,15 +371,28 @@ class RunnerStatsBranches:
 
 	it_85_6 = "it_85_6"
 	it_87_6 = "it_87_6"
+	it_87_7 = "it_87_7"
 
 	it_86_6 = "it_86_6"
 
 	it_88_6 = "it_88_6"
 	it_89_6 = "it_89_6"
+	it_89_7 = "it_89_7"
+	it_89_8 = "it_89_8"
 
 	it_90_6 = "it_90_6"
 
 	it_91_6 = "it_91_6"
+
+	it_92_6 = "it_92_6"
+
+	it_93_6 = "it_93_6"
+
+	it_94_6 = "it_94_6"
+
+	it_95_6 = "it_95_6"
+
+	it_96_6 = "it_96_6"
 
 	all = [
 		main,
@@ -433,8 +464,10 @@ class RunnerStatsBranches:
 		it_72_6,
 		it_73_6,
 		it_74_6,
+		it_74_6,
 		it_75_6,
 		it_75_7,
+		it_75_8,
 		it_76_6,
 		it_79_6,
 		it_80_6,
@@ -443,13 +476,21 @@ class RunnerStatsBranches:
 		it_85_6,
 		it_86_6,
 		it_87_6,
+		it_87_7,
 		it_88_6,
 		it_89_6,
+		it_89_7,
+		it_89_8,
 		it_90_6,
-		it_91_6
+		it_91_6,
+		it_92_6,
+		it_93_6,
+		it_94_6,
+		it_95_6,
+		it_96_6
 	]
 
-	default = it_87_6
+	default = it_73_7
 
 
 class RunnerStatsLossesBranches:
@@ -504,17 +545,26 @@ class RunnerStatsLossesBranches:
 	it_68_0 = "it_68_0"
 	it_70_0 = "it_70_0"
 	it_72_0 = "it_72_0"
+	it_72_1 = "it_72_1"
 	it_74_0 = "it_74_0"
+	it_74_1 = "it_74_1"
 	it_76_0 = "it_76_0"
 	it_79_0 = "it_79_0"
 	it_80_0 = "it_80_0"
 	it_82_0 = "it_82_0"
 	it_84_0 = "it_84_0"
 	it_85_0 = "it_85_0"
+	it_85_1 = "it_85_1"
 	it_86_0 = "it_86_0"
 	it_88_0 = "it_88_0"
+	it_88_1 = "it_88_1"
 	it_90_0 = "it_90_0"
 	it_91_0 = "it_91_0"
+	it_92_0 = "it_92_0"
+	it_93_0 = "it_93_0"
+	it_94_0 = "it_94_0"
+	it_95_0 = "it_95_0"
+	it_96_0 = "it_96_0"
 
 	all = [
 		main,
@@ -565,6 +615,7 @@ class RunnerStatsLossesBranches:
 		it_68_0,
 		it_70_0,
 		it_72_0,
+		it_72_1,
 		it_74_0,
 		it_76_0,
 		it_79_0,
@@ -574,11 +625,17 @@ class RunnerStatsLossesBranches:
 		it_85_0,
 		it_86_0,
 		it_88_0,
+		it_88_1,
 		it_90_0,
-		it_91_0
+		it_91_0,
+		it_92_0,
+		it_93_0,
+		it_94_0,
+		it_95_0,
+		it_96_0
 	]
 
-	default = it_85_0
+	default = it_72_1
 
 
 

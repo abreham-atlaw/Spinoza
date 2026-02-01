@@ -14,6 +14,7 @@ from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from lib.network.oanda import Trader
 from lib.network.oanda.data import models
 from lib.network.oanda.exceptions import InsufficientMarginException
+from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.logger import Logger
 from core import Config
 from core.environment.trade_state import TradeState, AgentState, MarketState
@@ -36,9 +37,12 @@ class LiveEnvironment(TradeEnvironment):
 			use_smoothing: int = Config.MARKET_STATE_SMOOTHING,
 			channels: typing.Tuple[str,...] = Config.MARKET_STATE_CHANNELS,
 			smoothed_channels: typing.Tuple[str,...] = Config.MARKET_STATE_SMOOTHED_CHANNELS,
+			trigger_price_granularity: float = Config.AGENT_TRIGGER_PRICE_GRANULARITY,
 			stop_loss_conversion: bool = Config.AGENT_STOP_LOSS_CONVERSION,
 			stop_loss_conversion_bounds: typing.Tuple[float, float] = Config.AGENT_STOP_LOSS_CONVERSION_BOUNDS,
 			stop_loss_conversion_accuracy: int = Config.AGENT_STOP_LOSS_CONVERSION_ACCURACY,
+			stop_loss_absolute_multiplier: float = Config.AGENT_STOP_LOSS_ABSOLUTE_VALUE_MULTIPLIER,
+			take_profit_absolute_multiplier: float = Config.AGENT_TAKE_PROFIT_ABSOLUTE_VALUE_MULTIPLIER,
 			close_channel_label: str = "c",
 			**kwargs
 	):
@@ -66,9 +70,12 @@ class LiveEnvironment(TradeEnvironment):
 		self.__smoothed_channels = smoothed_channels
 		self.__smoothing_algorithm = None if not use_smoothing else ServiceProvider.provide_smoothing_algorithm()
 
-		self.__stop_loss_conversion = stop_loss_conversion
+		self.__trigger_price_granularity = trigger_price_granularity
+		self.__trigger_value_conversion = stop_loss_conversion
 		self.__stop_loss_conversion_bounds = stop_loss_conversion_bounds
 		self.__stop_loss_conversion_accuracy = stop_loss_conversion_accuracy
+		self.__stop_loss_absolute_multiplier = stop_loss_absolute_multiplier
+		self.__take_profit_absolute_multiplier = take_profit_absolute_multiplier
 		Logger.info(f"Using Smoothing Algorithm: {self.__smoothing_algorithm}")
 
 	def __generate_all_instruments(self, instruments, agent_currency) -> List[Tuple[str, str]]:
@@ -201,6 +208,7 @@ class LiveEnvironment(TradeEnvironment):
 
 		return data
 
+	@CacheDecorators.cached_method(timeout=Config.ENVIRONMENT_FETCH_CACHE_TIMEOUT)
 	def __fetch_instrument_state(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
 		size = size + self.__smoothing_algorithm.reduction
 
@@ -238,14 +246,29 @@ class LiveEnvironment(TradeEnvironment):
 		y = p[np.argmin(np.abs(y - action.stop_loss))]
 		return y
 
-	def __calculate_stop_loss(self, action: TraderAction) -> typing.Optional[float]:
-		if action.stop_loss is None:
-			return None
-		stop_loss = action.stop_loss
-		if self.__stop_loss_conversion:
-			stop_loss = self.__convert_stop_loss(action)
-		price = self.__trader.get_price((action.base_currency, action.quote_currency))
-		return price * stop_loss
+	def __apply_trigger_value_multiplier(self, value: float, action: TraderAction) -> float:
+		multiplier = self.__stop_loss_absolute_multiplier if value == action.stop_loss else self.__take_profit_absolute_multiplier
+
+		new_value = 1 + (value  - 1)*multiplier
+		Logger.info(f"Trigger Value Multiplied: {value} -> {new_value}")
+		return new_value
+
+	def __get_price(self, instrument) -> float:
+		if self.__trigger_price_granularity is None:
+			return self.__trader.get_price(instrument)
+		cs = self.__fetch_instrument_state(instrument[0], instrument[1], 1, self.__trigger_price_granularity)
+		price = float(cs[self.__channels.index(self.__close_channel_label), -1])
+		return price
+
+	def __calculate_stop_loss(self, action: TraderAction, trigger_value: float) -> typing.Optional[float]:
+		trigger_value = self.__apply_trigger_value_multiplier(trigger_value, action)
+
+		if self.__trigger_value_conversion:
+			trigger_value = self.__convert_stop_loss(action)
+
+
+		price = self.__get_price((action.base_currency, action.quote_currency))
+		return price * trigger_value
 
 	def _open_trade(self, action: TraderAction):
 		super()._open_trade(action)
@@ -255,7 +278,8 @@ class LiveEnvironment(TradeEnvironment):
 				self.__to_oanda_action(action.action),
 				action.margin_used,
 				time_in_force=Config.DEFAULT_TIME_IN_FORCE,
-				stop_loss=None if action.stop_loss is None else self.__calculate_stop_loss(action)
+				stop_loss=None if action.stop_loss is None else self.__calculate_stop_loss(action, action.stop_loss),
+				take_profit=None if action.take_profit is None else self.__calculate_stop_loss(action, action.take_profit)
 			)
 		except InsufficientMarginException as ex:
 			Logger.error(f"Insufficient margin requested for trade: {str(ex)}")
@@ -278,5 +302,7 @@ class LiveEnvironment(TradeEnvironment):
 		if state is None:
 			state = self.get_state()
 		new_state = self._initiate_state()
+		new_state.get_agent_state().initial_balance = state.get_agent_state().initial_balance
+		new_state.is_running = state.is_running
 		new_state._TradeState__attached_state = state._TradeState__attached_state
 		return new_state
