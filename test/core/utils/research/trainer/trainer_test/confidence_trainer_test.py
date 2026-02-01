@@ -11,6 +11,7 @@ from core.utils.research.model.model.cnn.collapse_block import CollapseBlock
 from core.utils.research.model.model.cnn.embedding_block import EmbeddingBlock
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import TransformerEmbeddingBlock, DecoderBlock
+from core.utils.research.utils.confidence.model.model.dense import DenseConfidenceModel, DenseConfidenceInputBlock
 from core.utils.research.utils.confidence.model.model.transformer import ConfidenceTransformer
 from test.core.utils.research.trainer.trainer_test.trainer_test import TrainerTest
 
@@ -33,6 +34,47 @@ class ConfidenceTrainerTest(TrainerTest):
 	@property
 	def is_regression(self) -> bool:
 		return True
+
+	def __create_dense_model(self):
+		X_ENCODER_SIZE = 128
+		INPUT_SHAPE = (3, X_ENCODER_SIZE + 66)
+		VOCAB_SIZE = 1
+
+		# INPUT BLOCK
+		SPLIT_POINT = 128
+		LEFT_NORM = DynamicLayerNorm()
+		RIGHT_NORM = DynamicLayerNorm()
+
+		# ENCODER BLOCK
+		ENCODER_FF_LINEAR_LAYERS = [512, 256, 128, 32]
+		ENCODER_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in ENCODER_FF_LINEAR_LAYERS]
+		ENCODER_FF_LINEAR_NORM = [nn.Identity() for _ in ENCODER_FF_LINEAR_LAYERS]
+
+		# HEAD BLOCK
+		HEAD_FF_LINEAR_LAYERS = [ENCODER_FF_LINEAR_LAYERS[-1], 16, 8, VOCAB_SIZE]
+		HEAD_FF_LINEAR_ACTIVATION = [nn.Identity() for _ in ENCODER_FF_LINEAR_LAYERS]
+		HEAD_FF_LINEAR_NORM = [nn.Identity() for _ in ENCODER_FF_LINEAR_LAYERS]
+
+		model = DenseConfidenceModel(
+			input_shape=INPUT_SHAPE,
+			input_block=DenseConfidenceInputBlock(
+				split_point=SPLIT_POINT,
+				left_norm=LEFT_NORM,
+				right_norm=RIGHT_NORM
+			),
+			encoder=LinearModel(
+				layer_sizes=ENCODER_FF_LINEAR_LAYERS,
+				hidden_activation=ENCODER_FF_LINEAR_ACTIVATION,
+				norm=ENCODER_FF_LINEAR_NORM
+			),
+			head=LinearModel(
+				layer_sizes=HEAD_FF_LINEAR_LAYERS,
+				hidden_activation=HEAD_FF_LINEAR_ACTIVATION,
+				norm=HEAD_FF_LINEAR_NORM
+			)
+		)
+
+		return model
 
 	def __create_confidence_transformer(self):
 		X_ENCODER_SIZE = 128
@@ -178,7 +220,8 @@ class ConfidenceTrainerTest(TrainerTest):
 		return model
 
 	def _create_model(self):
-		return self.__create_confidence_transformer()
+		# return self.__create_confidence_transformer()
+		return self.__create_dense_model()
 
 	def _get_reg_loss_only(self) -> bool:
 		return True
