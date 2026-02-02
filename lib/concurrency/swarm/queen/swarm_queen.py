@@ -2,9 +2,12 @@ import time
 import typing
 from abc import ABC
 
+from socketio.exceptions import BadNamespaceError
+
 from lib.concurrency.swarm.sio_agent import SIOAgent
 from lib.network.rest_interface import Serializer
 from lib.rl.agent import MonteCarloAgent, Node
+from lib.utils.decorators import handle_exception
 from lib.utils.logger import Logger
 
 
@@ -29,6 +32,7 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 			"backpropagate": self.__handle_backpropagate,
 		}
 
+	@handle_exception(exception_cls=(BadNamespaceError,))
 	def __queue_node(self, node: Node):
 		self._sio.emit(
 			"queue",
@@ -65,18 +69,22 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		self._backpropagate(node)
 
 	def _finalize_step(self, root: 'Node'):
-		self.__deactivate_simulation()
+		self._deactivate_simulation()
 		super()._finalize_step(root)
 
-	def __activate_simulation(self):
+	def _activate_simulation(self):
 		self.__is_active = True
 
-	def __deactivate_simulation(self):
+	def _deactivate_simulation(self):
 		self.__is_active = False
 		self.__clear_queue()
 		self.__queued_nodes = []
 
 	def _monte_carlo_loop(self, root_node: Node):
+
+		if not self.__is_active:
+			time.sleep(self.__queue_wait_time)
+			return
 
 		leaf_node = self._select(root_node)
 
@@ -87,5 +95,5 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		time.sleep(self.__queue_wait_time)
 
 	def _monte_carlo_simulation(self, root_node: 'Node'):
-		self.__activate_simulation()
+		self._activate_simulation()
 		return super()._monte_carlo_simulation(root_node)
