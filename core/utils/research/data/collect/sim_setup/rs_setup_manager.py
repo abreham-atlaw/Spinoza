@@ -10,6 +10,7 @@ from core.utils.research.data.collect.runner_stats2 import RunnerStats2
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository
 from core.utils.research.data.collect.sim_setup.times_repository import TimesRepository
 from core.utils.research.model.model.utils import TemperatureScalingModel, TransitionOnlyModel, AggregateModel
+from core.utils.research.utils.analysis.session_analysis_utils import SessionAnalysisUtils
 from lib.utils.decorators import retry
 from lib.utils.file_storage import FileStorage, FileNotFoundException
 from lib.utils.logger import Logger
@@ -26,7 +27,8 @@ class RSSetupManager:
 			fs: FileStorage,
 			model_evaluator: ModelEvaluator,
 			refresh_finish: bool = True,
-			time_based_allocation: bool = True
+			time_based_allocation: bool = True,
+			add_timestep_pls: bool = True
 	):
 		self.__times_repo = times_repo
 		self.__rs_repo = rs_repo
@@ -35,6 +37,7 @@ class RSSetupManager:
 		self.__model_evaluator = model_evaluator
 		self.__refresh_finish = refresh_finish
 		self.__time_based_allocation = time_based_allocation
+		self.__add_timestep_pls = add_timestep_pls
 
 	def _init_setup_manager(self) -> SetupManager:
 		return SetupManager()
@@ -130,6 +133,12 @@ class RSSetupManager:
 
 		Logger.info(f"Session PL: {pl}")
 		stat.add_profit(pl)
+		if self.__add_timestep_pls:
+			Logger.info(f"Extracting Timestep PLs...")
+			stat.get_active_session().timestep_pls = list(
+				SessionAnalysisUtils.get_timestep_pls(Config.UPDATE_SAVE_PATH)
+			)
+
 		stat.add_duration((datetime.now() - stat.session_timestamps[-1]).total_seconds())
 
 		session_model_loss = self.__evaluate_model_loss(
@@ -139,6 +148,8 @@ class RSSetupManager:
 		)
 		Logger.info(f"Session Model Loss: {session_model_loss}")
 		stat.add_session_model_loss(session_model_loss)
+
+
 
 		Logger.info(f"Storing Session...")
 		self.__rs_repo.store(stat)
