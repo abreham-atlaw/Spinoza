@@ -2,9 +2,12 @@ import time
 import typing
 from abc import ABC
 
+from socketio.exceptions import BadNamespaceError
+
 from lib.concurrency.swarm.sio_agent import SIOAgent
 from lib.network.rest_interface import Serializer
 from lib.rl.agent import MonteCarloAgent, Node
+from lib.utils.decorators import handle_exception
 from lib.utils.logger import Logger
 
 
@@ -29,6 +32,7 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 			"backpropagate": self.__handle_backpropagate,
 		}
 
+	@handle_exception(exception_cls=(BadNamespaceError,))
 	def __queue_node(self, node: Node):
 		self._sio.emit(
 			"queue",
