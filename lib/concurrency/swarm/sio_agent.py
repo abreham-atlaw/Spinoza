@@ -18,7 +18,7 @@ class SIOAgent(ABC):
 		if socket_client is None:
 			socket_client = Client(logger=True)
 		self._sio = socket_client
-		self.__map_events()
+		self._map_events_map()
 
 	@abstractmethod
 	def _map_events(self) -> typing.Dict[str, typing.Callable[[typing.Any], None]]:
@@ -29,7 +29,7 @@ class SIOAgent(ABC):
 			"disconnect": self._handle_disconnect
 		}
 
-	def __map_events(self):
+	def _map_events_map(self):
 
 		handler_map = self.__default_map_events()
 		handler_map.update(self._map_events())

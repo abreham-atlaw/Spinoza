@@ -11,3 +11,11 @@ class SwarmQueenSetupManagerTest(unittest.TestCase):
 	def test_setup(self):
 		self.manager.setup()
 		self.manager._sio.wait()
+
+	def test_reconnect(self):
+
+		self.manager._sio.on("disconnect", lambda: self.manager.reconnect())
+
+		self.manager.setup()
+		self.manager._sio.disconnect()
+		self.manager._sio.wait()

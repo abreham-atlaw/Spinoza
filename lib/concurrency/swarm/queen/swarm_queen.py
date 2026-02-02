@@ -65,18 +65,22 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		self._backpropagate(node)
 
 	def _finalize_step(self, root: 'Node'):
-		self.__deactivate_simulation()
+		self._deactivate_simulation()
 		super()._finalize_step(root)
 
-	def __activate_simulation(self):
+	def _activate_simulation(self):
 		self.__is_active = True
 
-	def __deactivate_simulation(self):
+	def _deactivate_simulation(self):
 		self.__is_active = False
 		self.__clear_queue()
 		self.__queued_nodes = []
 
 	def _monte_carlo_loop(self, root_node: Node):
+
+		if not self.__is_active:
+			time.sleep(self.__queue_wait_time)
+			return
 
 		leaf_node = self._select(root_node)
 
@@ -87,5 +91,5 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		time.sleep(self.__queue_wait_time)
 
 	def _monte_carlo_simulation(self, root_node: 'Node'):
-		self.__activate_simulation()
+		self._activate_simulation()
 		return super()._monte_carlo_simulation(root_node)
