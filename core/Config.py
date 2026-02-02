@@ -71,7 +71,7 @@ OANDA_SIM_TIMES_PATH = os.path.join(RES_DIR, "times/times-50-it-4.json")
 OANDA_SIM_MODEL_IN_PATH = PCLOUD_FOLDER
 TIMES_RESOURCE_MANAGER_KEY = "times"
 
-ENVIRONMENT_FETCH_CACHE_TIMEOUT = 1*60
+ENVIRONMENT_FETCH_CACHE_TIMEOUT = 1
 
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("Africa/Addis_Ababa")
@@ -104,6 +104,7 @@ AGENT_STOP_LOSS_GRANULARITY = 0.001
 AGENT_TRADE_TRIGGER_VALUE_BOUND = (0.001, 0.005)
 AGENT_STOP_LOSS_ABSOLUTE_VALUE_MULTIPLIER = 1.0
 AGENT_TAKE_PROFIT_ABSOLUTE_VALUE_MULTIPLIER = 1.0
+AGENT_TRIGGER_PRICE_GRANULARITY = None
 AGENT_STOP_LOSS_CONVERSION = False
 AGENT_STOP_LOSS_CONVERSION_BOUNDS = (0.9995, 1.0005)
 AGENT_STOP_LOSS_CONVERSION_ACCURACY = int(1e2)
@@ -158,6 +159,7 @@ AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_MCA_USE_REFLEX = False
 AGENT_REFLEX_STM_SIZE = 1000
+AGENT_PREDICTION_REFLEX_EVALUATOR_EFFECTIVE_CHANNELS = [0, 1, 2]
 AGENT_DRMCA_WP = 100
 AGENT_USE_DIRECT_DISTRIBUTION = True
 AGENT_PROBABILITY_STORE_SIZE = int(1e6)
@@ -352,10 +354,12 @@ class RunnerStatsBranches:
 
 	it_72_6 = "it_72_6"
 	it_73_6 = "it_73_6"
+	it_73_7 = "it_73_7"
 
 	it_74_6 = "it_74_6"
 	it_75_6 = "it_75_6"
 	it_75_7 = "it_75_7"
+	it_75_8 = "it_75_8"
 
 	it_76_6 = "it_76_6"
 
@@ -368,6 +372,7 @@ class RunnerStatsBranches:
 
 	it_85_6 = "it_85_6"
 	it_87_6 = "it_87_6"
+	it_87_7 = "it_87_7"
 
 	it_86_6 = "it_86_6"
 
@@ -387,6 +392,8 @@ class RunnerStatsBranches:
 	it_94_6 = "it_94_6"
 
 	it_95_6 = "it_95_6"
+
+	it_96_6 = "it_96_6"
 
 	all = [
 		main,
@@ -458,8 +465,10 @@ class RunnerStatsBranches:
 		it_72_6,
 		it_73_6,
 		it_74_6,
+		it_74_6,
 		it_75_6,
 		it_75_7,
+		it_75_8,
 		it_76_6,
 		it_79_6,
 		it_80_6,
@@ -468,6 +477,7 @@ class RunnerStatsBranches:
 		it_85_6,
 		it_86_6,
 		it_87_6,
+		it_87_7,
 		it_88_6,
 		it_89_6,
 		it_89_7,
@@ -477,7 +487,8 @@ class RunnerStatsBranches:
 		it_92_6,
 		it_93_6,
 		it_94_6,
-		it_95_6
+		it_95_6,
+		it_96_6
 	]
 
 	default = it_89_8
@@ -535,13 +546,16 @@ class RunnerStatsLossesBranches:
 	it_68_0 = "it_68_0"
 	it_70_0 = "it_70_0"
 	it_72_0 = "it_72_0"
+	it_72_1 = "it_72_1"
 	it_74_0 = "it_74_0"
+	it_74_1 = "it_74_1"
 	it_76_0 = "it_76_0"
 	it_79_0 = "it_79_0"
 	it_80_0 = "it_80_0"
 	it_82_0 = "it_82_0"
 	it_84_0 = "it_84_0"
 	it_85_0 = "it_85_0"
+	it_85_1 = "it_85_1"
 	it_86_0 = "it_86_0"
 	it_88_0 = "it_88_0"
 	it_88_1 = "it_88_1"
@@ -551,6 +565,7 @@ class RunnerStatsLossesBranches:
 	it_93_0 = "it_93_0"
 	it_94_0 = "it_94_0"
 	it_95_0 = "it_95_0"
+	it_96_0 = "it_96_0"
 
 	all = [
 		main,
@@ -601,6 +616,7 @@ class RunnerStatsLossesBranches:
 		it_68_0,
 		it_70_0,
 		it_72_0,
+		it_72_1,
 		it_74_0,
 		it_76_0,
 		it_79_0,
@@ -616,7 +632,8 @@ class RunnerStatsLossesBranches:
 		it_92_0,
 		it_93_0,
 		it_94_0,
-		it_95_0
+		it_95_0,
+		it_96_0
 	]
 
 	default = it_88_1

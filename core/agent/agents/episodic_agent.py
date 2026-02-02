@@ -16,7 +16,13 @@ class EpisodicAgent(ActionChoiceAgent, ABC):
 		Logger.info(f"Initializing EpisodicAgent with target_profit = {self.__target_profit}")
 
 	def __is_target_achieved(self, state: TradeState) -> bool:
-		return state.get_agent_state().get_balance()/state.get_agent_state().initial_balance >= self.__target_profit
+		balance = state.get_agent_state().get_balance()
+		initial_balance = state.get_agent_state().initial_balance
+		balance_return = balance / initial_balance
+
+		Logger.info(f"[EpisodicAgent] Return: {balance_return}({balance}/{initial_balance})")
+
+		return balance_return >= self.__target_profit
 
 	def _get_optimal_action(self, state, **kwargs):
 		if self.__target_profit is not None and self.__is_target_achieved(state):
