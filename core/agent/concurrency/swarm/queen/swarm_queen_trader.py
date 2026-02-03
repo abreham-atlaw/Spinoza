@@ -17,6 +17,7 @@ class SwarmQueenTrader(SwarmQueen, TraderAgent):
 		self.__setup_manager.add_reconnect_callback(self.__handle_reconnect)
 		self.__setup_manager.setup()
 		self._map_events_map()
+		self.__handling_disconnect = False
 
 	def _map_events(self) -> typing.Dict[str, typing.Callable[[typing.Any], None]]:
 		events_map = super()._map_events()
@@ -30,5 +31,8 @@ class SwarmQueenTrader(SwarmQueen, TraderAgent):
 
 	def _handle_disconnect(self):
 		super()._handle_disconnect()
+		if self.__handling_disconnect:
+			return
+		self.__handling_disconnect = True
 		self._deactivate_simulation()
 		self.__setup_manager.reconnect()
