@@ -11,6 +11,7 @@ class RunnerStats2Session:
 	simulated_timestamp: str
 	profit: float
 	model_loss: float
+	timestep_pls: typing.List[float] = field(default_factory=lambda: [])
 
 	@property
 	def is_active(self) -> bool:

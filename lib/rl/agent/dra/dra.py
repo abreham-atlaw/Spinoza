@@ -16,12 +16,14 @@ class DeepReinforcementAgent(ActionChoiceAgent, ABC):
 			batch_size=32,
 			train: bool = False,
 			save_path: typing.Optional[str] = None,
+			update_agent: bool = True,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
 		self._model = self._init_model()
 		self.__generator = AgentDataGenerator(batch_size, export_path=save_path)
 		self.__save, self.__train = save_path is not None, train
+		self.__update_agent = update_agent
 
 	@abstractmethod
 	def _init_model(self) -> Model:
@@ -63,6 +65,8 @@ class DeepReinforcementAgent(ActionChoiceAgent, ABC):
 		)
 
 	def _update_state_action_value(self, initial_state, action, final_state, value):
+		if not self.__update_agent:
+			return
 		self.__generator.append(
 			self._prepare_dra_input(initial_state, action),
 			self._prepare_dra_train_output(initial_state, action, final_state, value)

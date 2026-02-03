@@ -48,6 +48,7 @@ class ResearchProvider:
 			rs_repo=ResearchProvider.provide_runner_stats_repository(),
 			times_repo=ResearchProvider.provide_times_repository(),
 			model_evaluator=ResearchProvider.provide_model_evaluator(),
+			add_timestep_pls=Config.UPDATE_AGENT
 		)
 
 	@staticmethod
