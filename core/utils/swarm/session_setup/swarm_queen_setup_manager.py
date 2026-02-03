@@ -62,7 +62,7 @@ class SwarmQueenSetupManager(SwarmSetupManager):
 
 	def __reconnect(self):
 		Logger.info(f"[SwarmQueenSetupManager] Reconnecting...")
-		self._connect()
+		self._connect(reconnect=True)
 		self._sio.emit(
 			"queen-reconnect",
 			data={

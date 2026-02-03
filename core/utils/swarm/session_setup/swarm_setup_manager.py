@@ -2,6 +2,8 @@ import time
 import typing
 from abc import ABC, abstractmethod
 
+import socketio.exceptions
+
 from core.utils.swarm.session_setup.data.serializers import SessionSerializer
 from lib.concurrency.swarm.sio_agent import SIOAgent
 from lib.utils.logger import Logger
@@ -17,9 +19,16 @@ class SwarmSetupManager(SIOAgent, ABC):
 		self.__setup_complete = False
 		self.__sleep_time = sleep_time
 
-	def _connect(self):
-		Logger.info(f"[{self.__class__.__name__}] Connecting to {self._server_url}...")
-		self._sio.connect(self._server_url)
+	def _connect(self, reconnect=False):
+		try:
+			Logger.info(f"[{self.__class__.__name__}] Connecting to {self._server_url}...")
+			self._sio.connect(self._server_url)
+		except socketio.exceptions.ConnectionError as ex:
+			if not reconnect:
+				raise ex
+			if self._sio.connected:
+				self._sio.disconnect()
+				self._connect()
 
 	def _handle_mca_start(self, data=None):
 		self.__setup_complete = True
