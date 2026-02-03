@@ -4,6 +4,7 @@ from core import Config
 from core.di import ServiceProvider, DistributedAgentUtilsProvider
 from core.utils.swarm.session_setup import SwarmQueenSetupManager, SwarmWorkerSetupManager
 from lib.concurrency.mc.data.staterepository import DistributedStateRepository, SocketIOChannel
+from lib.concurrency.swarm.swarm_socket import SwarmSocket
 from lib.network.rest_interface import Serializer
 from lib.rl.agent.mca.resource_manager import MCResourceManager, TimeMCResourceManager
 from lib.utils.cache.decorators import CacheDecorators
@@ -15,8 +16,8 @@ class SwarmAgentUtilsProvider:
 
 	@staticmethod
 	@CacheDecorators.singleton()
-	def provide_socketio_client() -> Client:
-		return Client(logger=Config.SWARM_SOCKETIO_LOGGING)
+	def provide_socketio_client() -> SwarmSocket:
+		return SwarmSocket(logger=Config.SWARM_SOCKETIO_LOGGING)
 
 	@staticmethod
 	def provide_queen_setup_manager() -> SwarmQueenSetupManager:

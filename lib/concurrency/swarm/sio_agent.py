@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 from socketio import Client
 
+from lib.concurrency.swarm.swarm_socket import SwarmSocket
 from lib.utils.logger import Logger
 
 
@@ -11,12 +12,12 @@ class SIOAgent(ABC):
 	def __init__(
 			self,
 			*args,
-			socket_client: Client = None,
+			socket_client: SwarmSocket = None,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
 		if socket_client is None:
-			socket_client = Client(logger=True)
+			socket_client = SwarmSocket(logger=True)
 		self._sio = socket_client
 		self._map_events_map()
 
