@@ -27,7 +27,7 @@ class SwarmSetupManager(SIOAgent, ABC):
 			if not reconnect:
 				raise ex
 			if self._sio.connected:
-				self._sio.disconnect()
+				self._sio.reset()
 				self._connect()
 
 	def _handle_mca_start(self, data=None):
