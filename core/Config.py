@@ -123,7 +123,6 @@ AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
-	("USD", "ZAR")
 ]
 AGENT_USE_MULTI_INSTRUMENT_MODEL = False
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
@@ -220,7 +219,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "temp/models/dra.zip"),
+	path=os.path.join(BASE_DIR, "core_model.zip"),
 	download=False
 )
 
