@@ -48,6 +48,7 @@ class ResearchProvider:
 			rs_repo=ResearchProvider.provide_runner_stats_repository(),
 			times_repo=ResearchProvider.provide_times_repository(),
 			model_evaluator=ResearchProvider.provide_model_evaluator(),
+			add_timestep_pls=Config.UPDATE_AGENT
 		)
 
 	@staticmethod
@@ -102,6 +103,7 @@ class ResearchProvider:
 			n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
 			p=1,
 			softmax=True,
+			multi_channel=(Config.MARKET_STATE_USE_MULTI_CHANNELS and (len(Config.MARKET_STATE_SIMULATED_CHANNELS) > 1))
 		)
 
 	@staticmethod

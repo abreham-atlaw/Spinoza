@@ -6,3 +6,4 @@ from .generator_model_swg import GeneratorModelSampleWeightGenerator
 from .ideal_model_swg import IdealModelSampleWeightGenerator
 from .lambda_swg import LambdaSampleWeightGenerator
 from .volatility_swg import VolatilitySampleWeightGenerator
+from .confidence_model_swg import ConfidenceModelSampleWeightGenerator

@@ -9,7 +9,8 @@ from core.utils.research.data.collect.runner_stats import RunnerStats
 from core.utils.research.data.collect.runner_stats2 import RunnerStats2
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository
 from core.utils.research.data.collect.sim_setup.times_repository import TimesRepository
-from core.utils.research.model.model.utils import TemperatureScalingModel, TransitionOnlyModel
+from core.utils.research.model.model.utils import TemperatureScalingModel, TransitionOnlyModel, AggregateModel
+from core.utils.research.utils.analysis.session_analysis_utils import SessionAnalysisUtils
 from lib.utils.decorators import retry
 from lib.utils.file_storage import FileStorage, FileNotFoundException
 from lib.utils.logger import Logger
@@ -26,7 +27,8 @@ class RSSetupManager:
 			fs: FileStorage,
 			model_evaluator: ModelEvaluator,
 			refresh_finish: bool = True,
-			time_based_allocation: bool = True
+			time_based_allocation: bool = True,
+			add_timestep_pls: bool = True
 	):
 		self.__times_repo = times_repo
 		self.__rs_repo = rs_repo
@@ -35,6 +37,7 @@ class RSSetupManager:
 		self.__model_evaluator = model_evaluator
 		self.__refresh_finish = refresh_finish
 		self.__time_based_allocation = time_based_allocation
+		self.__add_timestep_pls = add_timestep_pls
 
 	def _init_setup_manager(self) -> SetupManager:
 		return SetupManager()
@@ -67,6 +70,8 @@ class RSSetupManager:
 
 		Config.CORE_MODEL_CONFIG.path = os.path.abspath(stat.model_name)
 		Config.AGENT_MODEL_TEMPERATURE = stat.temperature
+		Config.AGENT_MODEL_USE_AGGREGATION = stat.aggregate_alpha is not None
+		Config.AGENT_MODEL_AGGREGATION_ALPHA = stat.aggregate_alpha
 		Logger.success(f"Downloaded {stat.model_name} to {Config.CORE_MODEL_CONFIG.path}")
 
 		self._allocate_extra(stat)
@@ -76,9 +81,18 @@ class RSSetupManager:
 		return stat
 
 	@staticmethod
-	def __load_model(path: str, temperature: float) -> nn.Module:
+	def __load_model(path: str, temperature: float, aggregate_alpha: float) -> nn.Module:
+		model = ModelHandler.load(path)
+
+		if aggregate_alpha is None:
+			model = AggregateModel(
+				model=model,
+				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+				a=aggregate_alpha,
+				softmax=True
+			)
 		model = TemperatureScalingModel(
-			ModelHandler.load(path),
+			model,
 			temperature=temperature
 		)
 		tom_model = TransitionOnlyModel(
@@ -89,9 +103,11 @@ class RSSetupManager:
 		tom_model.export_config = model.export_config
 		return tom_model
 
-	def __evaluate_model_loss(self, model_path: str, temperature: float) -> float:
+	def __evaluate_model_loss(self, model_path: str, temperature: float, aggregate_alpha: float) -> float:
+		if self.__model_evaluator is None:
+			return 0.0
 		Logger.info(f"Evaluating Model Loss...")
-		model = self.__load_model(path=model_path, temperature=temperature)
+		model = self.__load_model(path=model_path, temperature=temperature, aggregate_alpha=aggregate_alpha)
 		losses = self.__model_evaluator.evaluate(model)
 		return losses[0]
 
@@ -117,14 +133,23 @@ class RSSetupManager:
 
 		Logger.info(f"Session PL: {pl}")
 		stat.add_profit(pl)
+		if self.__add_timestep_pls:
+			Logger.info(f"Extracting Timestep PLs...")
+			stat.get_active_session().timestep_pls = list(
+				SessionAnalysisUtils.get_timestep_pls(Config.UPDATE_SAVE_PATH)
+			)
+
 		stat.add_duration((datetime.now() - stat.session_timestamps[-1]).total_seconds())
 
 		session_model_loss = self.__evaluate_model_loss(
 			model_path=model_path,
-			temperature=stat.temperature
+			temperature=stat.temperature,
+			aggregate_alpha=stat.aggregate_alpha
 		)
 		Logger.info(f"Session Model Loss: {session_model_loss}")
 		stat.add_session_model_loss(session_model_loss)
+
+
 
 		Logger.info(f"Storing Session...")
 		self.__rs_repo.store(stat)
