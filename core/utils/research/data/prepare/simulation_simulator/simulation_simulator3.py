@@ -32,7 +32,7 @@ class SimulationSimulator3(SimulationSimulator):
 		Logger.info(f"Using X Columns: {x_columns}")
 		Logger.info(f"Using Smoothed Columns: {smoothed_columns}")
 		Logger.info(f"Using Y Columns: {y_columns}")
-		self.__x_columns = x_columns
+		self._x_columns = x_columns
 		self.__smoothed_columns = smoothed_columns
 		self.__y_columns = y_columns
 		self.__flatten_y = flatten_y
@@ -40,13 +40,16 @@ class SimulationSimulator3(SimulationSimulator):
 	def __select_bounds(self, i: int):
 		self._bounds = self.__bounds[i]
 
+	def __extract_columns(self, df: pd.DataFrame) -> np.ndarray:
+		return df[list(self._x_columns)].to_numpy().transpose((1, 0))
+
 	def _setup_df(self, df: pd.DataFrame) -> pd.DataFrame:
 		df = super()._setup_df(df)
 		df = DataPrepUtils.encode_timestamp(df.copy())
 		return df
 
 	def _extract_columns(self, df: pd.DataFrame) -> np.ndarray:
-		return df[list(self.__x_columns)].to_numpy().transpose((1, 0))
+		return self.__extract_columns(df)
 
 	def _prepare_sequence_stack(self, x: np.ndarray) -> np.ndarray:
 		if self._smoothing_algorithm is None:
@@ -54,7 +57,7 @@ class SimulationSimulator3(SimulationSimulator):
 
 		x = np.stack([
 			self._smoothing_algorithm.apply_on_batch(x[:, i, :])
-			if self.__x_columns[i] in self.__smoothed_columns
+			if self._x_columns[i] in self.__smoothed_columns
 			else x[:, i, self._smoothing_algorithm.reduction:]
 			for i in range(x.shape[1])
 		], axis=1)
@@ -71,9 +74,9 @@ class SimulationSimulator3(SimulationSimulator):
 		ys = []
 
 		for i in range(sequences.shape[1]):
-			if not (self.__x_columns[i] in self.__y_columns):
+			if not (self._x_columns[i] in self.__y_columns):
 				continue
-			idx = self.__y_columns.index(self.__x_columns[i])
+			idx = self.__y_columns.index(self._x_columns[i])
 			self.__select_bounds(idx)
 			ys.append(
 				super(SimulationSimulator3, self)._prepare_y(sequences[:, i, :])
@@ -87,5 +90,5 @@ class SimulationSimulator3(SimulationSimulator):
 		return y
 
 	def _extract_granularity(self, data: np.ndarray, g: int) -> np.ndarray:
-		df = pd.DataFrame(columns=self.__x_columns, data=data.transpose((1, 0)))
-		return self._extract_columns(DataPrepUtils.condense_granularity(df, g))
+		df = pd.DataFrame(columns=self._x_columns, data=data.transpose((1, 0)))
+		return self.__extract_columns(DataPrepUtils.condense_granularity(df, g))

@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 
 from copy import deepcopy
 
-import torch
 
 from core import Config
 from core.environment.live_environment import LiveEnvironment, MarketState, AgentState, TradeState, TraderAction
