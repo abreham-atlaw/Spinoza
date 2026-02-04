@@ -12,7 +12,7 @@ from lib.utils.stm import StochasticShortTermMemory
 class TraderReflexMemoryEvaluatorTest(unittest.TestCase):
 
 	def __init_state(self, m: float, b: float, t: int):
-		channels = 4
+		channels = 3
 		market_state = MarketState(
 			currencies=["AUD", "USD"],
 			memory_len=128,
