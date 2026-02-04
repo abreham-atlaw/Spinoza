@@ -70,7 +70,13 @@ class SimulationSimulator3(SimulationSimulator):
 			for i in range(sequences.shape[1])
 		], axis=1)
 
+	def _prepare_y_stack(self, sequences: np.ndarray) -> np.ndarray:
+		return sequences
+
 	def _prepare_y(self, sequences: np.ndarray) -> np.ndarray:
+
+		sequences = self._prepare_y_stack(sequences)
+
 		ys = []
 
 		for i in range(sequences.shape[1]):
