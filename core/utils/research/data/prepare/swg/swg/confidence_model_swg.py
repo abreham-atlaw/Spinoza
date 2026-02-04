@@ -2,10 +2,11 @@ import numpy as np
 import torch
 
 from core.utils.research.model.model.savable import SpinozaModule
-from .basic_xswg import BasicXSampleWeightGenerator
+from .basic_swg import BasicSampleWeightGenerator
 
 
-class ConfidenceModelSampleWeightGenerator(BasicXSampleWeightGenerator):
+class ConfidenceModelSampleWeightGenerator(BasicSampleWeightGenerator):
+
 
 	def __init__(
 			self,
@@ -16,7 +17,7 @@ class ConfidenceModelSampleWeightGenerator(BasicXSampleWeightGenerator):
 		super().__init__(*args, **kwargs)
 		self.model = model.eval()
 
-	def _generate(self, X: np.ndarray) -> np.ndarray:
+	def _generate_weights(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
 		with torch.no_grad():
 			confidence = self.model(torch.from_numpy(X.astype(np.float32))).numpy().reshape((X.shape[0],))
-		return 1/confidence
+		return 1 / confidence

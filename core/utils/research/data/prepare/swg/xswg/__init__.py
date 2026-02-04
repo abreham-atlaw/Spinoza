@@ -1,3 +1,2 @@
 from .basic_xswg import BasicXSampleWeightGenerator
 from .momentum_xswg import MomentumXSampleWeightGenerator
-from .confidence_model_xswg import ConfidenceModelSampleWeightGenerator
