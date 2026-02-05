@@ -243,7 +243,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-93/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-97/"
 
 
 class ResourceCategories:
@@ -481,7 +481,7 @@ class RunnerStatsBranches:
 		it_97_6
 	]
 
-	default = it_93_6
+	default = it_97_6
 
 
 class RunnerStatsLossesBranches:
@@ -628,7 +628,7 @@ class RunnerStatsLossesBranches:
 		it_97_0
 	]
 
-	default = it_93_0
+	default = it_97_0
 
 
 
