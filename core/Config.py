@@ -86,9 +86,9 @@ MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = True
-MARKET_STATE_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_CHANNELS = ('c', 'l', 'h', 'o')
 MARKET_STATE_SMOOTHED_CHANNELS = ()
-MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h', 'o')
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TARGET_RETURN = None
@@ -184,7 +184,7 @@ AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/13.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/15.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
