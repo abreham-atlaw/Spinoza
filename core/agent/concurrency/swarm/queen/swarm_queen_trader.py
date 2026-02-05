@@ -28,6 +28,7 @@ class SwarmQueenTrader(SwarmQueen, TraderAgent):
 
 	def __handle_reconnect(self):
 		self._activate_simulation()
+		self.__handling_disconnect = False
 
 	def _handle_disconnect(self):
 		super()._handle_disconnect()
