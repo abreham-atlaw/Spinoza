@@ -210,6 +210,7 @@ class LiveEnvironment(TradeEnvironment):
 
 	@CacheDecorators.cached_method(timeout=Config.ENVIRONMENT_FETCH_CACHE_TIMEOUT)
 	def __fetch_instrument_state(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
+		Logger.info(f"Fetching instrument state for {base_currency}, {quote_currency} with size={size}, granularity={granularity}")
 		size = size + self.__smoothing_algorithm.reduction
 
 		candle_sticks = self.__trader.get_candlestick(
