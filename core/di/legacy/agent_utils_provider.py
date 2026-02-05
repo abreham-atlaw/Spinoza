@@ -163,6 +163,7 @@ class AgentUtilsProvider:
 		return PredictionReflexMemoryEvaluator(
 			state_predictor=AgentUtilsProvider.provide_state_predictor(),
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+			effective_channels=Config.AGENT_PREDICTION_REFLEX_EVALUATOR_EFFECTIVE_CHANNELS
 		)
 
 	@staticmethod

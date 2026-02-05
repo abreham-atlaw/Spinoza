@@ -58,8 +58,11 @@ class SimulationSimulator(TimeSeriesDataPreparer):
 			axis=1
 		)
 
+	def _prepare_returns(self, sequences: np.ndarray) -> np.ndarray:
+		return sequences[:, -1] / (sequences[:, -2] + 1e-9)
+
 	def _prepare_y(self, sequences: np.ndarray) -> np.ndarray:
-		percentages = sequences[:, -1] / (sequences[:, -2] + 1e-9)
+		percentages = self._prepare_returns(sequences)
 		classes = np.array([self.__find_gap_index(p) for p in percentages])
 		encoding = self.__one_hot_encode(classes, len(self._bounds) + 1)
 		return np.concatenate(

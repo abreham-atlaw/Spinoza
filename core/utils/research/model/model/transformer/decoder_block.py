@@ -19,7 +19,8 @@ class DecoderBlock(SpinozaModule):
 			norm_1: nn.Module = None,
 			norm_2: nn.Module = None,
 			input_norm: nn.Module = None,
-			ff_block: LinearModel = None
+			ff_block: LinearModel = None,
+			add_decoder: bool = False,
 	):
 		self.args = {
 			'num_heads': num_heads,
@@ -27,7 +28,8 @@ class DecoderBlock(SpinozaModule):
 			"norm_1": norm_1,
 			"norm_2": norm_2,
 			"input_norm": input_norm,
-			"ff_block": ff_block
+			"ff_block": ff_block,
+			"add_decoder": add_decoder,
 		}
 		super().__init__()
 		self.self_attention_layer = None
@@ -37,6 +39,7 @@ class DecoderBlock(SpinozaModule):
 		self.norm_2 = AddAndNorm(norm_layer=norm_2) if norm_2 is not None else nn.Identity()
 		self.input_norm = input_norm if input_norm is not None else Identity()
 		self.ff_block = ff_block if ff_block is not None else nn.Identity()
+		self.add_decoder = add_decoder
 		self.cache = Cache()
 
 	def self_attention(self, x: torch.Tensor) -> torch.Tensor:
@@ -57,7 +60,7 @@ class DecoderBlock(SpinozaModule):
 		x = self.input_norm(x)
 
 		attention = self._apply_attention(x, x_decoder)
-		attention = self.norm_1(x, attention)
+		attention = self.norm_1(x if not self.add_decoder else x_decoder, attention)
 
 		out = self.ff_block(attention)
 		out = self.norm_2(attention, out) if isinstance(self.norm_2, AddAndNorm) else self.norm_2(out)

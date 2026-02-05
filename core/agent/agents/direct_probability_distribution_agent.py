@@ -4,6 +4,7 @@ from typing import List, Any
 
 import numpy as np
 
+from lib.rl.agent import Node
 from lib.rl.environment import ModelBasedState
 from lib.utils.cache import Cache
 from lib.utils.logger import Logger
@@ -52,13 +53,12 @@ class DirectProbabilityDistributionAgent(TraderDeepReinforcementMonteCarloAgent,
 			values: np.ndarray,
 			probabilities: np.ndarray
 	) -> typing.Tuple[np.ndarray, np.ndarray]:
-
 		probabilities = probabilities / np.sum(probabilities, axis=-1, keepdims=True)
 		importance = probabilities / np.max(probabilities, axis=-1, keepdims=True)
 
 		mask = importance > self.__importance_threshold
 
-		return values[:, mask], probabilities[mask]
+		return values[mask], probabilities[mask]
 
 	def __get_possible_values(
 			self,
@@ -67,14 +67,25 @@ class DirectProbabilityDistributionAgent(TraderDeepReinforcementMonteCarloAgent,
 			base_currency: str,
 			quote_currency: str
 	) -> typing.Tuple[np.ndarray, np.ndarray]:
-		values = self._get_possible_channel_values(state, base_currency, quote_currency)
+		values = self._get_possible_channeled_values(state, base_currency, quote_currency)
 
 		probabilities = self.__get_transition_probability_distribution(state, base_currency, quote_currency, action)
 		probabilities = np.reshape(probabilities, (-1, probabilities.shape[-1]))
 
-		probabilities = np.product(self._enumerate_channel_combinations(probabilities), axis=0)
+		value_probability_pairs = [
+			self.__trim_possible_values(values[i], probabilities[i])
+			for i in range(probabilities.shape[0])
+		]
 
-		values, probabilities = self.__trim_possible_values(values, probabilities)
+		values = np.stack(self._enumerate_channel_combinations([
+			pair[0]
+			for pair in value_probability_pairs
+		]))
+
+		probabilities = np.product(self._enumerate_channel_combinations([
+			pair[1]
+			for pair in value_probability_pairs
+		]), axis=0)
 
 		return values, probabilities
 
