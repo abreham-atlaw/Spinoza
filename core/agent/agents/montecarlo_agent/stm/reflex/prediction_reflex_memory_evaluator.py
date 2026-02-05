@@ -2,8 +2,8 @@ import typing
 
 import numpy as np
 
-from core.agent.utils.state_predictor import StatePredictor, BasicStatePredictor
-from core.environment.trade_state import MarketState, TradeState, AgentState
+from core.agent.utils.state_predictor import BasicStatePredictor
+from core.environment.trade_state import TradeState, AgentState
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.logger import Logger
@@ -16,16 +16,20 @@ class PredictionReflexMemoryEvaluator(TraderReflexMemoryEvaluator):
 			self,
 			state_predictor: BasicStatePredictor,
 			bounds: typing.List[float],
-			effective_channels: typing.List[int] = None
+			effective_channels: typing.List[int] = None,
+			y_extra_len: int = 1
 	):
 		super().__init__()
 		self.__state_predictor = state_predictor
 		self.__bounds = DataPrepUtils.apply_bound_epsilon(bounds)
 		self.__effective_channels = effective_channels
+		self.__y_extra_len = y_extra_len
 		Logger.info(f"Initialized {type(self).__name__} with state_predictor: {state_predictor}, effective_channels: {effective_channels}")
 
 	def __predict_state_instrument(self, state0: TradeState, instrument: typing.Tuple[str, str]) -> np.ndarray:
 		y = self.__state_predictor.predict([state0], [None], instrument=instrument)[0]
+		if self.__y_extra_len > 0:
+			y = y[..., :-self.__y_extra_len]
 		y = np.sum(self.__bounds * y, axis=-1)
 		if self.__effective_channels is not None:
 			y = y[self.__effective_channels]

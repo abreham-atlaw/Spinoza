@@ -1,5 +1,6 @@
 import typing
 from abc import ABC
+from typing import List, Any
 
 import numpy as np
 
@@ -40,12 +41,12 @@ class DirectProbabilityDistributionAgent(TraderDeepReinforcementMonteCarloAgent,
 			quote_currency: str,
 			action: typing.Any
 	) -> np.ndarray:
-		x = np.expand_dims(
-			self._prepare_model_input(state, action, (base_currency, quote_currency)),
-			axis=0
+
+		prediction, _ = self._parse_model_output(
+			self._predictor.predict([state], [action], instrument=(base_currency, quote_currency))[0]
 		)
-		predictions, _ = self._parse_model_output(self._predict(self._transition_model, x)[0])
-		return predictions
+
+		return prediction
 
 	def __trim_possible_values(
 			self,

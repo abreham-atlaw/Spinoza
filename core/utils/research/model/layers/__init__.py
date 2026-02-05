@@ -1,3 +1,4 @@
+from .log import Log
 from .ffn import FeedForwardNetwork
 from .ma import MovingAverage
 from .delta import Delta
@@ -27,3 +28,4 @@ from .pad_overlay_combiner import PadOverlayCombiner
 from .noise_injection_layer import NoiseInjectionLayer
 from .mc_input_padding import MCInputPadding
 from .indicators_set import IndicatorsSet
+from .anchored_returns_layer import AnchoredReturnsLayer

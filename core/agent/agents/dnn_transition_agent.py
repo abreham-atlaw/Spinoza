@@ -11,6 +11,7 @@ from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.model.model.utils import WrappedModel
 from lib.rl.agent import DNNTransitionAgent
 from lib.rl.agent.dta import TorchModel
+from lib.rl.agent.utils.state_predictor import StatePredictor
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState, InsufficientFundsException
 from core.environment.trade_environment import TradeEnvironment
@@ -54,17 +55,6 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__depth_mode = depth_mode
 		self.environment: TradeEnvironment
 
-		if core_model is None:
-			Logger.info("Loading Core Model")
-			core_model = TorchModel(
-				WrappedModel(
-					ModelHandler.load(Config.CORE_MODEL_CONFIG.path),
-					seq_len=Config.MARKET_STATE_MEMORY,
-					window_size=Config.AGENT_MA_WINDOW_SIZE
-				)
-			)
-		self.set_transition_model(core_model)
-
 		self.__delta_model = None
 		if state_change_delta_model_mode:
 			self.__delta_model = delta_model
@@ -86,7 +76,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__channels_map = [self.__market_state_channels.index(channel) for channel in self.__simulated_channels]
 		Logger.info(f"Initializing TraderDNNTransitionAgent with multi_channels={use_multi_channels}, market_state_channels={market_state_channels}, simulated_channels={simulated_channels}")
 
-	def __init_channel_idxs(self, channels: typing.Tuple[str, ...]) -> typing.Tuple[int, int, int]:
+	@staticmethod
+	def __init_channel_idxs(channels: typing.Tuple[str, ...]) -> typing.Tuple[int, int, int]:
 		close_channel = channels.index("c")
 		high_channel = channels.index("h") if "h" in channels else close_channel
 		low_channel = channels.index("l") if "l" in channels else close_channel

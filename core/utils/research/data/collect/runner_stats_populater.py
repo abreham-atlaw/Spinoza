@@ -401,7 +401,8 @@ class RunnerStatsPopulater:
 			stats = RunnerStats2(
 				id=id,
 				model_name=os.path.basename(path),
-				temperature=temperature
+				temperature=temperature,
+				aggregate_alpha=alpha
 			)
 			stats.model_losses = losses
 		else:

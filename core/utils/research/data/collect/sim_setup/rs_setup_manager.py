@@ -84,7 +84,7 @@ class RSSetupManager:
 	def __load_model(path: str, temperature: float, aggregate_alpha: float) -> nn.Module:
 		model = ModelHandler.load(path)
 
-		if aggregate_alpha is None:
+		if aggregate_alpha is not None:
 			model = AggregateModel(
 				model=model,
 				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
