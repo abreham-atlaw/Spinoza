@@ -209,8 +209,7 @@ class LiveEnvironment(TradeEnvironment):
 		return data
 
 	@CacheDecorators.cached_method(timeout=Config.ENVIRONMENT_FETCH_CACHE_TIMEOUT)
-	def __fetch_instrument_state(self, base_currency, quote_currency, size, granularity) -> np.ndarray:
-		Logger.info(f"Fetching instrument state for {base_currency}, {quote_currency} with size={size}, granularity={granularity}")
+	def __fetch_instrument_state(self, base_currency, quote_currency, size, granularity, silent: bool = False) -> np.ndarray:
 		size = size + self.__smoothing_algorithm.reduction
 
 		candle_sticks = self.__trader.get_candlestick(
@@ -220,7 +219,7 @@ class LiveEnvironment(TradeEnvironment):
 			granularity=granularity
 		)
 		df = self.__candlesticks_to_dataframe(candle_sticks)
-		if self.__candlestick_dump_path is not None:
+		if (not silent) and self.__candlestick_dump_path is not None:
 			self.__dump_candlesticks(df)
 
 		data = df[list(self.__channels)].to_numpy().transpose()
@@ -235,7 +234,7 @@ class LiveEnvironment(TradeEnvironment):
 		Logger.info(f"Converting Stop Loss...")
 		p = np.linspace(*self.__stop_loss_conversion_bounds, self.__stop_loss_conversion_accuracy)
 
-		x = self.__fetch_instrument_state(action.base_currency, action.quote_currency, self._market_state_memory, self.__market_state_granularity)
+		x = self.__fetch_instrument_state(action.base_currency, action.quote_currency, self._market_state_memory, self.__market_state_granularity, silent=True)
 		if x.ndim == 2:
 			x = x[0]
 
@@ -257,7 +256,7 @@ class LiveEnvironment(TradeEnvironment):
 	def __get_price(self, instrument) -> float:
 		if self.__trigger_price_granularity is None:
 			return self.__trader.get_price(instrument)
-		cs = self.__fetch_instrument_state(instrument[0], instrument[1], 1, self.__trigger_price_granularity)
+		cs = self.__fetch_instrument_state(instrument[0], instrument[1], 1, self.__trigger_price_granularity, silent=True)
 		price = float(cs[self.__channels.index(self.__close_channel_label), -1])
 		return price
 

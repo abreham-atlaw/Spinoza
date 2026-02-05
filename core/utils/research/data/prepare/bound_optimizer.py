@@ -85,9 +85,9 @@ class BoundGenerator:
 		y = np.concatenate([
 			np.load(os.path.join(path, "train/y", f))
 			for f in sorted(os.listdir(os.path.join(path, "train/y")))
-		])[:, :-1]
+		])[..., :-1]
 
-		y_classes = np.argmax(y, axis=1)
+		y_classes = np.argmax(y, axis=-1).flatten()
 		classes, frequencies = np.unique(y_classes, return_counts=True)
 
 		frequencies = frequencies / np.sum(frequencies)
