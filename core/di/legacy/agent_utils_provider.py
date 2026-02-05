@@ -135,8 +135,24 @@ class AgentUtilsProvider:
 
 	@staticmethod
 	def provide_state_predictor() -> 'StatePredictor':
-		from core.agent.utils.state_predictor import BasicStatePredictor
-		return BasicStatePredictor(
+		from core.agent.utils.state_predictor import BasicStatePredictor, LegacyStatePredictor, MultiInstrumentPredictor
+
+		if Config.AGENT_USE_MULTI_INSTRUMENT_MODEL:
+			Logger.info(f"Using MultiInstrumentPredictor...")
+			return MultiInstrumentPredictor(
+				model=AgentUtilsProvider.provide_core_torch_model(),
+			)
+
+		if Config.MARKET_STATE_USE_MULTI_CHANNELS:
+			Logger.info(f"Using BasicStateProvider...")
+			return BasicStatePredictor(
+				model=AgentUtilsProvider.provide_core_torch_model(),
+				extra_len=Config.AGENT_MODEL_EXTRA_LEN
+			)
+
+
+		Logger.info(f"Using LegacyStatePredictor...")
+		return LegacyStatePredictor(
 			model=AgentUtilsProvider.provide_core_torch_model(),
 			extra_len=Config.AGENT_MODEL_EXTRA_LEN
 		)
@@ -147,6 +163,7 @@ class AgentUtilsProvider:
 		return PredictionReflexMemoryEvaluator(
 			state_predictor=AgentUtilsProvider.provide_state_predictor(),
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+			effective_channels=Config.AGENT_PREDICTION_REFLEX_EVALUATOR_EFFECTIVE_CHANNELS
 		)
 
 	@staticmethod

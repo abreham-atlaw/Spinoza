@@ -15,7 +15,7 @@ class RSSetupManagerTest(unittest.TestCase):
 		Config.OANDA_SIM_MODEL_IN_PATH = "/Apps/RTrader/maploss/it-42/"
 
 		Config.OANDA_TRADING_ACCOUNT_ID = ""
-		Config.OANDA_TRADING_URL = "http://127.0.0.1:8888/api"
+		Config.OANDA_TRADING_URL = "http://127.0.0.1:8000/api"
 
 		Config.UPDATE_SAVE_PATH = "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/prepared/8/train"
 

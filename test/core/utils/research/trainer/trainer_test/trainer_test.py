@@ -14,7 +14,7 @@ from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
 	ProximalMaskedPenaltyLoss2, ProximalMaskedLoss3
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
-	LayerStack, Identity, NoiseInjectionLayer, IndicatorsSet
+	LayerStack, Identity, NoiseInjectionLayer, IndicatorsSet, AnchoredReturnsLayer
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
 from core.utils.research.model.model.cnn.cnn2 import CNN2
 from core.utils.research.model.model.cnn.cnn_block import CNNBlock
@@ -58,9 +58,9 @@ class TrainerTest(unittest.TestCase):
 
 	def _get_root_dirs(self):
 		return [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/09/train"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/08/train"
 		], [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/09/test"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/08/test"
 		]
 
 	def __init_dataloader(self):
@@ -201,8 +201,8 @@ class TrainerTest(unittest.TestCase):
 		EMBEDDING_SIZE = 8
 		BLOCK_SIZE = 128 + EXTRA_LEN
 		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/11.json"))) + 1
-		INPUT_CHANNELS = 9
-		OUTPUT_CHANNELS = 9
+		INPUT_CHANNELS = 3
+		OUTPUT_CHANNELS = 3
 		Y_CHANNEL_MAP = tuple(range(OUTPUT_CHANNELS))
 
 		HORIZON_MODE = True
@@ -225,8 +225,7 @@ class TrainerTest(unittest.TestCase):
 		NORM = [DynamicLayerNorm(elementwise_affine=True) for _ in CHANNELS]
 
 		INDICATORS_CHANNELS = [
-			tuple(range(4)),
-			tuple(range(4, 9))
+			tuple(range(3)),
 		]
 
 		INDICATORS = IndicatorsSet(
@@ -237,10 +236,13 @@ class TrainerTest(unittest.TestCase):
 					so=[16, 32, 64],
 					input_channels=len(INDICATORS_CHANNELS[0])
 				),
-				Identity()
 			]
 		)
 
+		PREP_LAYERS = AnchoredReturnsLayer(
+			anchored_channels=list(range(INPUT_CHANNELS)),
+			anchor_channels=0
+		)
 		INPUT_NORM = nn.Identity()
 
 		TRANSFORMER_HEADS = 4
@@ -277,7 +279,8 @@ class TrainerTest(unittest.TestCase):
 
 			embedding_block=EmbeddingBlock(
 				indicators=INDICATORS,
-				input_norm=INPUT_NORM
+				input_norm=INPUT_NORM,
+				prep_layer=PREP_LAYERS,
 			),
 
 			cnn_block=CNNBlock(
