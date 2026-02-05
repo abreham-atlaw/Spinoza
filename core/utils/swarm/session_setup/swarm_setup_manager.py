@@ -29,6 +29,7 @@ class SwarmSetupManager(SIOAgent, ABC):
 			if self._sio.connected:
 				self._sio.reset()
 				self._connect()
+		Logger.success(f"[{self.__class__.__name__}] Connected to {self._server_url}...")
 
 	def _handle_mca_start(self, data=None):
 		self.__setup_complete = True

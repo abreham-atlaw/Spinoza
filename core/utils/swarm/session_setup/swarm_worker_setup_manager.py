@@ -32,7 +32,7 @@ class SwarmWorkerSetupManager(SwarmSetupManager):
 	def __setup_session(self, session: Session):
 		Logger.info(f"Downloading model: {session.model}")
 		Config.CORE_MODEL_CONFIG.path = os.path.abspath(session.model)
-		ModelUtils.load_from_fs(Config.CORE_MODEL_CONFIG.path, self.__fs)
+		ModelUtils.load_from_fs(os.path.basename(Config.CORE_MODEL_CONFIG.path), self.__fs)
 		Config.AGENT_MODEL_TEMPERATURE = session.model_temperature
 		Config.AGENT_MODEL_AGGREGATION_ALPHA = session.model_alpha
 		Config.AGENT_MODEL_USE_AGGREGATION = session.model_alpha is not None
