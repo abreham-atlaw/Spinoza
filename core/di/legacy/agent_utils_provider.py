@@ -1,5 +1,4 @@
 from core import Config
-from core.agent.utils.state_transition_sampler import StateTransitionSampler, BasicStateTransitionSampler
 from core.utils.research.model.model.utils import AggregateModel, WrappedModel, TransitionOnlyModel, \
 	TemperatureScalingModel
 from core.utils.research.model.model.utils.cached_model import CachedModel
@@ -175,7 +174,8 @@ class AgentUtilsProvider:
 		)
 
 	@staticmethod
-	def provide_state_transition_sampler() -> StateTransitionSampler:
+	def provide_state_transition_sampler() -> 'StateTransitionSampler':
+		from core.agent.utils.state_transition_sampler import StateTransitionSampler, BasicStateTransitionSampler
 		return BasicStateTransitionSampler(
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			channels=Config.MARKET_STATE_CHANNELS,
