@@ -21,6 +21,7 @@ class SwarmSocket:
 	def __getattr__(self, name):
 		return getattr(self.__sio, name)
 
+	@Logger.logged_method
 	def __bind(self, sio):
 		for event, handler in self.__handlers.items():
 			sio.on(event, handler)
