@@ -25,7 +25,7 @@ class SwarmSocket:
 		for event, handler in self.__handlers.items():
 			sio.on(event, handler)
 
-	@Logger.logged_method()
+	@Logger.logged_method
 	def reset(self):
 		self.__sio.disconnect()
 		self.__sio = self.__init_sio()
