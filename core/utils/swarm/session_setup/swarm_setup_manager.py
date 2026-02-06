@@ -23,13 +23,13 @@ class SwarmSetupManager(SIOAgent, ABC):
 		try:
 			Logger.info(f"[{self.__class__.__name__}] Connecting to {self._server_url}...")
 			self._sio.connect(self._server_url)
+			Logger.success(f"[{self.__class__.__name__}] Connected to {self._server_url}...")
 		except socketio.exceptions.ConnectionError as ex:
 			if not reconnect:
 				raise ex
 			if self._sio.connected:
 				self._sio.reset()
 				self._connect()
-		Logger.success(f"[{self.__class__.__name__}] Connected to {self._server_url}...")
 
 	def _handle_mca_start(self, data=None):
 		self.__setup_complete = True

@@ -2,6 +2,8 @@ import typing
 
 import socketio
 
+from lib.utils.logger import Logger
+
 
 class SwarmSocket:
 
@@ -23,9 +25,10 @@ class SwarmSocket:
 		for event, handler in self.__handlers.items():
 			sio.on(event, handler)
 
+	@Logger.logged_method()
 	def reset(self):
 		self.__sio.disconnect()
-		self.__sio = socketio.Client(*self.__args, **self.__kwargs)
+		self.__sio = self.__init_sio()
 
 	def on(self, event: str, handler: typing.Callable):
 		self.__handlers[event] = handler
