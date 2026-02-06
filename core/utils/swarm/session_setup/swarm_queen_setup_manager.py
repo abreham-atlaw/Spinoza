@@ -23,6 +23,7 @@ class SwarmQueenSetupManager(SwarmSetupManager):
 		self.__id = None
 		self.__reconnect_callbacks = []
 		self.__reconnect_lag = reconnect_lag
+		self.__reconnected = False
 
 	def _map_events(self) -> typing.Dict[str, typing.Callable[[typing.Any], None]]:
 		event_map = super()._map_events()
@@ -52,6 +53,7 @@ class SwarmQueenSetupManager(SwarmSetupManager):
 		Logger.success(f"[SwarmQueenSetupManager] Session resumed")
 		for callback in self.__reconnect_callbacks:
 			callback()
+		self.__reconnected = True
 
 	def _setup(self):
 		session = self.__construct_session()
@@ -61,6 +63,9 @@ class SwarmQueenSetupManager(SwarmSetupManager):
 		)
 
 	def __reconnect(self):
+		if self.__reconnected:
+			Logger.success(f"[SwarmQueenSetupManager] Reconnection Confirmed!")
+			return
 		Logger.info(f"[SwarmQueenSetupManager] Reconnecting...")
 		self._connect(reconnect=True)
 		self._sio.emit(
@@ -69,9 +74,11 @@ class SwarmQueenSetupManager(SwarmSetupManager):
 				"id": self.__id
 			}
 		)
+		Timer(self.__reconnect_lag, self.__reconnect).start()
 
 	def reconnect(self):
 		Logger.info(f"[SwarmQueenSetupManager] Reconnecting after {self.__reconnect_lag}...")
+		self.__reconnected = False
 		timer = Timer(self.__reconnect_lag, self.__reconnect)
 		timer.start()
 
