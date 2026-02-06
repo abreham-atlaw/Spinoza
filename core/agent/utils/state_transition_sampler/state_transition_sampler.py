@@ -11,3 +11,6 @@ class StateTransitionSampler(ABC):
 	@abstractmethod
 	def sample_next_values(self, state: TradeState, instrument: typing.Tuple[str, str]) -> np.ndarray:
 		pass
+
+	def __str__(self):
+		return self.__class__.__name__
