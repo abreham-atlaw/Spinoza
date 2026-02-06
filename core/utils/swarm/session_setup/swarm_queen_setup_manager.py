@@ -16,7 +16,7 @@ class SwarmQueenSetupManager(SwarmSetupManager):
 	def __init__(
 			self,
 			*args,
-			reconnect_lag: float = 5.0,
+			reconnect_lag: float = 10.0,
 			**kwargs,
 	):
 		super().__init__(*args, **kwargs)
