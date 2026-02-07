@@ -98,7 +98,7 @@ class RSAnalyzer(ABC):
 		miss_mask = max_profits < threshold
 
 		pls = total_profits
-		pls[(~miss_mask)] = threshold * 100
+		pls[(~miss_mask)] = (threshold-1) * 100
 		return pls
 
 	def __construct_df(self, stats: typing.List[RunnerStats2]) -> pd.DataFrame:
