@@ -7,7 +7,7 @@ from core.di import ResearchProvider
 from lib.utils.logger import Logger
 from .rs_filter import RSFilter
 from ...data.collect.runner_stats import RunnerStats
-from ...data.collect.runner_stats2 import RunnerStats2
+from ...data.collect.runner_stats2 import RunnerStats2, RunnerStats2Session
 
 
 class RSAnalyzer(ABC):
@@ -85,15 +85,30 @@ class RSAnalyzer(ABC):
 		return stats
 
 	@staticmethod
-	def __construct_df(stats: typing.List[RunnerStats]) -> pd.DataFrame:
+	def __construct_df(stats: typing.List[RunnerStats2]) -> pd.DataFrame:
 		return pd.DataFrame([
-			(stat.id, stat.temperature, stat.profit, stat.model_losses,
-			 [dt.strftime("%Y-%m-%d %H:%M:%S.%f") for dt in stat.session_timestamps], stat.profits,
-			 stat.simulated_timestamps, stat.session_model_losses, stat.sessions_size)
+			(
+				stat.id, stat.temperature, stat.profit, stat.model_losses,
+				[dt.strftime("%Y-%m-%d %H:%M:%S.%f") for dt in stat.session_timestamps],
+				stat.profits, stat.simulated_timestamps, stat.session_model_losses,
+				stat.sessions_size,
+				[
+					max(session.timestep_pls)
+					for session in stat.sessions
+				],
+				[
+					min(session.timestep_pls)
+					for session in stat.sessions
+				],
+				[
+					session.timestep_pls
+					for session in stat.sessions
+				],
+			)
 			for stat in stats
 		], columns=[
 			"ID", "Temperature", "Profit", "Losses", "Sessions", "Profits", "Sim. Timestamps",
-			"Session Model Losses", "Sessions Size"
+			"Session Model Losses", "Sessions Size", "Max Profit", "Min Profit", "TimeStep Profits"
 		])
 
 	def _export_stats(self, stats: typing.List[RunnerStats], path: str):
