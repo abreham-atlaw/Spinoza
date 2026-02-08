@@ -27,7 +27,8 @@ class PlotRSAnalyzer(RSAnalyzer):
 			export_path: str = "plotted.csv",
 			extra_filter: typing.Optional[RSFilter] = None,
 			color_value_function: typing.Optional[typing.Callable] = None,
-			sessions_len: int = None
+			sessions_len: int = None,
+			**kwargs
 	):
 		rs_filter = RSFilter(
 			evaluation_complete=True
@@ -40,7 +41,8 @@ class PlotRSAnalyzer(RSAnalyzer):
 			branches=branches,
 			rs_filter=rs_filter,
 			export_path=export_path,
-			sort_key=lambda stat: stat.model_losses[sort_loss]
+			sort_key=lambda stat: stat.model_losses[sort_loss],
+			**kwargs
 		)
 		self.__color_value_loss = color_value_loss
 		self.__color_value_function = color_value_function
