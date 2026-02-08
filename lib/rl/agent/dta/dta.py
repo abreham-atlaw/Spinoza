@@ -9,6 +9,7 @@ import os
 from lib.rl.environment import ModelBasedState
 from . import Model
 from .. import ModelBasedAgent
+from ..utils.state_predictor import StatePredictor
 
 TRANSITION_MODEL_FILE_NAME = "transition_model.h5"
 
@@ -30,13 +31,11 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 			self._update_batch = ([], [])
 		self._clear_update_batch = clear_update_batch
 
-		self.__transition_model: Union[Model or None] = None
+		self._predictor: StatePredictor = self._init_predictor()
 		self._validation_dataset = ([], [])
 
 	@abstractmethod
-	def _prepare_dta_input(
-			self, state: List[ModelBasedState], action: List[Any], final_state: List[ModelBasedState]
-	) -> np.ndarray:
+	def _init_predictor(self) -> StatePredictor:
 		pass
 
 	@abstractmethod
@@ -51,63 +50,26 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 	) -> np.ndarray:
 		pass
 
-	@property
-	def _transition_model(self) -> Model:
-		if self.__transition_model is None:
-			raise Exception("Transition Model not Set")
-		return self.__transition_model
-
-	def set_transition_model(self, model: Model):
-		self.__transition_model = model
-
-	def _predict(self, model: Model, inputs: np.array) -> np.ndarray:
-		return model.predict(inputs)
-
 	def __get_unique_rows(self, array: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
 		hashes = np.array([hash(x.tobytes()) for x in array])
 		hashes, indices, inverse = np.unique(hashes, axis=0, return_inverse=True, return_index=True)
 		return array[indices], inverse
 
+	def _call_predictor(self, initial_states: List[ModelBasedState], action: List[Any], final_states: List[ModelBasedState]) -> List[float]:
+		return self._predictor.predict(initial_states, action, final_states=final_states)
+
 	def _get_expected_transition_probability_distribution(
 			self, initial_states: List[ModelBasedState], action: List[Any], final_states: List[ModelBasedState]
 	) -> List[float]:
 
-		prediction_input = self._prepare_dta_input(initial_states, action, final_states)
+		prediction = self._call_predictor(initial_states, action, final_states)
 
-		model_inputs, indices = self.__get_unique_rows(prediction_input)
-
-		model_predictions = self._predict(self._transition_model, model_inputs)
-
-		model_predictions = model_predictions[indices]
-
-		prediction = self._prepare_dta_output(
-			initial_states,
-			model_predictions,
-			final_states
-		)
+		prediction = self._prepare_dta_output(initial_states, prediction, final_states)
 
 		return list(prediction)
 
-	def _fit_model(self, X: np.ndarray, y: np.ndarray):
-		self._transition_model.fit(X, y)
-
-	def _evaluate_model(self, X: np.ndarray, y: np.ndarray):
-		self._transition_model.evaluate(X, y)
-
 	def _update_model(self, batch=None):
-		if batch is None:
-			batch = self._update_batch
-		self._fit_model(
-			np.array(batch[0]),
-			np.array(batch[1]),
-			self.__fit_params
-		)
-		if len(self._validation_dataset[0]) == 0:
-			return
-		self._evaluate_model(
-			np.array(self._validation_dataset[0]),
-			np.array(self._validation_dataset[1])
-		)
+		pass
 
 	def __add_validation_set(self, X, y):
 		self._validation_dataset[0].extend(X)
@@ -115,7 +77,7 @@ class DNNTransitionAgent(ModelBasedAgent, ABC):
 
 	def _update_transition_probability(self, initial_state: ModelBasedState, action, final_state: ModelBasedState):
 		new_batch = (
-			self._prepare_dta_input([initial_state], [action], [final_state]),
+			self._predictor.prepare_input([initial_state], [action], [final_state]),
 			self._prepare_dta_train_output([initial_state], [action], [final_state])
 		)
 

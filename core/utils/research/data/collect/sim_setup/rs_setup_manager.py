@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 
+import matplotlib.pyplot as plt
 from torch import nn
 
 from core import Config
@@ -84,7 +85,7 @@ class RSSetupManager:
 	def __load_model(path: str, temperature: float, aggregate_alpha: float) -> nn.Module:
 		model = ModelHandler.load(path)
 
-		if aggregate_alpha is None:
+		if aggregate_alpha is not None:
 			model = AggregateModel(
 				model=model,
 				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
@@ -138,6 +139,9 @@ class RSSetupManager:
 			stat.get_active_session().timestep_pls = list(
 				SessionAnalysisUtils.get_timestep_pls(Config.UPDATE_SAVE_PATH)
 			)
+			plt.figure(figsize=(15, 7.5))
+			plt.plot(stat.get_active_session().timestep_pls)
+			plt.axhline(y=1.0)
 
 		stat.add_duration((datetime.now() - stat.session_timestamps[-1]).total_seconds())
 
@@ -157,3 +161,6 @@ class RSSetupManager:
 		self._finish_extra(stat)
 
 		Logger.success(f"Finished Session!")
+		if self.__add_timestep_pls:
+			plt.show()
+
