@@ -7,18 +7,15 @@ import numpy as np
 
 from core import Config
 from core.agent.utils.cache import Cache
-from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
-from core.utils.research.model.model.utils import WrappedModel
+from core.agent.utils.state_transition_sampler import StateTransitionSampler
+from core.di import AgentUtilsProvider
 from lib.rl.agent import DNNTransitionAgent
-from lib.rl.agent.dta import TorchModel
 from lib.utils.logger import Logger
 from core.environment.trade_state import TradeState, AgentState, InsufficientFundsException
 from core.environment.trade_environment import TradeEnvironment
 from core.agent.action import TraderAction, Action, ActionSequence
 from core.agent.utils.dnn_models import KerasModelHandler
 from lib.utils.math import softmax
-
-from lib.utils.torch_utils.model_handler import ModelHandler
 
 
 class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
@@ -31,12 +28,12 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			update_agent=Config.UPDATE_AGENT,
 			depth_mode=Config.AGENT_DEPTH_MODE,
 			discount_function=Config.AGENT_DISCOUNT_FUNCTION,
-			core_model=None,
 			delta_model=None,
 			use_softmax=Config.AGENT_USE_SOFTMAX,
 			use_multi_channels=Config.MARKET_STATE_USE_MULTI_CHANNELS,
 			market_state_channels: typing.Tuple[str, ...] = Config.MARKET_STATE_CHANNELS,
 			simulated_channels: typing.Tuple[str, ...] = Config.MARKET_STATE_SIMULATED_CHANNELS,
+			state_transition_sampler: StateTransitionSampler = None,
 			**kwargs
 	):
 		super().__init__(
@@ -50,20 +47,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		if isinstance(state_change_delta_bounds, list):
 			state_change_delta_bounds = np.array(state_change_delta_bounds, dtype=np.float32)
 		self._state_change_delta_bounds = state_change_delta_bounds
-		self._simulation_state_change_delta_bounds = DataPrepUtils.apply_bound_epsilon(self._state_change_delta_bounds)
 		self.__depth_mode = depth_mode
 		self.environment: TradeEnvironment
-
-		if core_model is None:
-			Logger.info("Loading Core Model")
-			core_model = TorchModel(
-				WrappedModel(
-					ModelHandler.load(Config.CORE_MODEL_CONFIG.path),
-					seq_len=Config.MARKET_STATE_MEMORY,
-					window_size=Config.AGENT_MA_WINDOW_SIZE
-				)
-			)
-		self.set_transition_model(core_model)
 
 		self.__delta_model = None
 		if state_change_delta_model_mode:
@@ -84,9 +69,11 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__simulated_channels = simulated_channels
 		self.__close_channel, self.__high_channel, self.__low_channel = self.__init_channel_idxs(simulated_channels)
 		self.__channels_map = [self.__market_state_channels.index(channel) for channel in self.__simulated_channels]
+		self.__state_transition_sampler = state_transition_sampler if state_transition_sampler is not None else AgentUtilsProvider.provide_state_transition_sampler()
 		Logger.info(f"Initializing TraderDNNTransitionAgent with multi_channels={use_multi_channels}, market_state_channels={market_state_channels}, simulated_channels={simulated_channels}")
 
-	def __init_channel_idxs(self, channels: typing.Tuple[str, ...]) -> typing.Tuple[int, int, int]:
+	@staticmethod
+	def __init_channel_idxs(channels: typing.Tuple[str, ...]) -> typing.Tuple[int, int, int]:
 		close_channel = channels.index("c")
 		high_channel = channels.index("h") if "h" in channels else close_channel
 		low_channel = channels.index("l") if "l" in channels else close_channel
@@ -344,12 +331,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		return possible_values
 
 	def _get_possible_channeled_values(self, state: TradeState, base_currency: str, quote_currency: str) -> np.ndarray:
-		channels = [i for i in range(len(self.__market_state_channels)) if
-					self.__market_state_channels[i] in self.__simulated_channels]
-
-		original_values = state.get_market_state().get_channels_state(base_currency, quote_currency)
-		possible_values = original_values[channels][:, -1:] * self._simulation_state_change_delta_bounds
-		return possible_values
+		return self.__state_transition_sampler.sample_next_values(state, (base_currency, quote_currency))
 
 	def _get_possible_channel_values(self, state: TradeState, base_currency: str, quote_currency: str) -> np.ndarray:
 		possible_values = self._get_possible_channeled_values(state, base_currency, quote_currency)
