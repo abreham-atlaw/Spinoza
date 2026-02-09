@@ -172,3 +172,20 @@ class AgentUtilsProvider:
 			size=Config.AGENT_REFLEX_STM_SIZE,
 			evaluator=AgentUtilsProvider.provide_reflex_memory_evaluator(),
 		)
+
+	@staticmethod
+	def provide_state_transition_sampler() -> 'StateTransitionSampler':
+		from core.agent.utils.state_transition_sampler import BasicStateTransitionSampler, AnchoredStateTransitionSampler
+
+		if Config.MARKET_STATE_ANCHOR_CHANNEL is None:
+			return BasicStateTransitionSampler(
+				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+				channels=Config.MARKET_STATE_CHANNELS,
+				simulated_channels=Config.MARKET_STATE_SIMULATED_CHANNELS,
+			)
+		return AnchoredStateTransitionSampler(
+			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+			channels=Config.MARKET_STATE_CHANNELS,
+			simulated_channels=Config.MARKET_STATE_SIMULATED_CHANNELS,
+			anchor_channel=Config.MARKET_STATE_ANCHOR_CHANNEL
+		)

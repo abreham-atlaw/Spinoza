@@ -1,13 +1,14 @@
 import typing
 from abc import ABC, abstractmethod
 
+import numpy as np
 import pandas as pd
 
 from core.di import ResearchProvider
 from lib.utils.logger import Logger
 from .rs_filter import RSFilter
 from ...data.collect.runner_stats import RunnerStats
-from ...data.collect.runner_stats2 import RunnerStats2
+from ...data.collect.runner_stats2 import RunnerStats2, RunnerStats2Session
 
 
 class RSAnalyzer(ABC):
@@ -17,7 +18,8 @@ class RSAnalyzer(ABC):
 			branches: typing.List[str],
 			rs_filter: RSFilter,
 			export_path: str,
-			sort_key: typing.Callable = None
+			sort_key: typing.Callable = None,
+			return_thresholds: typing.List[float] = None
 	):
 		self.__branches = branches
 		self.__repositories = {
@@ -30,6 +32,8 @@ class RSAnalyzer(ABC):
 		if sort_key is None:
 			sort_key = lambda stat: stat.id
 		self.__sort_key = sort_key
+
+		self.__return_thresholds = return_thresholds if return_thresholds is not None else []
 
 	@staticmethod
 	def __filter_stats(
@@ -84,17 +88,57 @@ class RSAnalyzer(ABC):
 			stat.sessions_size = len(stat.sessions)
 		return stats
 
-	@staticmethod
-	def __construct_df(stats: typing.List[RunnerStats]) -> pd.DataFrame:
+	def __get_threshold_return(self, stat: RunnerStats2, threshold: float) -> np.ndarray:
+		max_profits = np.array([
+			max(session.timestep_pls)
+			for session in stat.sessions
+		])
+		total_profits = np.array(stat.profits)
+
+		miss_mask = max_profits < threshold
+
+		pls = total_profits
+		pls[(~miss_mask)] = (threshold-1) * 100
+		return pls
+
+	def __construct_df(self, stats: typing.List[RunnerStats2]) -> pd.DataFrame:
 		return pd.DataFrame([
-			(stat.id, stat.temperature, stat.profit, stat.model_losses,
-			 [dt.strftime("%Y-%m-%d %H:%M:%S.%f") for dt in stat.session_timestamps], stat.profits,
-			 stat.simulated_timestamps, stat.session_model_losses, stat.sessions_size)
+			(
+				stat.id, stat.temperature, stat.profit, stat.model_losses,
+				[dt.strftime("%Y-%m-%d %H:%M:%S.%f") for dt in stat.session_timestamps],
+				stat.profits, stat.simulated_timestamps, stat.session_model_losses,
+				stat.sessions_size,
+				[
+					max(session.timestep_pls)
+					for session in stat.sessions
+				],
+				[
+					min(session.timestep_pls)
+					for session in stat.sessions
+				],
+				[
+					session.timestep_pls
+					for session in stat.sessions
+				],
+			) + tuple([
+				self.__get_threshold_return(stat, threshold)
+				for threshold in self.__return_thresholds
+			]) + tuple([
+				sum(self.__get_threshold_return(stat, threshold))
+				for threshold in self.__return_thresholds
+			])
 			for stat in stats
 		], columns=[
 			"ID", "Temperature", "Profit", "Losses", "Sessions", "Profits", "Sim. Timestamps",
-			"Session Model Losses", "Sessions Size"
-		])
+			"Session Model Losses", "Sessions Size", "Max Profit", "Min Profit", "TimeStep Profits"
+		] + [
+			f"Profits(Return Threshold: {threshold})"
+			for threshold in self.__return_thresholds
+		] + [
+			f"Profit(Return Threshold: {threshold})"
+			for threshold in self.__return_thresholds
+		]
+		)
 
 	def _export_stats(self, stats: typing.List[RunnerStats], path: str):
 		Logger.info(f"Exporting {len(stats)} stats to {path}")
