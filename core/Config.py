@@ -86,9 +86,10 @@ MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = True
-MARKET_STATE_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_CHANNELS = ('c', 'l', 'h', 'o')
 MARKET_STATE_SMOOTHED_CHANNELS = ()
-MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h', 'o')
+MARKET_STATE_ANCHOR_CHANNEL = None
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks")
 TIME_PENALTY = 0
 AGENT_TARGET_RETURN = None
@@ -180,12 +181,12 @@ AGENT_MIN_ABS_DISK_SPACE = None
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
 AGENT_MODEL_USE_AGGREGATION = True
-AGENT_MODEL_AGGREGATION_ALPHA = 0.99/2
+AGENT_MODEL_AGGREGATION_ALPHA = 0.99/3
 AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/13.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/15.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -244,8 +245,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-88/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-97/"
 
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
@@ -490,7 +490,7 @@ class RunnerStatsBranches:
 		it_97_6
 	]
 
-	default = it_88_6
+	default = it_97_6
 
 
 class RunnerStatsLossesBranches:
@@ -637,7 +637,7 @@ class RunnerStatsLossesBranches:
 		it_97_0
 	]
 
-	default = it_88_0
+	default = it_97_0
 
 
 
