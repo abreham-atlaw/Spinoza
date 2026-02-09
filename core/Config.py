@@ -126,7 +126,7 @@ AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
 	("EUR", "USD")
 ]
-AGENT_USE_MULTI_INSTRUMENT_MODEL = False
+AGENT_USE_MULTI_INSTRUMENT_MODEL = True
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = False
@@ -245,7 +245,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-97/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-98/"
 
 
 class ResourceCategories:
@@ -486,7 +486,7 @@ class RunnerStatsBranches:
 		it_98_6
 	]
 
-	default = it_97_6
+	default = it_98_6
 
 
 class RunnerStatsLossesBranches:
@@ -634,7 +634,7 @@ class RunnerStatsLossesBranches:
 		it_97_0
 	]
 
-	default = it_97_0
+	default = it_98_0
 
 
 
