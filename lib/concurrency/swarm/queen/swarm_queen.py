@@ -1,6 +1,7 @@
 import time
 import typing
 from abc import ABC
+from datetime import datetime
 
 from socketio.exceptions import BadNamespaceError
 
@@ -17,6 +18,7 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 			self,
 			*args,
 			node_serializer: Serializer,
+			queue_timeout: float,
 			queue_wait_time: float = 0.5,
 			**kwargs
 	):
@@ -25,12 +27,20 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		self.__queue_wait_time = queue_wait_time
 
 		self.__queued_nodes = []
+		self.__queue_time = {}
 		self.__is_active = False
+		self.__queue_timeout = queue_timeout
 
 	def _map_events(self) -> typing.Dict[str, typing.Callable[[typing.Any], None]]:
 		return {
 			"backpropagate": self.__handle_backpropagate,
 		}
+
+	def __get_queue_time(self, node: Node) -> datetime:
+		return self.__queue_time.get(node.id)
+
+	def __set_queue_time(self, node: Node):
+		self.__queue_time[node.id] = datetime.now()
 
 	@handle_exception(exception_cls=(BadNamespaceError,))
 	def __queue_node(self, node: Node):
@@ -38,12 +48,19 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 			"queue",
 			data=self.__node_serializer.serialize(node)
 		)
+		self.__set_queue_time(node)
 
 	def __clear_queue(self):
 		Logger.info(f"Clearing Queue...")
 		self._sio.emit(
 			"clear-queue"
 		)
+
+	def __monitor_queue_timeouts(self):
+		for node in self.__queued_nodes:
+			if (datetime.now() - self.__get_queue_time(node)).total_seconds() > self.__queue_timeout:
+				Logger.info(f"Re-Queueing Node: {node.id}")
+				self.__queue_node(node)
 
 	def __handle_backpropagate(self, data = None):
 		if not self.__is_active:
@@ -92,6 +109,7 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 			self.__queue_node(leaf_node)
 			self.__queued_nodes.append(leaf_node)
 
+		self.__monitor_queue_timeouts()
 		time.sleep(self.__queue_wait_time)
 
 	def _monte_carlo_simulation(self, root_node: 'Node'):

@@ -1,5 +1,6 @@
 import typing
 
+from core import Config
 from core.agent.agents import TraderAgent
 from core.di.legacy.swarm_agent_utils_provider import SwarmAgentUtilsProvider
 from lib.concurrency.swarm.queen.swarm_queen import SwarmQueen
@@ -11,7 +12,8 @@ class SwarmQueenTrader(SwarmQueen, TraderAgent):
 		super().__init__(
 			socket_client=SwarmAgentUtilsProvider.provide_socketio_client(),
 			state_repository=SwarmAgentUtilsProvider.provide_mc_worker_state_repository(),
-			node_serializer=SwarmAgentUtilsProvider.provide_node_serializer()
+			node_serializer=SwarmAgentUtilsProvider.provide_node_serializer(),
+			queue_timeout=Config.SWARM_QUEEN_QUEUE_TIMEOUT
 		)
 		self.__setup_manager = SwarmAgentUtilsProvider.provide_queen_setup_manager()
 		self.__setup_manager.add_reconnect_callback(self.__handle_reconnect)

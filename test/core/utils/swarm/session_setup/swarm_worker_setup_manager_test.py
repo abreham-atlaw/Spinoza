@@ -20,3 +20,11 @@ class SwarmWorkerSetupManagerTest(unittest.TestCase):
 		self.assertEqual(os.path.basename(Config.CORE_MODEL_CONFIG.path), "abrehamalemu-spinoza-training-cnn-1-it-89-tot.0.zip")
 		self.assertEqual(Config.AGENT_MODEL_TEMPERATURE, 1.0)
 		self.assertEqual(Config.AGENT_MODEL_AGGREGATION_ALPHA, 49.5)
+
+	def test_reconnect(self):
+
+		self.manager._sio.on("disconnect", lambda: self.manager.reconnect())
+
+		self.manager.setup()
+		self.manager._sio.disconnect()
+		self.manager._sio.wait()
