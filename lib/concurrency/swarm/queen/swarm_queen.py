@@ -84,6 +84,7 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		parent.children.remove(node)
 		parent.add_child(node)
 		self._backpropagate(node)
+		self.__queued_nodes.remove(old_node)
 
 	def _finalize_step(self, root: 'Node'):
 		self._deactivate_simulation()
