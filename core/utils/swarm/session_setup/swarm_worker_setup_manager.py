@@ -2,11 +2,9 @@ import os.path
 import typing
 
 from core import Config
-from core.di import ServiceProvider
 from core.utils.research.utils.model_utils import ModelUtils
 from core.utils.swarm.session_setup import SwarmSetupManager
 from core.utils.swarm.session_setup.data.models import Session
-from lib.concurrency.swarm.sio_agent import SIOAgent
 from lib.utils.file_storage import FileStorage
 from lib.utils.logger import Logger
 
@@ -58,3 +56,11 @@ class SwarmWorkerSetupManager(SwarmSetupManager):
 
 	def _setup(self):
 		self.__register_worker()
+
+	def _reconnect(self):
+		self._sio.emit(
+			"worker-reconnect",
+			data={
+				"id": self._id
+			}
+		)
