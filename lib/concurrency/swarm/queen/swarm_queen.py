@@ -8,7 +8,7 @@ from socketio.exceptions import BadNamespaceError
 from lib.concurrency.swarm.sio_agent import SIOAgent
 from lib.network.rest_interface import Serializer
 from lib.rl.agent import MonteCarloAgent, Node
-from lib.utils.decorators import handle_exception
+from lib.utils.decorators import handle_exception, retry
 from lib.utils.logger import Logger
 
 
@@ -50,6 +50,8 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		)
 		self.__set_queue_time(node)
 
+	@handle_exception(exception_cls=(BadNamespaceError,))
+	@retry(exception_cls=(BadNamespaceError,), sleep_timer=10, patience=10)
 	def __clear_queue(self):
 		Logger.info(f"Clearing Queue...")
 		self._sio.emit(
@@ -84,7 +86,8 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		parent.children.remove(node)
 		parent.add_child(node)
 		self._backpropagate(node)
-		self.__queued_nodes.remove(old_node)
+		if old_node in self.__queued_nodes:
+			self.__queued_nodes.remove(old_node)
 
 	def _finalize_step(self, root: 'Node'):
 		self._deactivate_simulation()
