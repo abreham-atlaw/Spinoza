@@ -4,7 +4,7 @@ import numpy as np
 
 from core.environment.trade_state import TradeState
 from lib.rl.agent.utils.state_predictor import StatePredictor
-from ...action import Action
+from core.agent.action import Action
 
 
 class MultiInstrumentPredictor(StatePredictor):
