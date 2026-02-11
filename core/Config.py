@@ -639,7 +639,7 @@ class RunnerStatsLossesBranches:
 		it_99_0
 	]
 
-	default = it_96_0
+	default = it_99_0
 
 
 
