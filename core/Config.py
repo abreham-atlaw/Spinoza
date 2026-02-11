@@ -89,6 +89,7 @@ MARKET_STATE_USE_MULTI_CHANNELS = True
 MARKET_STATE_CHANNELS = ('c', 'l', 'h')
 MARKET_STATE_SMOOTHED_CHANNELS = ()
 MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_ANCHOR_CHANNEL = None
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks")
 TIME_PENALTY = 0
 AGENT_TARGET_RETURN = None
@@ -123,7 +124,6 @@ AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
-	("USD", "ZAR")
 ]
 AGENT_USE_MULTI_INSTRUMENT_MODEL = False
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
@@ -154,7 +154,7 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 32
 AGENT_USE_LASS = False
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-4-it-12-tot.0.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
@@ -179,8 +179,8 @@ AGENT_MIN_DISK_SPACE = 0.1
 AGENT_MIN_ABS_DISK_SPACE = None
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
-AGENT_MODEL_USE_AGGREGATION = True
-AGENT_MODEL_AGGREGATION_ALPHA = 0.99/2
+AGENT_MODEL_USE_AGGREGATION = False
+AGENT_MODEL_AGGREGATION_ALPHA = 0.3
 AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
@@ -244,8 +244,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-88/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-96/"
 
 OANDA_SIM_MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 
@@ -393,6 +392,10 @@ class RunnerStatsBranches:
 
 	it_97_6 = "it_97_6"
 
+	it_98_6 = "it_98_6"
+
+	it_99_6 = "it_99_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -487,10 +490,12 @@ class RunnerStatsBranches:
 		it_94_6,
 		it_95_6,
 		it_96_6,
-		it_97_6
+		it_97_6,
+		it_98_6,
+		it_99_6
 	]
 
-	default = it_88_6
+	default = it_96_6
 
 
 class RunnerStatsLossesBranches:
@@ -566,6 +571,8 @@ class RunnerStatsLossesBranches:
 	it_95_0 = "it_95_0"
 	it_96_0 = "it_96_0"
 	it_97_0 = "it_97_0"
+	it_98_0 = "it_98_0"
+	it_99_0 = "it_99_0"
 
 	all = [
 		main,
@@ -634,10 +641,12 @@ class RunnerStatsLossesBranches:
 		it_94_0,
 		it_95_0,
 		it_96_0,
-		it_97_0
+		it_97_0,
+		it_98_0,
+		it_99_0
 	]
 
-	default = it_88_0
+	default = it_99_0
 
 
 
