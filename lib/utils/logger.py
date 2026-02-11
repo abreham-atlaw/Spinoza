@@ -43,17 +43,6 @@ class Logger:
 		return return_value
 
 	@staticmethod
-	def logged_method(prefix=None):
-
-		def decorator(func):
-
-			def wrapper(*args, **kwargs):
-				return Logger.log_function(func, args, kwargs, prefix=prefix)
-			return wrapper
-
-		return decorator
-
-	@staticmethod
 	def logged_method(func):
 
 		def wrapper(self, *args, **kwargs):

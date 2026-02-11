@@ -4,6 +4,7 @@ from typing import *
 import math
 import datetime
 import pytz
+import requests.exceptions
 
 from lib.utils.logger import Logger
 from .data.models import AccountSummary, Trade, Order, CloseTradeResponse, CreateOrderResponse, CandleStick, \
@@ -235,11 +236,19 @@ class Trader:
 
 	@Logger.logged_method
 	def close_trades(self, instrument: Tuple[str, str]) -> List[CloseTradeResponse]:
-		return [
-			self.close_trade(trade.id) 
-			for trade in self.get_open_trades() 
-			if trade.get_instrument() == instrument or instrument[::-1] == trade.get_instrument()
-		]
+		closed_traders = []
+
+		for trade in self.get_open_trades():
+			if trade.get_instrument() == instrument or instrument[::-1] == trade.get_instrument():
+				try:
+					closed_traders.append(trade)
+				except requests.exceptions.HTTPError as ex:
+					if ex.response.status_code != 404:
+						raise ex
+					Logger.warning(f"Trade(id={trade.id}) closed by another party.")
+
+		return closed_traders
+
 
 	@Logger.logged_method
 	def close_all_trades(self) -> List[CloseTradeResponse]:

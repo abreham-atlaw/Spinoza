@@ -89,6 +89,7 @@ MARKET_STATE_USE_MULTI_CHANNELS = True
 MARKET_STATE_CHANNELS = ('c', 'l', 'h')
 MARKET_STATE_SMOOTHED_CHANNELS = ()
 MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_ANCHOR_CHANNEL = None
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks/real")
 TIME_PENALTY = 0
 AGENT_TARGET_RETURN = None
@@ -123,8 +124,8 @@ AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
-	("USD", "ZAR")
 ]
+AGENT_USE_MULTI_INSTRUMENT_MODEL = False
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = False
@@ -157,7 +158,7 @@ AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
-AGENT_MCA_USE_REFLEX = False
+AGENT_MCA_USE_REFLEX = True
 AGENT_REFLEX_STM_SIZE = 1000
 AGENT_PREDICTION_REFLEX_EVALUATOR_EFFECTIVE_CHANNELS = [0, 1, 2]
 AGENT_DRMCA_WP = 100
@@ -253,7 +254,7 @@ HORIZON_H = 0.0
 HORIZON_USE_MC = True
 HORIZON_Y_CHANNEL_MAP = (0, 1, 2)
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-89/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-96/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -395,6 +396,12 @@ class RunnerStatsBranches:
 
 	it_96_6 = "it_96_6"
 
+	it_97_6 = "it_97_6"
+
+	it_98_6 = "it_98_6"
+
+	it_99_6 = "it_99_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -488,10 +495,13 @@ class RunnerStatsBranches:
 		it_93_6,
 		it_94_6,
 		it_95_6,
-		it_96_6
+		it_96_6,
+		it_97_6,
+		it_98_6,
+		it_99_6
 	]
 
-	default = it_89_8
+	default = it_96_6
 
 
 class RunnerStatsLossesBranches:
@@ -566,6 +576,9 @@ class RunnerStatsLossesBranches:
 	it_94_0 = "it_94_0"
 	it_95_0 = "it_95_0"
 	it_96_0 = "it_96_0"
+	it_97_0 = "it_97_0"
+	it_98_0 = "it_98_0"
+	it_99_0 = "it_99_0"
 
 	all = [
 		main,
@@ -633,10 +646,13 @@ class RunnerStatsLossesBranches:
 		it_93_0,
 		it_94_0,
 		it_95_0,
-		it_96_0
+		it_96_0,
+		it_97_0,
+		it_98_0,
+		it_99_0
 	]
 
-	default = it_88_1
+	default = it_99_0
 
 
 
