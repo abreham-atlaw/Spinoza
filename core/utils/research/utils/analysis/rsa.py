@@ -121,7 +121,7 @@ class RSAnalyzer(ABC):
 					for session in stat.sessions
 				],
 			) + tuple([
-				self.__get_threshold_return(stat, threshold)
+				list(self.__get_threshold_return(stat, threshold))
 				for threshold in self.__return_thresholds
 			]) + tuple([
 				sum(self.__get_threshold_return(stat, threshold))
