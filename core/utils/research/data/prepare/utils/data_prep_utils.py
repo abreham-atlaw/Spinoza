@@ -13,6 +13,13 @@ class DataPrepUtils:
 		return np.sum(value >= np.array(bounds))
 
 	@staticmethod
+	def one_hot_encode(classes: np.ndarray, length: int) -> np.ndarray:
+		encoding = np.zeros((classes.shape[0], length))
+		for i in range(classes.shape[0]):
+			encoding[i, classes[i]] = 1
+		return encoding
+
+	@staticmethod
 	def apply_bound_epsilon(bounds: typing.List[float], eps: float = None) -> typing.List[float]:
 		if eps is None:
 			eps = (bounds[1] - bounds[0] + bounds[-1] - bounds[-2]) / 2
