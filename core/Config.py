@@ -91,7 +91,8 @@ MARKET_STATE_SIMULATED_CHANNELS = ('c',)
 MARKET_STATE_ANCHOR_CHANNEL = None
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks")
 TIME_PENALTY = 0
-AGENT_TARGET_RETURN = None
+AGENT_EPISODE_TAKE_PROFIT = None
+AGENT_EPISODE_STOP_LOSS = None
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
@@ -390,6 +391,10 @@ class RunnerStatsBranches:
 
 	it_97_6 = "it_97_6"
 
+	it_98_6 = "it_98_6"
+
+	it_99_6 = "it_99_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -484,7 +489,9 @@ class RunnerStatsBranches:
 		it_94_6,
 		it_95_6,
 		it_96_6,
-		it_97_6
+		it_97_6,
+		it_98_6,
+		it_99_6
 	]
 
 	default = it_75_8
@@ -563,6 +570,8 @@ class RunnerStatsLossesBranches:
 	it_95_0 = "it_95_0"
 	it_96_0 = "it_96_0"
 	it_97_0 = "it_97_0"
+	it_98_0 = "it_98_0"
+	it_99_0 = "it_99_0"
 
 	all = [
 		main,
@@ -631,7 +640,9 @@ class RunnerStatsLossesBranches:
 		it_94_0,
 		it_95_0,
 		it_96_0,
-		it_97_0
+		it_97_0,
+		it_98_0,
+		it_99_0
 	]
 
 	default = it_72_1
