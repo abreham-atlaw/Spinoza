@@ -49,6 +49,7 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 			data=self.__node_serializer.serialize(node)
 		)
 		self.__set_queue_time(node)
+		self.__queued_nodes.append(node)
 
 	@handle_exception(exception_cls=(BadNamespaceError,))
 	@retry(exception_cls=(BadNamespaceError,), sleep_timer=10, patience=10)
@@ -111,7 +112,6 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 
 		if leaf_node not in self.__queued_nodes:
 			self.__queue_node(leaf_node)
-			self.__queued_nodes.append(leaf_node)
 
 		self.__monitor_queue_timeouts()
 		time.sleep(self.__queue_wait_time)
