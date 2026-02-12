@@ -108,6 +108,7 @@ class ResearchProvider:
 
 	@staticmethod
 	def provide_model_evaluator(data_path: str = None) -> 'ModelEvaluator':
+		return None
 		if data_path is None:
 			data_path = Config.UPDATE_SAVE_PATH
 
