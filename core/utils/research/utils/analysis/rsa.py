@@ -19,7 +19,8 @@ class RSAnalyzer(ABC):
 			rs_filter: RSFilter,
 			export_path: str,
 			sort_key: typing.Callable = None,
-			return_thresholds: typing.List[float] = None
+			session_take_profits: typing.List[float] = None,
+			session_stop_losses: typing.List[float] = None
 	):
 		self.__branches = branches
 		self.__repositories = {
@@ -33,7 +34,8 @@ class RSAnalyzer(ABC):
 			sort_key = lambda stat: stat.id
 		self.__sort_key = sort_key
 
-		self.__return_thresholds = return_thresholds if return_thresholds is not None else []
+		self.__session_take_profits = session_take_profits if session_take_profits is not None else []
+		self.__session_stop_losses = session_stop_losses if session_stop_losses is not None else []
 
 	@staticmethod
 	def __filter_stats(
@@ -88,18 +90,28 @@ class RSAnalyzer(ABC):
 			stat.sessions_size = len(stat.sessions)
 		return stats
 
-	def __get_threshold_return(self, stat: RunnerStats2, threshold: float) -> np.ndarray:
-		max_profits = np.array([
-			max(session.timestep_pls)
+	@staticmethod
+	def __calc_triggered_profit(session: RunnerStats2Session, sl: float, tp: float) -> float:
+		def filter_take_profit(profits, tp):
+			mask = np.cumprod(np.concatenate([[True], profits < tp])[:-1]).astype(bool)
+			return profits[mask]
+
+		def filter_stop_loss(profits, sl):
+			mask = np.cumprod(np.concatenate([[True], profits > sl])[:-1]).astype(bool)
+			return profits[mask]
+
+		profits = filter_stop_loss(
+			filter_take_profit(np.array(session.timestep_pls), tp),
+			sl
+		)
+
+		return (profits[-1] - 1)*100
+
+	def __get_triggered_returns(self, stat: RunnerStats2, sl: float, tp: float) -> typing.List[float]:
+		return [
+			self.__calc_triggered_profit(session, sl, tp)
 			for session in stat.sessions
-		])
-		total_profits = np.array(stat.profits)
-
-		miss_mask = max_profits < threshold
-
-		pls = total_profits
-		pls[(~miss_mask)] = (threshold-1) * 100
-		return pls
+		]
 
 	def __construct_df(self, stats: typing.List[RunnerStats2]) -> pd.DataFrame:
 		return pd.DataFrame([
@@ -121,22 +133,26 @@ class RSAnalyzer(ABC):
 					for session in stat.sessions
 				],
 			) + tuple([
-				self.__get_threshold_return(stat, threshold)
-				for threshold in self.__return_thresholds
+				self.__get_triggered_returns(stat, sl, tp)
+				for tp in self.__session_take_profits
+				for sl in self.__session_stop_losses
 			]) + tuple([
-				sum(self.__get_threshold_return(stat, threshold))
-				for threshold in self.__return_thresholds
+				sum(self.__get_triggered_returns(stat, sl, tp))
+				for tp in self.__session_take_profits
+				for sl in self.__session_stop_losses
 			])
 			for stat in stats
 		], columns=[
 			"ID", "Temperature", "Profit", "Losses", "Sessions", "Profits", "Sim. Timestamps",
 			"Session Model Losses", "Sessions Size", "Max Profit", "Min Profit", "TimeStep Profits"
 		] + [
-			f"Profits(Return Threshold: {threshold})"
-			for threshold in self.__return_thresholds
+			f"Profits(Take Profit: {tp}, Stop Loss: {sl})"
+			for tp in self.__session_take_profits
+			for sl in self.__session_stop_losses
 		] + [
-			f"Profit(Return Threshold: {threshold})"
-			for threshold in self.__return_thresholds
+			f"Profit(Take Profit: {tp}, Stop Loss: {sl})"
+			for tp in self.__session_take_profits
+			for sl in self.__session_stop_losses
 		]
 		)
 
