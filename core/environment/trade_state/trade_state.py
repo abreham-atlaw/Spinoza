@@ -1,3 +1,4 @@
+import typing
 from typing import *
 
 from lib.rl.environment import ModelBasedState
@@ -15,6 +16,7 @@ class TradeState(ModelBasedState):
 			recent_balance: float = None,
 			pre_computation: bool = True,
 			is_running: bool = True,
+			simulated_instrument: typing.Tuple[str, str] = None
 	):
 		self.market_state = market_state
 		self.agent_state = agent_state
@@ -23,6 +25,7 @@ class TradeState(ModelBasedState):
 		self.__depth = 0
 		self.__attached_state = {}
 		self.is_running = is_running
+		self.simulated_instrument = simulated_instrument
 
 	def get_market_state(self) -> MarketState:
 		return self.market_state
@@ -63,10 +66,16 @@ class TradeState(ModelBasedState):
 		market_state = self.market_state.__deepcopy__()
 		agent_state = self.agent_state.__deepcopy__(memo={'market_state': market_state})
 
-		return TradeState(market_state, agent_state, self.get_recent_balance(), is_running=self.is_running)
+		return TradeState(
+			market_state,
+			agent_state,
+			self.get_recent_balance(),
+			is_running=self.is_running,
+			simulated_instrument=self.simulated_instrument
+		)
 
 	def __hash__(self):
-		return hash((self.market_state, self.agent_state, self.get_recent_balance(), self.is_running))
+		return hash((self.market_state, self.agent_state, self.get_recent_balance(), self.is_running, self.simulated_instrument))
 
 	def __eq__(self, other):
 		if not isinstance(other, TraderAction):
