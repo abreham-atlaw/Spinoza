@@ -64,7 +64,7 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 		return self.__generate_trade_trigger_bounds(1, action)
 
 	def _generate_lone_actions(self, state: TradeState) -> typing.List[TraderAction]:
-		pairs = state.get_market_state().get_tradable_pairs()
+		pairs = state.get_market_state().get_tradable_pairs() if state.simulated_instrument is None else [state.simulated_instrument]
 
 		gap = self.__trade_size_gap * state.get_agent_state().get_margin_available() if self.__trade_size_use_percentage \
 			else self.__trade_size_gap
