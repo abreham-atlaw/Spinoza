@@ -241,9 +241,9 @@ class Trader:
 		for trade in self.get_open_trades():
 			if trade.get_instrument() == instrument or instrument[::-1] == trade.get_instrument():
 				try:
-					closed_traders.append(self.close_trade(trade))
+					closed_traders.append(self.close_trade(trade.id))
 				except requests.exceptions.HTTPError as ex:
-					if ex.response.status_code != 404:
+					if ex.response is not None and ex.response.status_code != 404:
 						raise ex
 					Logger.warning(f"Trade(id={trade.id}) closed by another party.")
 
