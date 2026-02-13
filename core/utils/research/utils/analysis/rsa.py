@@ -121,11 +121,11 @@ class RSAnalyzer(ABC):
 				stat.profits, stat.simulated_timestamps, stat.session_model_losses,
 				stat.sessions_size,
 				[
-					max(session.timestep_pls)
+					max(session.timestep_pls) if len(session.timestep_pls) > 0 else 0
 					for session in stat.sessions
 				],
 				[
-					min(session.timestep_pls)
+					min(session.timestep_pls) if len(session.timestep_pls) > 0 else 0
 					for session in stat.sessions
 				],
 				[
