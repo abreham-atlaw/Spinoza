@@ -6,7 +6,7 @@ from core.utils.research.model.layers import FlattenLayer
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.savable import SpinozaModule
 from core.utils.research.model.model.titan import TitanContextEmbeddingBlock
-from core.utils.research.model.model.transformer import DecoderBlock
+from core.utils.research.model.model.transformer import DecoderBlock, TransformerEmbeddingBlock
 
 
 class TitanContextBlock(SpinozaModule):
@@ -29,6 +29,7 @@ class TitanContextBlock(SpinozaModule):
 		super().__init__()
 		self.embedding_block = embedding_block
 		self.context_ffn = context_ffn
+		self.time_series_input_block = TransformerEmbeddingBlock()
 		self.time_series_decoder_block = time_series_decoder_block
 		self.time_series_ffn = time_series_ffn
 		self.value_head = value_head
@@ -40,7 +41,8 @@ class TitanContextBlock(SpinozaModule):
 		embedded = self.embedding_block(x)
 		context_latent = self.context_ffn(embedded)
 
-		attn_out = self.time_series_decoder_block(time_series_latent)
+		attn_in = self.time_series_input_block(time_series_latent)
+		attn_out = self.time_series_decoder_block(attn_in)
 		attn_ffn_out = self.time_series_ffn(attn_out)
 		attn_ffn_out = self.time_series_flatten(attn_ffn_out)
 

@@ -35,7 +35,7 @@ class TitanModel(SpinozaModule):
 
 		y = torch.zeros((x.shape[0], time_series_output.shape[1], time_series_output.shape[2]+1))
 		y[..., :-1] = time_series_output
-		y[:, 0] = context_output
+		y[:, 0, -1] = torch.reshape(context_output, (context_output.shape[0],))
 
 		return y
 
