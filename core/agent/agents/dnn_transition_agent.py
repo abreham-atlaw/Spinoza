@@ -318,7 +318,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def __simulate_instruments_change(self, mid_state, instruments: List[Tuple[str, str]], action) -> List[TradeState]:
 		states = []
 		for base_currency, quote_currency in instruments:
-			states += self.__simulate_instrument_change(mid_state, base_currency, quote_currency, action)
+			ins_state = self.__simulate_instrument_change(mid_state, base_currency, quote_currency, action)
+			for state in ins_state:
+				state.simulated_instrument = (base_currency, quote_currency)
+			states += ins_state
 
 		return states
 

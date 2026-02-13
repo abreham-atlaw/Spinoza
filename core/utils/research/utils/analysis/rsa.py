@@ -116,16 +116,16 @@ class RSAnalyzer(ABC):
 	def __construct_df(self, stats: typing.List[RunnerStats2]) -> pd.DataFrame:
 		return pd.DataFrame([
 			(
-				stat.id, stat.temperature, stat.profit, stat.model_losses,
+				stat.id, stat.temperature, stat.aggregate_alpha, stat.profit, stat.model_losses,
 				[dt.strftime("%Y-%m-%d %H:%M:%S.%f") for dt in stat.session_timestamps],
 				stat.profits, stat.simulated_timestamps, stat.session_model_losses,
 				stat.sessions_size,
 				[
-					max(session.timestep_pls)
+					max(session.timestep_pls) if len(session.timestep_pls) > 0 else 0
 					for session in stat.sessions
 				],
 				[
-					min(session.timestep_pls)
+					min(session.timestep_pls) if len(session.timestep_pls) > 0 else 0
 					for session in stat.sessions
 				],
 				[
@@ -143,7 +143,7 @@ class RSAnalyzer(ABC):
 			])
 			for stat in stats
 		], columns=[
-			"ID", "Temperature", "Profit", "Losses", "Sessions", "Profits", "Sim. Timestamps",
+			"ID", "Temperature", "Aggregate Alpha", "Profit", "Losses", "Sessions", "Profits", "Sim. Timestamps",
 			"Session Model Losses", "Sessions Size", "Max Profit", "Min Profit", "TimeStep Profits"
 		] + [
 			f"Profits(Take Profit: {tp}, Stop Loss: {sl})"
