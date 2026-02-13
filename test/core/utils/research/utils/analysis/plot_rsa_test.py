@@ -11,6 +11,7 @@ class PlotRSATest(unittest.TestCase):
 		analyzer = PlotRSAnalyzer(
 			branches=[Config.RunnerStatsBranches.it_75_8],
 			# sessions_len=11,
-			return_thresholds=[1.05, 1.1, 1.2]
+			session_take_profits=[1.05, 1.1, 1.2],
+			session_stop_losses=[0.9, 0.8, 0.7]
 		)
 		analyzer.start()
