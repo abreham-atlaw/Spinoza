@@ -164,7 +164,8 @@ class AgentUtilsProvider:
 			state_predictor=AgentUtilsProvider.provide_state_predictor(),
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			effective_channels=Config.AGENT_PREDICTION_REFLEX_EVALUATOR_EFFECTIVE_CHANNELS,
-			log_returns=Config.AGENT_PREDICTION_REFLEX_EVALUATOR_LOG_RETURNS
+			log_returns=Config.AGENT_PREDICTION_REFLEX_EVALUATOR_LOG_RETURNS,
+			focused_instrument_simulation=Config.AGENT_FOCUSED_INSTRUMENT_SIMULATION
 		)
 
 	@staticmethod
