@@ -17,19 +17,24 @@ class PredictionReflexMemoryEvaluator(TraderReflexMemoryEvaluator):
 			state_predictor: BasicStatePredictor,
 			bounds: typing.List[float],
 			effective_channels: typing.List[int] = None,
-			y_extra_len: int = 1
+			y_extra_len: int = 1,
+			log_returns: bool = False
 	):
 		super().__init__()
 		self.__state_predictor = state_predictor
 		self.__bounds = DataPrepUtils.apply_bound_epsilon(bounds)
 		self.__effective_channels = effective_channels
 		self.__y_extra_len = y_extra_len
-		Logger.info(f"Initialized {type(self).__name__} with state_predictor: {state_predictor}, effective_channels: {effective_channels}")
+		self.__log_returns = log_returns
+		Logger.info(f"Initialized {type(self).__name__} with state_predictor: {state_predictor}, effective_channels: {effective_channels}, log_returns={log_returns}")
 
 	def __predict_state_instrument(self, state0: TradeState, instrument: typing.Tuple[str, str]) -> np.ndarray:
 		y = self.__state_predictor.predict([state0], [None], instrument=instrument)[0]
 		if self.__y_extra_len > 0:
 			y = y[..., :-self.__y_extra_len]
+
+		if self.__log_returns:
+			y = np.exp(y)
 		y = np.sum(self.__bounds * y, axis=-1)
 		if self.__effective_channels is not None:
 			y = y[self.__effective_channels]
