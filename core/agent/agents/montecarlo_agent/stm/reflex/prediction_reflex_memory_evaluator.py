@@ -29,8 +29,8 @@ class PredictionReflexMemoryEvaluator(TraderReflexMemoryEvaluator):
 		self.__log_returns = log_returns
 		self.__focused_instrument_simulation = focused_instrument_simulation
 		Logger.info(
-			f"Initialized {type(self).__name__} with state_predictor: {state_predictor},"
-			f"effective_channels: {effective_channels}, log_returns={log_returns}"
+			f"Initialized {type(self).__name__} with state_predictor: {state_predictor}, "
+			f"effective_channels: {effective_channels}, log_returns={log_returns}, "
 			f"focused_instrument_simulation: {focused_instrument_simulation}"
 		)
 
