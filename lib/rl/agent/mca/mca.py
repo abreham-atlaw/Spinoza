@@ -4,6 +4,7 @@ import random
 import time
 import typing
 from datetime import datetime
+from threading import Thread
 from typing import *
 from abc import ABC
 
@@ -15,6 +16,7 @@ import psutil
 from lib.network.rest_interface import Serializer
 from lib.rl.agent import ModelBasedAgent
 from lib.rl.environment import ModelBasedState
+from lib.utils.decorators.thread_decorator import thread_method
 from lib.utils.logger import Logger
 from lib.utils.math import sigmoid
 from lib.utils.staterepository import StateRepository, SectionalDictStateRepository
@@ -80,6 +82,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		self.__dynamic_k_threshold = dynamic_k_threshold
 		self.__resource_manager = resource_manager
 		self.__graph_plot_rate = graph_plot_rate
+		self.__finalization_thread: Thread = None
 
 	@property
 	def trim_mode(self) -> bool:
@@ -290,8 +293,9 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			]
 		)
 
+	@thread_method
 	def _finalize_step(self, root: 'Node'):
-
+		Logger.info(f"Finalizing MCA Time-Step...")
 		if self.__dump_nodes:
 			self.__dump_node(root)
 
@@ -301,6 +305,16 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		else:
 			self._state_repository.clear()
 		self.__manage_resources(end=True)
+		Logger.success(f"Completed MCA Time-Step Finalization")
+
+	def __finalize_step(self, root_node: Node):
+		self.__finalization_thread = Thread(target=self._finalize_step, args=(root_node,))
+		self.__finalization_thread.start()
+
+	def __wait_finalization(self):
+		if self.__finalization_thread is not None and self.__finalization_thread.is_alive():
+			self.__finalization_thread.join()
+		self.__finalization_thread = None
 
 	def _select(self, parent_state_node: 'Node') -> 'Node':
 
@@ -465,6 +479,8 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			stats.iterations["main_loop"] += 1
 
 	def _monte_carlo_tree_search(self, state) -> None:
+		self.__wait_finalization()
+
 		root_node = Node(None, None, Node.NodeType.STATE)
 		self._state_repository.store(root_node.id, state)
 		self._set_current_graph(root_node)
@@ -479,7 +495,7 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 		)
 		optimal_action = max(root_node.get_children(), key=lambda node: node.get_total_value()).action
 		Logger.info(f"Best Action {optimal_action}")
-		self._finalize_step(root_node)
+		self.__finalize_step(root_node)
 
 	def _get_state_action_value(self, state, action, **kwargs) -> float:
 		for action_node in self._get_current_graph().get_children():
