@@ -22,7 +22,9 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 			trade_max_margin_used=Config.AGENT_TRADE_MAX_MARGIN_USED,
 			multi_actions=Config.AGENT_SUPPORT_MULTI_ACTION,
 			stop_loss_granularity=Config.AGENT_STOP_LOSS_GRANULARITY,
-			trade_trigger_value_bound=Config.AGENT_TRADE_TRIGGER_VALUE_BOUND,
+			trade_stop_loss_value_bound=Config.AGENT_TRADE_STOP_LOSS_VALUE_BOUND,
+			take_profit_granularity=Config.AGENT_TAKE_PROFIT_GRANULARITY,
+			trade_take_profit_value_bound=Config.AGENT_TRADE_TAKE_PROFIT_VALUE_BOUND,
 			use_stop_loss=Config.AGENT_USE_STOP_LOSS,
 			use_take_profit=Config.AGENT_USE_TAKE_PROFIT,
 			**kwargs
@@ -34,7 +36,9 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 		self.__trade_max_margin_used = trade_max_margin_used
 		self.__multi_actions = multi_actions
 		self.__stop_loss_granularity = stop_loss_granularity
-		self.__trade_trigger_value_bound = trade_trigger_value_bound
+		self.__trade_stop_loss_value_bound = trade_stop_loss_value_bound
+		self.__take_profit_granularity = take_profit_granularity
+		self.__trade_take_profit_value_bound = trade_take_profit_value_bound
 		self.__use_stop_loss = use_stop_loss
 		self.__use_take_profit = use_take_profit
 
@@ -44,24 +48,30 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 	def _simulate_action(self, state: TradeState, action: Action):
 		pass
 
-	def __generate_trade_trigger_bounds(self, trigger_polarity: int, action: int) -> typing.List[float]:
+	@staticmethod
+	def __generate_trade_trigger_bounds(
+			trigger_polarity: int,
+			action: int,
+			granularity: float,
+			bounds: typing.Tuple[float, float]
+	) -> typing.List[float]:
 		direction = -1 if action == TraderAction.Action.SELL else 1
 		return [
 			1 + trigger_polarity * direction * r
 			for r in
-			np.arange(self.__trade_trigger_value_bound[0], self.__trade_trigger_value_bound[1], self.__stop_loss_granularity)
+			np.arange(bounds[0], bounds[1], granularity)
 		]
 
 	def _generate_stop_loss_bounds(self, action: int) -> typing.List[float]:
 		if not self.__use_stop_loss:
 			return [None]
 
-		return self.__generate_trade_trigger_bounds(-1, action)
+		return self.__generate_trade_trigger_bounds(-1, action, self.__stop_loss_granularity, self.__trade_stop_loss_value_bound)
 
 	def _generate_take_profit_bounds(self, action: int) -> typing.List[float]:
 		if not self.__use_take_profit:
 			return [None]
-		return self.__generate_trade_trigger_bounds(1, action)
+		return self.__generate_trade_trigger_bounds(1, action, self.__take_profit_granularity, self.__trade_take_profit_value_bound)
 
 	def _generate_lone_actions(self, state: TradeState) -> typing.List[TraderAction]:
 		pairs = state.get_market_state().get_tradable_pairs() if state.simulated_instrument is None else [state.simulated_instrument]
