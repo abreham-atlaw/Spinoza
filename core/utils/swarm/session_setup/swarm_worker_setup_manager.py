@@ -1,10 +1,13 @@
 import os.path
 import typing
 
+from socketio.exceptions import BadNamespaceError
+
 from core import Config
 from core.utils.research.utils.model_utils import ModelUtils
 from core.utils.swarm.session_setup import SwarmSetupManager
 from core.utils.swarm.session_setup.data.models import Session
+from lib.utils.decorators import handle_exception
 from lib.utils.file_storage import FileStorage
 from lib.utils.logger import Logger
 
@@ -57,6 +60,7 @@ class SwarmWorkerSetupManager(SwarmSetupManager):
 	def _setup(self):
 		self.__register_worker()
 
+	@handle_exception(exception_cls=(BadNamespaceError,))
 	def _reconnect(self):
 		self._sio.emit(
 			"worker-reconnect",
