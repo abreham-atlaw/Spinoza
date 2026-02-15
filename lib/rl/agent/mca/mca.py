@@ -293,7 +293,6 @@ class MonteCarloAgent(ModelBasedAgent, ABC):
 			]
 		)
 
-	@thread_method
 	def _finalize_step(self, root: 'Node'):
 		Logger.info(f"Finalizing MCA Time-Step...")
 		if self.__dump_nodes:
