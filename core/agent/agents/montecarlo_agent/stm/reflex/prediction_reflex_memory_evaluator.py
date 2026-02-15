@@ -39,9 +39,11 @@ class PredictionReflexMemoryEvaluator(TraderReflexMemoryEvaluator):
 		if self.__y_extra_len > 0:
 			y = y[..., :-self.__y_extra_len]
 
+		bounds = self.__bounds
 		if self.__log_returns:
-			y = np.exp(y)
-		y = np.sum(self.__bounds * y, axis=-1)
+			bounds = np.exp(bounds)
+
+		y = np.sum(bounds * y, axis=-1)
 		if self.__effective_channels is not None:
 			y = y[self.__effective_channels]
 		return y
