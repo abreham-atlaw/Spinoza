@@ -29,6 +29,7 @@ class SwarmQueenTrader(SwarmQueen, TraderAgent):
 		return events_map
 
 	def __handle_reconnect(self):
+		self._clear_queue()
 		self._activate_simulation()
 		self.__handling_disconnect = False
 

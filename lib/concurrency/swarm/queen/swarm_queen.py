@@ -53,8 +53,9 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 
 	@handle_exception(exception_cls=(BadNamespaceError,))
 	@retry(exception_cls=(BadNamespaceError,), sleep_timer=10, patience=10)
-	def __clear_queue(self):
+	def _clear_queue(self):
 		Logger.info(f"Clearing Queue...")
+		self.__queued_nodes = []
 		self._sio.emit(
 			"clear-queue"
 		)
@@ -99,8 +100,7 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 
 	def _deactivate_simulation(self):
 		self.__is_active = False
-		self.__clear_queue()
-		self.__queued_nodes = []
+		self._clear_queue()
 
 	def _monte_carlo_loop(self, root_node: Node):
 
