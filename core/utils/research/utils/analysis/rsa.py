@@ -1,13 +1,14 @@
 import typing
 from abc import ABC, abstractmethod
 
+import numpy as np
 import pandas as pd
 
 from core.di import ResearchProvider
 from lib.utils.logger import Logger
 from .rs_filter import RSFilter
 from ...data.collect.runner_stats import RunnerStats
-from ...data.collect.runner_stats2 import RunnerStats2
+from ...data.collect.runner_stats2 import RunnerStats2, RunnerStats2Session
 
 
 class RSAnalyzer(ABC):
@@ -17,7 +18,9 @@ class RSAnalyzer(ABC):
 			branches: typing.List[str],
 			rs_filter: RSFilter,
 			export_path: str,
-			sort_key: typing.Callable = None
+			sort_key: typing.Callable = None,
+			session_take_profits: typing.List[float] = None,
+			session_stop_losses: typing.List[float] = None
 	):
 		self.__branches = branches
 		self.__repositories = {
@@ -30,6 +33,9 @@ class RSAnalyzer(ABC):
 		if sort_key is None:
 			sort_key = lambda stat: stat.id
 		self.__sort_key = sort_key
+
+		self.__session_take_profits = session_take_profits if session_take_profits is not None else []
+		self.__session_stop_losses = session_stop_losses if session_stop_losses is not None else []
 
 	@staticmethod
 	def __filter_stats(
@@ -85,16 +91,70 @@ class RSAnalyzer(ABC):
 		return stats
 
 	@staticmethod
-	def __construct_df(stats: typing.List[RunnerStats]) -> pd.DataFrame:
+	def __calc_triggered_profit(session: RunnerStats2Session, sl: float, tp: float) -> float:
+		def filter_take_profit(profits, tp):
+			mask = np.cumprod(np.concatenate([[True], profits < tp])[:-1]).astype(bool)
+			return profits[mask]
+
+		def filter_stop_loss(profits, sl):
+			mask = np.cumprod(np.concatenate([[True], profits > sl])[:-1]).astype(bool)
+			return profits[mask]
+
+		profits = filter_stop_loss(
+			filter_take_profit(np.array(session.timestep_pls), tp),
+			sl
+		)
+
+		return (profits[-1] - 1)*100
+
+	def __get_triggered_returns(self, stat: RunnerStats2, sl: float, tp: float) -> typing.List[float]:
+		return [
+			self.__calc_triggered_profit(session, sl, tp)
+			for session in stat.sessions
+		]
+
+	def __construct_df(self, stats: typing.List[RunnerStats2]) -> pd.DataFrame:
 		return pd.DataFrame([
-			(stat.id, stat.temperature, stat.profit, stat.model_losses,
-			 [dt.strftime("%Y-%m-%d %H:%M:%S.%f") for dt in stat.session_timestamps], stat.profits,
-			 stat.simulated_timestamps, stat.session_model_losses, stat.sessions_size)
+			(
+				stat.id, stat.temperature, stat.aggregate_alpha, stat.profit, stat.model_losses,
+				[dt.strftime("%Y-%m-%d %H:%M:%S.%f") for dt in stat.session_timestamps],
+				stat.profits, stat.simulated_timestamps, stat.session_model_losses,
+				stat.sessions_size,
+				[
+					max(session.timestep_pls) if len(session.timestep_pls) > 0 else 0
+					for session in stat.sessions
+				],
+				[
+					min(session.timestep_pls) if len(session.timestep_pls) > 0 else 0
+					for session in stat.sessions
+				],
+				[
+					session.timestep_pls
+					for session in stat.sessions
+				],
+			) + tuple([
+				self.__get_triggered_returns(stat, sl, tp)
+				for tp in self.__session_take_profits
+				for sl in self.__session_stop_losses
+			]) + tuple([
+				sum(self.__get_triggered_returns(stat, sl, tp))
+				for tp in self.__session_take_profits
+				for sl in self.__session_stop_losses
+			])
 			for stat in stats
 		], columns=[
-			"ID", "Temperature", "Profit", "Losses", "Sessions", "Profits", "Sim. Timestamps",
-			"Session Model Losses", "Sessions Size"
-		])
+			"ID", "Temperature", "Aggregate Alpha", "Profit", "Losses", "Sessions", "Profits", "Sim. Timestamps",
+			"Session Model Losses", "Sessions Size", "Max Profit", "Min Profit", "TimeStep Profits"
+		] + [
+			f"Profits(Take Profit: {tp}, Stop Loss: {sl})"
+			for tp in self.__session_take_profits
+			for sl in self.__session_stop_losses
+		] + [
+			f"Profit(Take Profit: {tp}, Stop Loss: {sl})"
+			for tp in self.__session_take_profits
+			for sl in self.__session_stop_losses
+		]
+		)
 
 	def _export_stats(self, stats: typing.List[RunnerStats], path: str):
 		Logger.info(f"Exporting {len(stats)} stats to {path}")

@@ -1,6 +1,5 @@
 import typing
 from abc import ABC
-from typing import List, Any
 
 import numpy as np
 

@@ -459,7 +459,8 @@ class TrainerTest(unittest.TestCase):
 			ProximalMaskedLoss3(
 				bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
 				weighted_sample=False,
-				multi_channel=True
+				multi_channel=True,
+				weights=load_json(os.path.join(Config.BASE_DIR, "res/weights/07.json"))
 			),
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)

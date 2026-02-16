@@ -2,6 +2,7 @@ from typing import *
 from abc import abstractmethod, ABC
 
 from core import Config
+from lib.utils.logger import Logger
 from .trade_state import TradeState
 from core.agent.action import TraderAction, Action, ActionSequence, EndEpisode
 from lib.rl.environment import Environment
@@ -13,7 +14,8 @@ class TradeEnvironment(Environment, ABC):
 			self,
 			time_penalty=Config.TIME_PENALTY,
 			trade_size_gap=Config.AGENT_TRADE_SIZE_GAP,
-			market_state_memory=Config.MARKET_STATE_MEMORY
+			market_state_memory=Config.MARKET_STATE_MEMORY,
+			loss_weight: float = Config.AGENT_LOSS_WEIGHT
 	):
 		super(TradeEnvironment, self).__init__()
 		self._state: Union[TradeState, None] = None
@@ -21,6 +23,8 @@ class TradeEnvironment(Environment, ABC):
 		self.__trade_size_gap = trade_size_gap
 		self._market_state_memory = market_state_memory
 		self.__is_active = True
+		self.__loss_weight = loss_weight
+		Logger.info(f"Initializing {self.__class__.__name__} with loss_weight={loss_weight}")
 
 	@abstractmethod
 	def _initiate_state(self) -> TradeState:
@@ -55,7 +59,11 @@ class TradeEnvironment(Environment, ABC):
 		if state is None:
 			state = self.get_state()
 
-		return state.get_recent_balance_change() + self.__time_penalty
+		reward = state.get_recent_balance_change()
+		if reward < 0:
+			reward *= self.__loss_weight
+
+		return reward + self.__time_penalty
 
 	def _perform_action(self, action: Action):
 
