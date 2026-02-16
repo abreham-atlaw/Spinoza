@@ -12,9 +12,10 @@ class DatasourcePreparer:
 	def __init__(
 			self,
 			export_path: str,
-
+			correct_time: bool = True
 	):
 		self.__export_path = export_path
+		self.__correct_time = correct_time
 
 	@staticmethod
 	def _load_df(path):
@@ -24,8 +25,9 @@ class DatasourcePreparer:
 		df = df.sort_values(by="time")
 		return df
 
-	@staticmethod
-	def _correct_time(df):
+	def _correct_time(self, df):
+		if not self.__correct_time:
+			return df
 		final_time = df["time"].max()
 		time_col = list(reversed([final_time - timedelta(minutes=i) for i in range(df.shape[0])]))
 		df["time"] = time_col
