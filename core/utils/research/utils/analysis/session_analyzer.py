@@ -9,11 +9,9 @@ import pandas as pd
 import torch
 from matplotlib import pyplot as plt
 from torch import nn
-from torch.utils.data import DataLoader
 
 from core import Config
 from core.environment.trade_state import TradeState
-from core.utils.research.data.load import BaseDataset
 from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import SpinozaLoss
@@ -106,16 +104,26 @@ class SessionAnalyzer:
 	def __db_path(self) -> str:
 		return os.path.join(self.__sessions_path, "oanda-simulation/db.sqlite3")
 
+	def __get_all_df_files(self) -> typing.List[str]:
+		files = []
+		unique_keys = []
+
+		for i, filename in enumerate(sorted(filter(lambda fn: fn.endswith(".csv"), os.listdir(self.__candlesticks_path)))):
+			filepath = os.path.join(self.__candlesticks_path, filename)
+			df = pd.read_csv(filepath)
+			key = df.iloc[-1]["time"], df.iloc[-1]["c"]
+			if key in unique_keys:
+				Logger.warning(f"Identified {filepath} as duplicate. Skipping file...")
+				continue
+			files.append(filepath)
+			unique_keys.append(key)
+
+		return files
+
 	def __get_df_files(self, instrument: typing.Tuple[str, str]) -> typing.List[str]:
 
 		idx = self.__instruments.index(instrument)
-		all_files = [
-			os.path.join(self.__candlesticks_path, file)
-			for file in filter(
-				lambda fn: fn.endswith(".csv"),
-				sorted(os.listdir(self.__candlesticks_path))
-			)
-		]
+		all_files = self.__get_all_df_files()
 		return all_files[idx::len(self.__instruments)]
 
 	@CacheDecorators.cached_method()
