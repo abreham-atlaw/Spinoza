@@ -1,3 +1,5 @@
+import typing
+
 import torch
 
 from .pml import ProximalMaskedLoss
@@ -16,14 +18,27 @@ class ProximalMaskedLoss2(ProximalMaskedLoss):
 	def _abscissa(x: torch.Tensor) -> torch.Tensor:
 		return x
 
-	def _f(self, i: int) -> torch.Tensor:
+	def _generate_curve(
+			self,
+			a: typing.Union[torch.Tensor, float],
+			w: float
+	) -> torch.Tensor:
 		x = torch.arange(self.n)
 		return (
 				(
 						(torch.e ** self.c) /
 						(1 + torch.exp(
-							self.w * torch.abs(
-								self._abscissa(x)-self._abscissa(i)
+							w * torch.abs(
+								self._abscissa(x)-a
 							) - self.h
 						))
 				) + self.b) * (1/(1+self.b))
+
+	def _f(
+			self,
+			i: int,
+	) -> torch.Tensor:
+		return self._generate_curve(
+			self._abscissa(i),
+			w=self.w
+		)
