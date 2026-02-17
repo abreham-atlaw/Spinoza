@@ -178,7 +178,12 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 	def _generate_actions(self, state: TradeState) -> typing.List[typing.Optional[Action]]:
 		actions = self._generate_lone_actions(state)
 
-		actions.append(None)
+		if (
+				(len(state.get_agent_state().get_open_trades()) == 0) or
+				(state.simulated_instrument is None) or
+				(len(state.get_agent_state().get_open_trades(*state.simulated_instrument)) > 0)
+		):
+			actions.append(None)
 
 		if self.__multi_actions:
 			actions.extend(self.__generate_action_sequences(state))
