@@ -23,7 +23,7 @@ class EpisodicAgent(ActionChoiceAgent, ABC):
 		self.__use_attach_take_profit = attach_take_profit
 		Logger.info(
 			f"Initializing EpisodicAgent with target_profit = {self.__take_profit}, stop_loss = {self.__stop_loss}, "
-			f"attach_take_profit = {self.__attach_take_profit}"
+			f"attach_take_profit = {self.__use_attach_take_profit}"
 		)
 
 	def __is_target_achieved(self, state: TradeState) -> bool:
