@@ -308,7 +308,7 @@ class Trainer:
 				batch_loss = torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]]) * X.shape[0]
 
 				if self.__skip_nan and torch.isnan(batch_loss).any():
-					Logger.error("Nan value encountered. Skipping...")
+					Logger.warning("Nan value encountered. Skipping...")
 					continue
 
 				total_loss += batch_loss
