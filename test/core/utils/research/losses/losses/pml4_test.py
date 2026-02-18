@@ -18,13 +18,13 @@ class ProximalMaskedLoss3Test(unittest.TestCase):
 
 	def setUp(self):
 		self.loss = ProximalMaskedLoss4.load(
-			bounds=DataPrepUtils.apply_bound_epsilon(load_json(os.path.join(Config.BASE_DIR, "res/bounds/05.json"))),
+			bounds=DataPrepUtils.apply_bound_epsilon(load_json(os.path.join(Config.BASE_DIR, "res/bounds/15.json")), log=True),
 			softmax=True,
 			s=0.15,
 			path=os.path.join(Config.BASE_DIR, "res/losses/pml3_2.json"),
 		)
 		self.old = ProximalMaskedLoss3.load(
-			bounds=DataPrepUtils.apply_bound_epsilon(load_json(os.path.join(Config.BASE_DIR, "res/bounds/05.json"))),
+			bounds=DataPrepUtils.apply_bound_epsilon(load_json(os.path.join(Config.BASE_DIR, "res/bounds/15.json")), log=True),
 			softmax=True,
 			path=os.path.join(Config.BASE_DIR, "res/losses/pml3_2.json"),
 		)
@@ -33,7 +33,7 @@ class ProximalMaskedLoss3Test(unittest.TestCase):
 	def test_plot_mask(self):
 		SAMPLES = 5
 		idxs = torch.randint(self.loss.mask.shape[0], (SAMPLES,))
-		idxs = np.array([31, 34, 45, 21, 8, 54])
+		# idxs = np.array([31, 34, 45, 21, 8, 54])
 
 		for i in idxs:
 			plt.figure()
