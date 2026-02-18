@@ -103,7 +103,7 @@ class DistributedStateRepository(DictStateRepository):
 
 		echoed_times = []
 
-		while value is None and ((datetime.now() - start_time).total_seconds() < self.__timeout or True):
+		while value is None and ((datetime.now() - start_time).total_seconds() < self.__timeout):
 			try:
 				value = super().retrieve(key)
 			except StateNotFoundException:
@@ -115,7 +115,7 @@ class DistributedStateRepository(DictStateRepository):
 
 				time.sleep(self.__sleep_time)
 		if value is None:
-			raise StateNotFoundException
+			raise StateNotFoundException()
 		return value
 
 	def retrieve(self, key: str, broadcast=True) -> object:

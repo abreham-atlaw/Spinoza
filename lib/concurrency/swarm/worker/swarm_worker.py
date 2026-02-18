@@ -9,6 +9,7 @@ from lib.network.rest_interface import Serializer
 from lib.rl.agent import MonteCarloAgent, Node
 from lib.utils.decorators import handle_exception
 from lib.utils.logger import Logger
+from lib.utils.staterepository.staterepository import StateNotFoundException
 
 
 class SwarmWorker(SIOAgent, MonteCarloAgent, ABC):
@@ -36,7 +37,12 @@ class SwarmWorker(SIOAgent, MonteCarloAgent, ABC):
 		node = self.__node_serializer.deserialize(data)
 		Logger.info(f"Working on node: {node.id}")
 
-		self._monte_carlo_simulation(node)
+		try:
+			self._monte_carlo_simulation(node)
+		except (StateNotFoundException, ) as ex:
+			Logger.error(f"MCA Simulation Failed: {ex}")
+			self._emit_select()
+			return
 
 		self.__backpropagate(node)
 		self._emit_select()
