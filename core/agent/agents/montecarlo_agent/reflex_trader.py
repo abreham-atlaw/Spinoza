@@ -89,7 +89,10 @@ class ReflexAgent(
 
 		best_node = max(approx_nodes, key=lambda node: node.total_value)
 
-		Logger.info(f"Final Approximation instrument={instruments[approx_nodes.index(best_node)]}")
+		Logger.info(
+			f"Final Approximation instrument={instruments[approx_nodes.index(best_node)]}, "
+			f"node: {all_nodes.index(best_node) if best_node in all_nodes else None}"
+		)
 		return best_node
 
 	def _monte_carlo_tree_search(self, state: TradeState) -> None:
