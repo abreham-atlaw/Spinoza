@@ -16,7 +16,7 @@ class AggregateModel(SpinozaModule):
 			bounds: typing.Union[typing.List[float], torch.Tensor],
 			a: typing.Union[float, typing.List[float]],
 			y_extra_len: int = 1,
-			temperature: float = 1e-5,
+			temperature: float = 1e-9,
 			softmax: bool = False
 	):
 
