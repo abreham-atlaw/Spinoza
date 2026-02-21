@@ -1,31 +1,28 @@
+import gc
 import json
 import os
 import random
 import time
 import typing
+from abc import ABC
 from datetime import datetime
 from threading import Thread
 from typing import *
-from abc import ABC
 
 import numpy as np
-
-import gc
 import psutil
 
 from lib.network.rest_interface import Serializer
 from lib.rl.agent import ModelBasedAgent
 from lib.rl.environment import ModelBasedState
-from lib.utils.decorators.thread_decorator import thread_method
 from lib.utils.logger import Logger
 from lib.utils.math import sigmoid
 from lib.utils.staterepository import StateRepository, SectionalDictStateRepository
-from lib.utils.stm import ShortTermMemory
 from temp import stats
 from .node import Node
+from .resource_manager import MCResourceManager
 from .stm.node_memory_matcher import NodeMemoryMatcher
 from .stm.node_stm import NodeShortTermMemory
-from .resource_manager import MCResourceManager
 
 
 class MonteCarloAgent(ModelBasedAgent, ABC):

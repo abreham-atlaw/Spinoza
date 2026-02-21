@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 from copy import deepcopy
 
+import pandas as pd
 
 from core import Config
 from core.environment.live_environment import LiveEnvironment, MarketState, AgentState, TradeState, TraderAction
@@ -17,6 +18,7 @@ from core.agent.agents import TraderMonteCarloAgent, TraderAgent
 from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
 from core.utils.research.utils.analysis.session_analyzer import SessionAnalyzer
 from lib.rl.agent.dta import TorchModel
+from lib.utils.logger import Logger
 from temp import stats
 
 
@@ -190,6 +192,19 @@ class TraderAgentTest(unittest.TestCase):
 
 	def test_resume_mca(self):
 
+		def __fetch_instrument_data(base_currency, quote_currency, *args, **kwargs):
+			Logger.warning(f"Fetching ({base_currency, quote_currency}) using mock data.")
+			ins_df_path = {
+				("AUD", "USD"): "/home/abrehamatlaw/Downloads/Compressed/results_1/candlesticks/1771452454.93928.csv",
+				("EUR", "USD"): "/home/abrehamatlaw/Downloads/Compressed/results_1/candlesticks/1771452455.40356.csv"
+			}
+
+			df = pd.read_csv(ins_df_path[(base_currency, quote_currency)])
+
+			data = df[list(Config.MARKET_STATE_CHANNELS)].to_numpy().transpose()
+			return data
+
+
 		def get_node(root, path):
 			path = path.copy()
 			node = root
@@ -201,11 +216,12 @@ class TraderAgentTest(unittest.TestCase):
 
 		environment = LiveEnvironment()
 		environment.start()
+		environment._LiveEnvironment__fetch_instrument_state = __fetch_instrument_data
 
 		agent = TraderAgent()
 		agent.set_environment(environment)
 
-		node, repo = stats.load_node_repo("/home/abrehamatlaw/Downloads/Compressed/results_10/graph_dumps/1736044405.169263")
+		node, repo = stats.load_node_repo("/home/abrehamatlaw/Downloads/Compressed/results_1/graph_dumps/1771452458.45799")
 		if PATH is not None:
 			node = get_node(node, path=PATH)
 
