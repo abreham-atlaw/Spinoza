@@ -35,7 +35,12 @@ class PredictionReflexMemoryEvaluator(TraderReflexMemoryEvaluator):
 		)
 
 	def __predict_state_instrument(self, state0: TradeState, instrument: typing.Tuple[str, str]) -> np.ndarray:
+
+		Logger.info(f"Input({instrument}): {self.__state_predictor.prepare_input([state0], [None], instrument=instrument)[0]}")
+
 		y = self.__state_predictor.predict([state0], [None], instrument=instrument)[0]
+
+		Logger.info(f"Output({instrument}): {y}")
 		if self.__y_extra_len > 0:
 			y = y[..., :-self.__y_extra_len]
 
@@ -71,6 +76,7 @@ class PredictionReflexMemoryEvaluator(TraderReflexMemoryEvaluator):
 		instruments = self.__select_instruments(state0, state1)
 
 		y0, y1 = self.__predict_state(state0, instruments), self.__predict_state(state1, instruments)
+		Logger.info(f"y0: {y0}, y1: {y1}")
 		return np.sum(np.abs(y0 - y1))
 
 	@staticmethod
