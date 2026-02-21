@@ -4,6 +4,7 @@ import numpy as np
 
 from ..stm import ShortTermMemory
 from .evaluator import StochasticMemoryEvaluator
+from lib.utils.logger import Logger
 
 
 class StochasticShortTermMemory(ShortTermMemory):
@@ -34,6 +35,8 @@ class StochasticShortTermMemory(ShortTermMemory):
 			self.__evaluate(cue, memory)
 			for memory in self._memories
 		]
+
+		Logger.info(f"Values: {values}")
 
 		min_idx = np.argmin(values)
 

@@ -81,7 +81,7 @@ class TorchModel(Model):
 		with torch.no_grad():
 			return self.__model(
 				torch.from_numpy(inputs.astype(np.float32)).to(self.__device)
-			).cpu().detach().numpy()
+			).cpu().detach().numpy().astype(np.float32)
 
 	def fit(self, X: np.ndarray, y: np.ndarray):
 		pass
