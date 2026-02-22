@@ -16,8 +16,9 @@ class AggregateModel(SpinozaModule):
 			bounds: typing.Union[typing.List[float], torch.Tensor],
 			a: typing.Union[float, typing.List[float]],
 			y_extra_len: int = 1,
-			temperature: float = 1e-9,
-			softmax: bool = False
+			temperature: float = 1e-5,
+			softmax: bool = False,
+			masking_value: float = -1e9
 	):
 
 		self.args = {
@@ -26,7 +27,8 @@ class AggregateModel(SpinozaModule):
 			"a": a,
 			"y_extra_len": y_extra_len,
 			"temperature": temperature,
-			"softmax": softmax
+			"softmax": softmax,
+			"masking_value": masking_value
 		}
 		super().__init__(
 			input_size=model.input_size if isinstance(model, SpinozaModule) else None,
@@ -41,6 +43,7 @@ class AggregateModel(SpinozaModule):
 		self.y_extra_len = y_extra_len
 		self.temperature = temperature
 		self.temperature_softmax = nn.Softmax(dim=-1)
+		self.masking_value = masking_value
 
 		self.softmax, self.reverse_softmax = (nn.Softmax(dim=-1), ReverseSoftmax(dim=-1)) if softmax else (nn.Identity(), nn.Identity())
 
@@ -88,16 +91,21 @@ class AggregateModel(SpinozaModule):
 
 		return x
 
-	def __apply_certainty(self, x: torch.Tensor) -> torch.Tensor:
+	def __apply_certainty(self, x: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+		x = torch.where(mask, x, torch.tensor(self.masking_value))
 		return self.temperature_softmax(x / self.temperature)
 
 	def aggregate(self, x: torch.Tensor) -> torch.Tensor:
 
 		selection_mask = x < self.a
 
-		idx_1 = torch.flatten(torch.multinomial(self.__apply_certainty(x * selection_mask), num_samples=1))
+		idx_1 = torch.flatten(torch.multinomial(self.__apply_certainty(x, selection_mask), num_samples=1))
+		selection_mask[torch.arange(x.shape[0]), idx_1] = False
 		idx_2 = torch.flatten(torch.multinomial(
-			self.__apply_certainty(self.norm(torch.nan_to_num(x / torch.abs(self.bounds - torch.reshape(self.bounds[idx_1], (-1, 1))), posinf=0.0)) * selection_mask),
+			self.__apply_certainty(
+				self.norm(torch.nan_to_num(x / torch.abs(self.bounds - torch.reshape(self.bounds[idx_1], (-1, 1))), posinf=0.0)),
+				selection_mask
+			),
 			num_samples=1
 		))
 
@@ -110,7 +118,7 @@ class AggregateModel(SpinozaModule):
 			(x[torch.arange(y.shape[0]), idx_1] + x[torch.arange(y.shape[0]), idx_2])
 		)
 
-		y[torch.arange(y.shape[0]), torch.sum(torch.reshape(v, (-1, 1)) >= self.raw_bounds, dim=-1)] += x[torch.arange(y.shape[0]), idx_1]+ x[torch.arange(y.shape[0]), idx_2]
+		y[torch.arange(y.shape[0]), torch.sum(torch.reshape(v, (-1, 1)) >= self.raw_bounds, dim=-1)] += x[torch.arange(y.shape[0]), idx_1] + x[torch.arange(y.shape[0]), idx_2]
 
 		return self.select_and_aggregate(y)
 
@@ -124,7 +132,7 @@ class AggregateModel(SpinozaModule):
 
 		return torch.concatenate(
 			[
-				self.reverse_softmax(self.aggregate(self.softmax(y[..., :y.shape[-1] - self.y_extra_len]))),
+				self.reverse_softmax(self.select_and_aggregate(self.softmax(y[..., :y.shape[-1] - self.y_extra_len]))),
 				y[..., y.shape[-1] - self.y_extra_len:]
 			],
 			dim=-1
