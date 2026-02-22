@@ -48,7 +48,6 @@ class PredictionReflexMemoryEvaluator(TraderReflexMemoryEvaluator):
 			y = y[self.__effective_channels]
 		return y
 
-	@CacheDecorators.cached_method(size=10000)
 	def __predict_state(self, state0: TradeState, instruments: typing.List[typing.Tuple[str, str]]) -> np.ndarray:
 		return np.concatenate([
 			self.__predict_state_instrument(state0, instrument=instrument)
