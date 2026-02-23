@@ -51,7 +51,8 @@ class SessionAnalyzer:
 			model_key: str = "spinoza-training",
 			bounds: typing.Iterable[float] = None,
 			extra_len: int = 124,
-			aggregate_alpha: float = None
+			aggregate_alpha: float = None,
+			log_bounds: bool = True
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -67,6 +68,7 @@ class SessionAnalyzer:
 		self.__dtype = dtype
 		self.__softmax = nn.Softmax(dim=-1)
 		self.__extra_len = extra_len
+		self.__log_bounds = log_bounds
 
 	def __load_session_model(self, model_key: str, aggregate_alpha: float) -> SpinozaModule:
 		model_path = os.path.join(
@@ -312,7 +314,7 @@ class SessionAnalyzer:
 		return y_hat
 
 	def __get_yv(self, y: np.ndarray) -> np.ndarray:
-		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds)
+		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds, log=self.__log_bounds)
 		return np.sum(y[:] * bounds, axis=1)
 
 	@staticmethod
