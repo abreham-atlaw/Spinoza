@@ -39,7 +39,7 @@ class SwarmSetupManager(SIOAgent, ABC):
 			Logger.info(f"[{self.__class__.__name__}] Connecting to {self._server_url}...")
 			self._sio.connect(self._server_url)
 			Logger.success(f"[{self.__class__.__name__}] Connected to {self._server_url}...")
-		except socketio.exceptions.ConnectionError as ex:
+		except (socketio.exceptions.ConnectionError, UnicodeDecodeError) as ex:
 			if not reconnect:
 				raise ex
 			if self._sio.connected:
