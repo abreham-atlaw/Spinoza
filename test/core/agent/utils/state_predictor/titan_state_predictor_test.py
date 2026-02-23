@@ -4,19 +4,20 @@ import unittest
 import numpy as np
 
 from core import Config
-from core.agent.utils.state_predictor import MultiInstrumentDRLStatePredictor
+from core.agent.action import TraderAction
+from core.agent.utils.state_predictor import TitanStatePredictor
 from core.di import AgentUtilsProvider
 from core.environment.trade_state import MarketState, AgentState, TradeState
 
 
-class MultiInstrumentDRLPredictorTest(unittest.TestCase):
+class TitanStatePredictorTest(unittest.TestCase):
 
 	def __init_state(self):
 		self.instruments = [
 			("AUD", "USD"),
 			("USD", "ZAR")
 		]
-		self.channels = 3
+		self.channels = 4
 		self.memory_len = 128
 		market_state = MarketState(
 			tradable_pairs=self.instruments,
@@ -42,7 +43,7 @@ class MultiInstrumentDRLPredictorTest(unittest.TestCase):
 		Config.CORE_MODEL_CONFIG.path = os.path.join(Config.BASE_DIR, "temp/models/dra.zip")
 		self.model = AgentUtilsProvider.provide_core_torch_model()
 
-		self.predictor = MultiInstrumentDRLStatePredictor(
+		self.predictor = TitanStatePredictor(
 			model=self.model
 		)
 
@@ -53,7 +54,7 @@ class MultiInstrumentDRLPredictorTest(unittest.TestCase):
 
 	def test_predict(self):
 
-		y = self.predictor.predict(self.states, [None] * len(self.states))
+		y = self.predictor.predict(self.states, [TraderAction("AUD", "USD", TraderAction.Action.CLOSE)] * len(self.states))
 
 		self.assertEqual(y.shape[:-1], (len(self.states), len(self.instruments), self.channels,))
 		print(y.shape)

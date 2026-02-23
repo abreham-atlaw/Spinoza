@@ -1,5 +1,4 @@
 from core import Config
-from core.agent.utils.training_target_builder import MultiInstrumentTargetBuilder, LegacyTargetBuilder
 from core.utils.research.model.model.utils import AggregateModel, WrappedModel, TransitionOnlyModel, \
 	TemperatureScalingModel
 from core.utils.research.model.model.utils.cached_model import CachedModel
@@ -136,7 +135,14 @@ class AgentUtilsProvider:
 
 	@staticmethod
 	def provide_state_predictor() -> 'StatePredictor':
-		from core.agent.utils.state_predictor import BasicStatePredictor, LegacyStatePredictor, MultiInstrumentPredictor
+		from core.agent.utils.state_predictor import BasicStatePredictor, LegacyStatePredictor, MultiInstrumentPredictor, \
+			TitanStatePredictor
+
+		if Config.AGENT_TITAN_MODE:
+			Logger.info(f"Using TitanStatePredictor...")
+			return TitanStatePredictor(
+				model=AgentUtilsProvider.provide_core_torch_model(),
+			)
 
 		if Config.AGENT_USE_MULTI_INSTRUMENT_MODEL:
 			Logger.info(f"Using MultiInstrumentPredictor...")
@@ -195,6 +201,7 @@ class AgentUtilsProvider:
 
 	@staticmethod
 	def provide_training_target_builder() -> 'TrainingTargetBuilder':
+		from core.agent.utils.training_target_builder import MultiInstrumentTargetBuilder, LegacyTargetBuilder
 
 		if Config.MARKET_STATE_USE_MULTI_CHANNELS:
 			return MultiInstrumentTargetBuilder(

@@ -145,15 +145,15 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 	def _prepare_single_dta_input(self, state: TradeState, action: Action, final_state: TradeState) -> np.ndarray:
 		return self._prepare_model_input(state, action, self._get_target_instrument(state, action, final_state))
 
-	def _prepare_dra_input(self, state: TradeState, action: Action) -> np.ndarray:
-		if isinstance(action, ActionSequence):  # TODO: ENCODE ALL ACTIONS
-			action = action.actions[0]
-
-		if not isinstance(action, TraderAction):
-			instrument = random.choice(state.get_market_state().get_tradable_pairs())
-		else:
-			instrument = action.base_currency, action.quote_currency
-		return self._prepare_model_input(state, action, instrument)
+	# def _prepare_dra_input(self, state: TradeState, action: Action) -> np.ndarray:
+	# 	if isinstance(action, ActionSequence):  # TODO: ENCODE ALL ACTIONS
+	# 		action = action.actions[0]
+	#
+	# 	if not isinstance(action, TraderAction):
+	# 		instrument = random.choice(state.get_market_state().get_tradable_pairs())
+	# 	else:
+	# 		instrument = action.base_currency, action.quote_currency
+	# 	return self._prepare_model_input(state, action, instrument)
 
 	@staticmethod
 	def _parse_model_output(output: np.ndarray) -> typing.Tuple[np.ndarray, float]:

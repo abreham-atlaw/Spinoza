@@ -7,7 +7,7 @@ from .multi_instrument_state_predictor import MultiInstrumentPredictor
 from core.agent.action import Action, TraderAction, ActionSequence
 
 
-class MultiInstrumentDRLStatePredictor(MultiInstrumentPredictor):
+class TitanStatePredictor(MultiInstrumentPredictor):
 
 	__open_trade_encode_size = 7
 	__action_encode_size = 5
@@ -74,7 +74,7 @@ class MultiInstrumentDRLStatePredictor(MultiInstrumentPredictor):
 		assert isinstance(action, TraderAction)
 
 		x = np.array([
-			action.margin_used / state.get_agent_state().get_balance(),
+			action.margin_used / state.get_agent_state().get_balance() if action.action != TraderAction.Action.CLOSE else 0,
 			self.__encode_trade_action(action.action),
 			action.stop_loss if action.stop_loss is not None else 0,
 			action.take_profit if action.take_profit is not None else 0,
@@ -83,7 +83,7 @@ class MultiInstrumentDRLStatePredictor(MultiInstrumentPredictor):
 
 		x = np.concatenate([
 			np.expand_dims(x, axis=0),
-			np.zeros((self.__get_channel_size(state) - 1, self.__open_trade_encode_size))
+			np.zeros((self.__get_channel_size(state) - 1, self.__action_encode_size))
 		])
 		return x
 

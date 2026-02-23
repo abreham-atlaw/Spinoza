@@ -211,10 +211,10 @@ class Trader:
 		)
 
 		if take_profit is not None:
-			take_profit = TriggerPrice(round(take_profit, self.get_instrument_precision(instrument)-1))
+			take_profit = TriggerPrice(round(take_profit, self.get_instrument_precision(instrument)-2))
 
 		if stop_loss is not None:
-			stop_loss = TriggerPrice(round(stop_loss, self.get_instrument_precision(instrument)-1))
+			stop_loss = TriggerPrice(round(stop_loss, self.get_instrument_precision(instrument)-2))
 
 		order = Order(
 			units,
