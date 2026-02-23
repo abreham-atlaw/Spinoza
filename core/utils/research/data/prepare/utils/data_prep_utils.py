@@ -20,7 +20,10 @@ class DataPrepUtils:
 		return encoding
 
 	@staticmethod
-	def apply_bound_epsilon(bounds: typing.List[float], eps: float = None) -> typing.List[float]:
+	def apply_bound_epsilon(bounds: typing.List[float], eps: float = None, log: bool = False) -> typing.List[float]:
+		if log:
+			bounds = np.exp(bounds)
+
 		if eps is None:
 			eps = (bounds[1] - bounds[0] + bounds[-1] - bounds[-2]) / 2
 		Logger.info(f"Using epsilon: {eps}")

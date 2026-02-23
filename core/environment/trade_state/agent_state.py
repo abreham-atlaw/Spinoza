@@ -93,6 +93,9 @@ class AgentState:
 				)
 			)
 
+	def get_margin_rate(self) -> float:
+		return self.__margin_rate
+
 	def calc_required_margin(self, units: int, base_currency: str, quote_currency: str) -> float:
 		price = self.__market_state.get_current_price(base_currency, quote_currency)
 		in_quote = price * self.__margin_rate * units

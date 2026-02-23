@@ -25,7 +25,7 @@ from core.utils.research.model.model.cnn.resnet.resnet_block import ResNetBlock
 from core.utils.research.model.model.linear.model import LinearModel
 from core.utils.research.model.model.transformer import Transformer, DecoderBlock, TransformerEmbeddingBlock, \
 	TransformerBlock
-from core.utils.research.model.model.utils import HorizonModel, MCHorizonModel
+from core.utils.research.model.model.utils import HorizonModel, MCHorizonModel, AggregateModel
 from core.utils.research.training.callbacks.horizon_scheduler_callback import HorizonSchedulerCallback
 from core.utils.research.training.trainer import Trainer
 from core.utils.research.utils.model_migration.cnn_to_cnn2_migrator import CNNToCNN2Migrator
@@ -213,6 +213,10 @@ class TrainerTest(unittest.TestCase):
 		HORIZON_STEP = 5
 		HORIZON_MAX_DEPTH = 50
 
+		USE_AGGREGATE_MODEL = True
+		AGGREGATE_ALPHA = [0.99/3]*3
+		AGGREGATE_BOUNDS = load_json(os.path.join(Config.RES_DIR, "bounds/13.json"))
+
 		CHANNELS = [EMBEDDING_SIZE for _ in range(8)]
 		KERNEL_SIZES = [3 for _ in CHANNELS]
 		POOL_SIZES = [0 for _ in CHANNELS]
@@ -341,6 +345,14 @@ class TrainerTest(unittest.TestCase):
 			)
 
 		)
+
+		if USE_AGGREGATE_MODEL:
+			model = AggregateModel(
+				model=model,
+				a=AGGREGATE_ALPHA,
+				bounds=AGGREGATE_BOUNDS,
+				softmax=True
+			)
 
 		if HORIZON_MODE:
 			HorizonClass = HorizonModel if not USE_MC_HORIZON else MCHorizonModel

@@ -1,3 +1,4 @@
+import typing
 import unittest
 
 import numpy as np
@@ -11,16 +12,20 @@ from lib.utils.stm import StochasticShortTermMemory
 
 class TraderReflexMemoryEvaluatorTest(unittest.TestCase):
 
-	def __init_state(self, m: float, b: float, t: int):
+	def __init_state(self, m: float, b: float, t: int, simulated_instrument: typing.Tuple[str, str]):
 		channels = 3
 		market_state = MarketState(
-			currencies=["AUD", "USD"],
+			currencies=["AUD", "USD", "EUR"],
+			tradable_pairs=[
+				("AUD", "USD"),
+				("EUR", "USD")
+			],
 			memory_len=128,
 			channels=channels
 		)
-		market_state.update_state_of("AUD", "USD", np.arange(128*channels).reshape((channels, -1)))
-		market_state.update_state_of("AUD", "USD", np.array([[128*m] for _ in range(channels)]))
-
+		for instrument in market_state.get_tradable_pairs():
+			market_state.update_state_of(*instrument, np.arange(128*channels).reshape((channels, -1)))
+		market_state.update_state_of(*simulated_instrument, np.array([[128*m] for _ in range(channels)]))
 
 		agent_state = AgentState(
 			market_state=market_state,
@@ -29,19 +34,25 @@ class TraderReflexMemoryEvaluatorTest(unittest.TestCase):
 		for i in range(t):
 			agent_state.open_trade(agent_state.rectify_action(TraderAction("AUD", "USD", TraderAction.Action.BUY, 20)))
 		return TradeState(
-			market_state, agent_state
+			market_state, agent_state, simulated_instrument=simulated_instrument
 		)
 
 	def setUp(self):
 		self.evaluator = AgentUtilsProvider.provide_reflex_memory_evaluator()
 		self.states = [
-			self.__init_state(1.1, 1.1, 1),
-			self.__init_state(0.9, 1.1, 1),
-			self.__init_state(0.9, 1.1, 0),
-			self.__init_state(1.1, 1.1, 0),
+			[self.__init_state(1.1, 1.1, 1, simulated_instrument=ins),
+			self.__init_state(0.9, 1.1, 1, simulated_instrument=ins),
+			self.__init_state(0.9, 1.1, 0, simulated_instrument=ins),
+			self.__init_state(1.1, 1.1, 0, simulated_instrument=ins)]
+			for ins in [
+				("AUD", "USD"),
+				("EUR", "USD")
+			]
 		]
+		self.states = self.states[0] + self.states[1]
 
-		self.appox_state = self.__init_state(1.05, 1.1, 1)
+		self.appox_state = self.__init_state(1.05, 1.1, 1, simulated_instrument=("AUD", "USD"))
+		self.appox_state.simulated_instrument = None
 
 	def test_evaluate(self):
 

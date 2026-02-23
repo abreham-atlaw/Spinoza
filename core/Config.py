@@ -41,7 +41,7 @@ PCLOUD_TOKENS = [
 	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"LrbFxZnvzs7ZBsXhKl0AR3plxs3YDDjYMy7x35pV",  # abreham_atlaw@outlook.com +
-	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
+	"y49ecVZkqQs7ZTAhMpK7Ro2LplM4GddvuERufUJ07",  # abrehama@outlook.com +
 	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"zkfNekZPR4s7ZtNbg8OCFr75xqmxaiqVxxBix9UHk",  # abreham_a@outlook.com +
 	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
@@ -91,8 +91,11 @@ MARKET_STATE_SMOOTHED_CHANNELS = ()
 MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h', 'o')
 MARKET_STATE_ANCHOR_CHANNEL = 'c'
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks/real")
+AGENT_LOSS_WEIGHT = 1.0
 TIME_PENALTY = 0
-AGENT_TARGET_RETURN = None
+AGENT_EPISODE_TAKE_PROFIT = None
+AGENT_EPISODE_STOP_LOSS = None
+AGENT_EPISODE_ATTACH_TAKE_PROFIT = False
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
@@ -100,10 +103,12 @@ AGENT_TRADE_MAX_MARGIN_USED = 0.75
 AGENT_TRADE_SIZE_USE_PERCENTAGE = True
 AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = True
-AGENT_USE_TAKE_PROFIT = True
 AGENT_STOP_LOSS_GRANULARITY = 0.0003
-AGENT_TRADE_TRIGGER_VALUE_BOUND = (0.0001, 0.005)
+AGENT_TRADE_STOP_LOSS_VALUE_BOUND = (0.0001, 0.005)
 AGENT_STOP_LOSS_ABSOLUTE_VALUE_MULTIPLIER = 1.0
+AGENT_USE_TAKE_PROFIT = False
+AGENT_TAKE_PROFIT_GRANULARITY = 0.001
+AGENT_TRADE_TAKE_PROFIT_VALUE_BOUND = (0.001, 0.005)
 AGENT_TAKE_PROFIT_ABSOLUTE_VALUE_MULTIPLIER = 1.0
 AGENT_TRIGGER_PRICE_GRANULARITY = None
 AGENT_STOP_LOSS_CONVERSION = False
@@ -127,6 +132,7 @@ AGENT_STATIC_INSTRUMENTS = [
 	("EUR", "USD")
 ]
 AGENT_USE_MULTI_INSTRUMENT_MODEL = True
+AGENT_FOCUSED_INSTRUMENT_SIMULATION = False
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = False
@@ -162,6 +168,7 @@ AGENT_CRA_DISCOUNT = 0.7
 AGENT_MCA_USE_REFLEX = True
 AGENT_REFLEX_STM_SIZE = 1000
 AGENT_PREDICTION_REFLEX_EVALUATOR_EFFECTIVE_CHANNELS = [0, 1, 2]
+AGENT_PREDICTION_REFLEX_EVALUATOR_LOG_RETURNS = False
 AGENT_DRMCA_WP = 100
 AGENT_USE_DIRECT_DISTRIBUTION = True
 AGENT_PROBABILITY_STORE_SIZE = int(1e6)
@@ -347,6 +354,7 @@ class RunnerStatsBranches:
 	it_75_6 = "it_75_6"
 	it_75_7 = "it_75_7"
 	it_75_8 = "it_75_8"
+	it_75_9 = "it_75_9"
 
 	it_76_6 = "it_76_6"
 
@@ -385,6 +393,10 @@ class RunnerStatsBranches:
 	it_97_6 = "it_97_6"
 
 	it_98_6 = "it_98_6"
+
+	it_99_6 = "it_99_6"
+
+	it_100_6 = "it_100_6"
 
 	all = [
 		main,
@@ -460,6 +472,7 @@ class RunnerStatsBranches:
 		it_75_6,
 		it_75_7,
 		it_75_8,
+		it_75_9,
 		it_76_6,
 		it_79_6,
 		it_80_6,
@@ -481,7 +494,9 @@ class RunnerStatsBranches:
 		it_95_6,
 		it_96_6,
 		it_97_6,
-		it_98_6
+		it_98_6,
+		it_99_6,
+		it_100_6
 	]
 
 	default = it_23_0
@@ -561,6 +576,8 @@ class RunnerStatsLossesBranches:
 	it_96_0 = "it_96_0"
 	it_97_0 = "it_97_0"
 	it_98_0 = "it_98_0"
+	it_99_0 = "it_99_0"
+	it_100_0 = "it_100_0"
 
 	all = [
 		main,
@@ -629,7 +646,10 @@ class RunnerStatsLossesBranches:
 		it_94_0,
 		it_95_0,
 		it_96_0,
-		it_97_0
+		it_97_0,
+		it_98_0,
+		it_99_0,
+		it_100_0
 	]
 
 	default = it_23
