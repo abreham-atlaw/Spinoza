@@ -1,4 +1,5 @@
 from core import Config
+from core.agent.utils.training_target_builder import MultiInstrumentTargetBuilder, LegacyTargetBuilder
 from core.utils.research.model.model.utils import AggregateModel, WrappedModel, TransitionOnlyModel, \
 	TemperatureScalingModel
 from core.utils.research.model.model.utils.cached_model import CachedModel
@@ -188,4 +189,18 @@ class AgentUtilsProvider:
 			channels=Config.MARKET_STATE_CHANNELS,
 			simulated_channels=Config.MARKET_STATE_SIMULATED_CHANNELS,
 			anchor_channel=Config.MARKET_STATE_ANCHOR_CHANNEL
+		)
+
+	@staticmethod
+	def provide_training_target_builder() -> 'TrainingTargetBuilder':
+
+		if Config.MARKET_STATE_USE_MULTI_CHANNELS:
+			return MultiInstrumentTargetBuilder(
+				channels=Config.MARKET_STATE_CHANNELS,
+				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+				anchor_channel=Config.MARKET_STATE_ANCHOR_CHANNEL
+			)
+
+		return LegacyTargetBuilder(
+			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 		)

@@ -9,6 +9,7 @@ from core.agent.agents.dnn_transition_agent import TraderDNNTransitionAgent
 from core.agent.concurrency.mc.data.serializer import TraderNodeSerializer
 from core.agent.action import TraderAction, Action, ActionSequence
 from core.agent.utils.cache import Cache
+from core.agent.utils.training_target_builder import TrainingTargetBuilder
 from core.di import AgentUtilsProvider
 from core.environment.trade_state import TradeState, AgentState
 from core.utils.research.model.model.utils import TransitionOnlyModel, AggregateModel
@@ -70,6 +71,7 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 		self.__encode_max_open_trades = encode_max_open_trade
 		self.__dra_input_cache = Cache()
 		self.__use_extra_data = use_extra_data
+		self.__target_builder: TrainingTargetBuilder = AgentUtilsProvider.provide_training_target_builder()
 
 	def _init_predictor(self) -> Model:
 		return AgentUtilsProvider.provide_state_predictor()
@@ -179,13 +181,9 @@ class TraderDeepReinforcementMonteCarloAgent(DeepReinforcementMonteCarloAgent, T
 			final_state: TradeState,
 			value: float
 	) -> np.ndarray:
-		instrument = self._get_target_instrument(state, action, final_state)
-		percentage = final_state.market_state.get_current_price(*instrument)/state.market_state.get_current_price(*instrument)
-		bound_idx = self._find_gap_index(percentage)
-		output = np.zeros(len(self._state_change_delta_bounds)+2)
-		output[bound_idx] = 1
-		output[-1] = value/state.agent_state.get_balance()
-		return output
+		return self.__target_builder.build(
+			state, action, final_state, value
+		)
 
 	def _update_state_action_value(self, initial_state: ModelBasedState, action, final_state: ModelBasedState, value):
 		DeepReinforcementMonteCarloAgent._update_state_action_value(self, initial_state, action, final_state, value)
