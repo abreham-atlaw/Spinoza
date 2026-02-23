@@ -9,5 +9,5 @@ from core.environment.trade_state import TradeState
 class TrainingTargetBuilder(ABC):
 
 	@abstractmethod
-	def build_target(self, state: TradeState, action: Action, final_state: TradeState, value: float) -> np.ndarray:
+	def build(self, state: TradeState, action: Action, final_state: TradeState, value: float) -> np.ndarray:
 		pass

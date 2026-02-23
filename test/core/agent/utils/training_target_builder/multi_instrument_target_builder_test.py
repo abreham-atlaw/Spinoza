@@ -59,7 +59,7 @@ class MultiInstrumentTargetBuilderTest(unittest.TestCase):
 		)
 		value = 2.0
 
-		y = self.builder.build_target(state, action, final_state, value)
+		y = self.builder.build(state, action, final_state, value)
 
 		self.assertEqual(y[0, -1], value / state.get_agent_state().get_balance())
 		self.assertEqual(y.shape, (len(self.channels)*len(self.instruments), len(self.bounds)+2))

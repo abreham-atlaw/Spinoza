@@ -47,7 +47,7 @@ class MultiInstrumentTargetBuilder(TrainingTargetBuilder):
 		y[0, -1] = value_target
 		return y
 
-	def build_target(self, state: TradeState, action: Action, final_state: TradeState, value: float) -> np.ndarray:
+	def build(self, state: TradeState, action: Action, final_state: TradeState, value: float) -> np.ndarray:
 		tp_target = self.__build_tp_target(state, final_state)
 		value_target = value / state.get_agent_state().get_balance()
 		y = self.__merge_tp_value(tp_target, value_target)

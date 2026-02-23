@@ -27,7 +27,7 @@ class LegacyTargetBuilder(TrainingTargetBuilder):
 				return base_currency, quote_currency
 		return final_state.get_market_state().get_tradable_pairs()[0]
 
-	def build_target(self, state: TradeState, action: Action, final_state: TradeState, value: float) -> np.ndarray:
+	def build(self, state: TradeState, action: Action, final_state: TradeState, value: float) -> np.ndarray:
 		instrument = self.__get_target_instrument(state, action, final_state)
 		percentage = final_state.get_market_state().get_current_price(*instrument) / state.get_market_state().get_current_price(*instrument)
 		bound_idx = DataPrepUtils.find_bound_index(self.__bounds, percentage)
