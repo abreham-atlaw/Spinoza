@@ -26,7 +26,7 @@ class AggregateModelTest(unittest.TestCase):
 		self.model = AggregateModel(
 			model=self.wrapped_model,
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
-			a=[0.98/i for i in [1, 2, 3]],
+			a=[0.99/5]*3,
 			temperature=1e-5
 		).eval()
 		self.softmax_model = AggregateModel(
