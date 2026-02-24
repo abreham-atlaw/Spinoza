@@ -9,11 +9,9 @@ import pandas as pd
 import torch
 from matplotlib import pyplot as plt
 from torch import nn
-from torch.utils.data import DataLoader
 
 from core import Config
 from core.environment.trade_state import TradeState
-from core.utils.research.data.load import BaseDataset
 from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import SpinozaLoss
@@ -53,7 +51,8 @@ class SessionAnalyzer:
 			model_key: str = "spinoza-training",
 			bounds: typing.Iterable[float] = None,
 			extra_len: int = 124,
-			aggregate_alpha: float = None
+			aggregate_alpha: float = None,
+			log_bounds: bool = True
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -69,6 +68,7 @@ class SessionAnalyzer:
 		self.__dtype = dtype
 		self.__softmax = nn.Softmax(dim=-1)
 		self.__extra_len = extra_len
+		self.__log_bounds = log_bounds
 
 	def __load_session_model(self, model_key: str, aggregate_alpha: float) -> SpinozaModule:
 		model_path = os.path.join(
@@ -106,16 +106,26 @@ class SessionAnalyzer:
 	def __db_path(self) -> str:
 		return os.path.join(self.__sessions_path, "oanda-simulation/db.sqlite3")
 
+	def __get_all_df_files(self) -> typing.List[str]:
+		files = []
+		unique_keys = []
+
+		for i, filename in enumerate(sorted(filter(lambda fn: fn.endswith(".csv"), os.listdir(self.__candlesticks_path)))):
+			filepath = os.path.join(self.__candlesticks_path, filename)
+			df = pd.read_csv(filepath)
+			key = df.iloc[-1]["time"], df.iloc[-1]["c"]
+			if key in unique_keys:
+				Logger.warning(f"Identified {filepath} as duplicate. Skipping file...")
+				continue
+			files.append(filepath)
+			unique_keys.append(key)
+
+		return files
+
 	def __get_df_files(self, instrument: typing.Tuple[str, str]) -> typing.List[str]:
 
 		idx = self.__instruments.index(instrument)
-		all_files = [
-			os.path.join(self.__candlesticks_path, file)
-			for file in filter(
-				lambda fn: fn.endswith(".csv"),
-				sorted(os.listdir(self.__candlesticks_path))
-			)
-		]
+		all_files = self.__get_all_df_files()
 		return all_files[idx::len(self.__instruments)]
 
 	@CacheDecorators.cached_method()
@@ -304,7 +314,7 @@ class SessionAnalyzer:
 		return y_hat
 
 	def __get_yv(self, y: np.ndarray) -> np.ndarray:
-		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds)
+		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds, log=self.__log_bounds)
 		return np.sum(y[:] * bounds, axis=1)
 
 	@staticmethod

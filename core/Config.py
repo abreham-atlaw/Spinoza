@@ -41,7 +41,7 @@ PCLOUD_TOKENS = [
 	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"LrbFxZnvzs7ZBsXhKl0AR3plxs3YDDjYMy7x35pV",  # abreham_atlaw@outlook.com +
-	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
+	"y49ecVZkqQs7ZTAhMpK7Ro2LplM4GddvuERufUJ07",  # abrehama@outlook.com +
 	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"zkfNekZPR4s7ZtNbg8OCFr75xqmxaiqVxxBix9UHk",  # abreham_a@outlook.com +
 	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
@@ -86,13 +86,16 @@ MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = True
-MARKET_STATE_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_CHANNELS = ('c', 'l', 'h', 'o')
 MARKET_STATE_SMOOTHED_CHANNELS = ()
-MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h')
-MARKET_STATE_ANCHOR_CHANNEL = None
+MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h', 'o')
+MARKET_STATE_ANCHOR_CHANNEL = 'c'
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks/real")
+AGENT_LOSS_WEIGHT = 1.0
 TIME_PENALTY = 0
-AGENT_TARGET_RETURN = None
+AGENT_EPISODE_TAKE_PROFIT = None
+AGENT_EPISODE_STOP_LOSS = None
+AGENT_EPISODE_ATTACH_TAKE_PROFIT = False
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
@@ -100,10 +103,12 @@ AGENT_TRADE_MAX_MARGIN_USED = 0.75
 AGENT_TRADE_SIZE_USE_PERCENTAGE = True
 AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = False
-AGENT_USE_TAKE_PROFIT = False
 AGENT_STOP_LOSS_GRANULARITY = 0.001
-AGENT_TRADE_TRIGGER_VALUE_BOUND = (0.001, 0.005)
+AGENT_TRADE_STOP_LOSS_VALUE_BOUND = (0.001, 0.005)
 AGENT_STOP_LOSS_ABSOLUTE_VALUE_MULTIPLIER = 1.0
+AGENT_USE_TAKE_PROFIT = False
+AGENT_TAKE_PROFIT_GRANULARITY = 0.001
+AGENT_TRADE_TAKE_PROFIT_VALUE_BOUND = (0.001, 0.005)
 AGENT_TAKE_PROFIT_ABSOLUTE_VALUE_MULTIPLIER = 1.0
 AGENT_TRIGGER_PRICE_GRANULARITY = None
 AGENT_STOP_LOSS_CONVERSION = False
@@ -124,8 +129,10 @@ AGENT_MAX_INSTRUMENTS = 2
 AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
+	("EUR", "USD")
 ]
-AGENT_USE_MULTI_INSTRUMENT_MODEL = False
+AGENT_USE_MULTI_INSTRUMENT_MODEL = True
+AGENT_FOCUSED_INSTRUMENT_SIMULATION = False
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = False
@@ -161,6 +168,7 @@ AGENT_CRA_DISCOUNT = 0.7
 AGENT_MCA_USE_REFLEX = True
 AGENT_REFLEX_STM_SIZE = 1000
 AGENT_PREDICTION_REFLEX_EVALUATOR_EFFECTIVE_CHANNELS = [0, 1, 2]
+AGENT_PREDICTION_REFLEX_EVALUATOR_LOG_RETURNS = False
 AGENT_DRMCA_WP = 100
 AGENT_USE_DIRECT_DISTRIBUTION = True
 AGENT_PROBABILITY_STORE_SIZE = int(1e6)
@@ -179,13 +187,13 @@ AGENT_MIN_DISK_SPACE = 0.1
 AGENT_MIN_ABS_DISK_SPACE = None
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
-AGENT_MODEL_USE_AGGREGATION = False
-AGENT_MODEL_AGGREGATION_ALPHA = 0.3
+AGENT_MODEL_USE_AGGREGATION = True
+AGENT_MODEL_AGGREGATION_ALPHA = 0.99/3
 AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/13.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/15.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -254,7 +262,7 @@ HORIZON_H = 0.0
 HORIZON_USE_MC = True
 HORIZON_Y_CHANNEL_MAP = (0, 1, 2)
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-96/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-98/"
 
 MODEL_IN_PATH = MAPLOSS_FS_MODELS_PATH
 MODEL_TMP_PATH = os.path.abspath("./out/")
@@ -361,6 +369,7 @@ class RunnerStatsBranches:
 	it_75_6 = "it_75_6"
 	it_75_7 = "it_75_7"
 	it_75_8 = "it_75_8"
+	it_75_9 = "it_75_9"
 
 	it_76_6 = "it_76_6"
 
@@ -401,6 +410,10 @@ class RunnerStatsBranches:
 	it_98_6 = "it_98_6"
 
 	it_99_6 = "it_99_6"
+
+	it_100_6 = "it_100_6"
+
+	it_101_6 = "it_101_6"
 
 	all = [
 		main,
@@ -476,6 +489,7 @@ class RunnerStatsBranches:
 		it_75_6,
 		it_75_7,
 		it_75_8,
+		it_75_9,
 		it_76_6,
 		it_79_6,
 		it_80_6,
@@ -498,10 +512,12 @@ class RunnerStatsBranches:
 		it_96_6,
 		it_97_6,
 		it_98_6,
-		it_99_6
+		it_99_6,
+		it_100_6,
+		it_101_6
 	]
 
-	default = it_96_6
+	default = it_98_6
 
 
 class RunnerStatsLossesBranches:
@@ -579,6 +595,8 @@ class RunnerStatsLossesBranches:
 	it_97_0 = "it_97_0"
 	it_98_0 = "it_98_0"
 	it_99_0 = "it_99_0"
+	it_100_0 = "it_100_0"
+	it_101_0 = "it_101_0"
 
 	all = [
 		main,
@@ -649,10 +667,12 @@ class RunnerStatsLossesBranches:
 		it_96_0,
 		it_97_0,
 		it_98_0,
-		it_99_0
+		it_99_0,
+		it_100_0,
+		it_101_0
 	]
 
-	default = it_99_0
+	default = it_101_0
 
 
 

@@ -305,9 +305,13 @@ class Trainer:
 				y_hat = self.model(X)
 				cls_loss, ref_loss, loss = self.__loss(y_hat, y, w)
 
-				total_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]]) * X.shape[0]
+				batch_loss = torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]]) * X.shape[0]
+
+				if self.__skip_nan and torch.isnan(batch_loss).any():
+					Logger.warning("Nan value encountered. Skipping...")
+					continue
+
+				total_loss += batch_loss
 				total_size += X.shape[0]
-				if self.__skip_nan and torch.isnan(total_loss).any():
-					Logger.error("Nan value encountered. Skipping...")
-					break
+
 		return (total_loss / total_size).tolist()

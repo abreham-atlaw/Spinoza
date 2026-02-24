@@ -8,6 +8,7 @@ from core import Config
 from core.agent.action import Action
 from core.di import AgentUtilsProvider
 from core.environment.trade_state import TradeState
+from lib.rl.agent import Node
 from lib.rl.agent.mca import ReflexMonteCarloAgent
 from lib.rl.environment import ModelBasedState
 from lib.utils.logger import Logger
@@ -67,6 +68,32 @@ class ReflexAgent(
 			)
 
 		return probabilities
+
+	def _approximate_node(self, state: TradeState) -> Node:
+		all_nodes = self._get_current_graph().get_children()[0].get_children()
+
+		instruments = state.get_market_state().get_tradable_pairs()
+
+		instrument_nodes = [
+			list(filter(
+				lambda node: self._state_repository.retrieve(node.id).simulated_instrument == instrument,
+				all_nodes
+			))
+			for instrument in instruments
+		]
+
+		approx_nodes = [
+			self._search_approximate_node(state, nodes)
+			for nodes in instrument_nodes
+		]
+
+		best_node = max(approx_nodes, key=lambda node: node.total_value)
+
+		Logger.info(
+			f"Final Approximation instrument={instruments[approx_nodes.index(best_node)]}, "
+			f"node: {all_nodes.index(best_node) if best_node in all_nodes else None}"
+		)
+		return best_node
 
 	def _monte_carlo_tree_search(self, state: TradeState) -> None:
 		super()._monte_carlo_tree_search(state)

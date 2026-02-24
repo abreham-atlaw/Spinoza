@@ -229,6 +229,7 @@ class ModelHandler:
 
 		if dtype is not None:
 			model = model.to(dtype)
+		model.eval()
 		return model
 
 	@staticmethod

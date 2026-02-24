@@ -34,6 +34,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 			market_state_channels: typing.Tuple[str, ...] = Config.MARKET_STATE_CHANNELS,
 			simulated_channels: typing.Tuple[str, ...] = Config.MARKET_STATE_SIMULATED_CHANNELS,
 			state_transition_sampler: StateTransitionSampler = None,
+			focused_instrument_simulation: bool = Config.AGENT_FOCUSED_INSTRUMENT_SIMULATION,
 			**kwargs
 	):
 		super().__init__(
@@ -70,7 +71,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__close_channel, self.__high_channel, self.__low_channel = self.__init_channel_idxs(simulated_channels)
 		self.__channels_map = [self.__market_state_channels.index(channel) for channel in self.__simulated_channels]
 		self.__state_transition_sampler = state_transition_sampler if state_transition_sampler is not None else AgentUtilsProvider.provide_state_transition_sampler()
-		Logger.info(f"Initializing TraderDNNTransitionAgent with multi_channels={use_multi_channels}, market_state_channels={market_state_channels}, simulated_channels={simulated_channels}")
+		self.__focused_instrument_simulation = focused_instrument_simulation
+		Logger.info(f"Initializing TraderDNNTransitionAgent with multi_channels={use_multi_channels}, market_state_channels={market_state_channels}, simulated_channels={simulated_channels}, focused_instrument_simuation={focused_instrument_simulation}")
 
 	@staticmethod
 	def __init_channel_idxs(channels: typing.Tuple[str, ...]) -> typing.Tuple[int, int, int]:
@@ -303,7 +305,7 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		elif isinstance(action, ActionSequence):
 			involved_instruments.extend([(action.base_currency, action.quote_currency) for action in action.actions])
 
-		elif action is None and len(state.get_agent_state().get_open_trades()) == 0:
+		elif action is None and (len(state.get_agent_state().get_open_trades()) == 0 or (self.__focused_instrument_simulation and state.simulated_instrument == None)):
 			involved_instruments = state.get_market_state().get_tradable_pairs()
 
 		involved_instruments = list(set(involved_instruments))
@@ -318,7 +320,10 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 	def __simulate_instruments_change(self, mid_state, instruments: List[Tuple[str, str]], action) -> List[TradeState]:
 		states = []
 		for base_currency, quote_currency in instruments:
-			states += self.__simulate_instrument_change(mid_state, base_currency, quote_currency, action)
+			ins_state = self.__simulate_instrument_change(mid_state, base_currency, quote_currency, action)
+			for state in ins_state:
+				state.simulated_instrument = (base_currency, quote_currency)
+			states += ins_state
 
 		return states
 

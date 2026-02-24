@@ -1,4 +1,5 @@
 import os
+import pprint
 import typing
 from typing import *
 
@@ -154,7 +155,7 @@ class TraderAgentTest(unittest.TestCase):
 			tradable_pairs=[
 				("USD", "EUR"),
 				("AUD", "EUR"),
-				("USD", "AUD")
+				("AUD", "USD")
 			],
 			memory_len=5
 		)
@@ -164,17 +165,17 @@ class TraderAgentTest(unittest.TestCase):
 			market_state=market_state
 		)
 		agent_state.open_trade(
-			action=TraderAction(
-				"USD", "AUD",
+			action=agent_state.rectify_action(TraderAction(
+				"AUD", "USD",
 				TraderAction.Action.BUY,
 				60
-			)
+			))
 		)
 
-		state = TradeState(market_state, agent_state)
+		state = TradeState(market_state, agent_state, simulated_instrument=("USD", "EUR"), pre_computation=False)
 
 		actions = self.agent._generate_actions(state)
-		print(actions)
+		print(pprint.pformat(actions))
 
 	def test_perform_timestep(self):
 		environment = LiveEnvironment()
