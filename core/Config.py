@@ -659,7 +659,7 @@ class RunnerStatsLossesBranches:
 		it_101_0
 	]
 
-	default = it_98_0
+	default = it_101_0
 
 
 
