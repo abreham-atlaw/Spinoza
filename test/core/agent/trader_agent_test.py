@@ -1,4 +1,5 @@
 import os
+import pprint
 import typing
 from typing import *
 
@@ -174,7 +175,7 @@ class TraderAgentTest(unittest.TestCase):
 		state = TradeState(market_state, agent_state, simulated_instrument=("USD", "EUR"), pre_computation=False)
 
 		actions = self.agent._generate_actions(state)
-		print(actions)
+		print(pprint.pformat(actions))
 
 	def test_perform_timestep(self):
 		environment = LiveEnvironment()

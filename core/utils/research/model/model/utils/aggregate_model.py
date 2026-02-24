@@ -87,6 +87,7 @@ class AggregateModel(SpinozaModule):
 		samples_mask = p < self.n * self.a
 
 		if torch.any(samples_mask):
+			x = x.clone()
 			x[samples_mask] = self.aggregate(x[samples_mask])
 
 		return x
