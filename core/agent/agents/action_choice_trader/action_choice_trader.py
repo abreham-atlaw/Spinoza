@@ -114,6 +114,28 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 
 		return actions
 
+	def __generate_switch_instrument_action(self, trade: AgentState.OpenTrade, state: TradeState) -> typing.List[ActionSequence]:
+		state = deepcopy(state)
+
+		close_action = TraderAction(
+			trade.get_trade().base_currency,
+			trade.get_trade().quote_currency,
+			TraderAction.Action.CLOSE
+		)
+
+		self._simulate_action(state, close_action)
+		return [
+			ActionSequence(
+				actions=(
+					close_action,
+					action
+				)
+			)
+			for action in self._generate_lone_actions(state)
+			if (action.base_currency, action.quote_currency) != (trade.get_trade().base_currency, trade.get_trade().quote_currency)
+		]
+
+
 	def __generate_reversal_actions(self, trade: AgentState.OpenTrade, state: TradeState) -> typing.List[ActionSequence]:
 		state = deepcopy(state)
 
@@ -133,10 +155,10 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 				)
 			)
 			for action in self._generate_lone_actions(state)
-			if action.action not in [
+			if (action.action not in [
 				trade.get_trade().action,
 				TraderAction.Action.CLOSE
-			]
+			]) and ((action.base_currency, action.quote_currency) == (trade.get_trade().base_currency, trade.get_trade().quote_currency))
 		]
 
 	def __generate_readjust_margin(self, trade: AgentState.OpenTrade, state: TradeState) -> typing.List[ActionSequence]:
@@ -172,6 +194,7 @@ class ActionChoiceTrader(ActionChoiceAgent, ABC):
 		for trade in state.get_agent_state().get_open_trades():
 			actions.extend(self.__generate_reversal_actions(trade, state))
 			actions.extend(self.__generate_readjust_margin(trade, state))
+			actions.extend(self.__generate_switch_instrument_action(trade, state))
 
 		return actions
 
