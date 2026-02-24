@@ -95,6 +95,7 @@ AGENT_LOSS_WEIGHT = 1.0
 TIME_PENALTY = 0
 AGENT_EPISODE_TAKE_PROFIT = None
 AGENT_EPISODE_STOP_LOSS = None
+AGENT_EPISODE_ATTACH_TAKE_PROFIT = False
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
@@ -355,6 +356,7 @@ class RunnerStatsBranches:
 	it_75_6 = "it_75_6"
 	it_75_7 = "it_75_7"
 	it_75_8 = "it_75_8"
+	it_75_9 = "it_75_9"
 
 	it_76_6 = "it_76_6"
 
@@ -397,6 +399,8 @@ class RunnerStatsBranches:
 	it_99_6 = "it_99_6"
 
 	it_100_6 = "it_100_6"
+
+	it_101_6 = "it_101_6"
 
 	all = [
 		main,
@@ -472,6 +476,7 @@ class RunnerStatsBranches:
 		it_75_6,
 		it_75_7,
 		it_75_8,
+		it_75_9,
 		it_76_6,
 		it_79_6,
 		it_80_6,
@@ -495,7 +500,8 @@ class RunnerStatsBranches:
 		it_97_6,
 		it_98_6,
 		it_99_6,
-		it_100_6
+		it_100_6,
+		it_101_6
 	]
 
 	default = it_98_6
@@ -577,6 +583,7 @@ class RunnerStatsLossesBranches:
 	it_98_0 = "it_98_0"
 	it_99_0 = "it_99_0"
 	it_100_0 = "it_100_0"
+	it_101_0 = "it_101_0"
 
 	all = [
 		main,
@@ -648,7 +655,8 @@ class RunnerStatsLossesBranches:
 		it_97_0,
 		it_98_0,
 		it_99_0,
-		it_100_0
+		it_100_0,
+		it_101_0
 	]
 
 	default = it_98_0
