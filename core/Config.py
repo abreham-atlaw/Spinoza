@@ -81,6 +81,7 @@ UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(EXPORT_DIR, "Data/drmca_export")
 UPDATE_TRAIN = False
+SESSION_MODEL_EVALUATION = False
 MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
@@ -408,6 +409,7 @@ class RunnerStatsBranches:
 	it_97_6 = "it_97_6"
 
 	it_98_6 = "it_98_6"
+	it_98_8 = "it_98_8"
 
 	it_99_6 = "it_99_6"
 
@@ -512,6 +514,7 @@ class RunnerStatsBranches:
 		it_96_6,
 		it_97_6,
 		it_98_6,
+		it_98_8,
 		it_99_6,
 		it_100_6,
 		it_101_6
@@ -597,6 +600,7 @@ class RunnerStatsLossesBranches:
 	it_99_0 = "it_99_0"
 	it_100_0 = "it_100_0"
 	it_101_0 = "it_101_0"
+	it_101_1 = "it_101_1"
 
 	all = [
 		main,
@@ -669,7 +673,8 @@ class RunnerStatsLossesBranches:
 		it_98_0,
 		it_99_0,
 		it_100_0,
-		it_101_0
+		it_101_0,
+		it_101_1
 	]
 
 	default = it_101_0
