@@ -484,6 +484,7 @@ loss: {l[i] if l is not None else "N/A"}
 			instrument: typing.Tuple[str, str] = None,
 			channels: typing.Tuple[int] = (0,),
 			checkpoints: typing.List[int] = None,
+			channel_labels: typing.Tuple[str] = ('c', 'l', 'h', 'o', 'v')
 	):
 
 
@@ -516,7 +517,7 @@ loss: {l[i] if l is not None else "N/A"}
 		plt.figure(figsize=self.__fig_size)
 
 		plt.subplot(2, 1, 1)
-		self.plot_sequence(instrument, new_figure=False, checkpoints=checkpoints)
+		self.plot_trades([channel_labels[i] for i in channels], instrument, new_figure=False)
 
 		plt.subplot(2, 1, 2)
 		plt.title(f"Prediction Sequence of {instrument} on Channels {channels}")
@@ -555,7 +556,8 @@ loss: {l[i] if l is not None else "N/A"}
 	def plot_trades(
 			self,
 			channels: typing.Tuple[str,...] = ("c",),
-			instrument: typing.Tuple[str, str] = None
+			instrument: typing.Tuple[str, str] = None,
+			new_figure: bool = True
 	):
 
 
@@ -588,5 +590,6 @@ loss: {l[i] if l is not None else "N/A"}
 			instrument=instrument,
 			channels=channels,
 			checkpoints=checkpoints,
+			new_figure=new_figure
 		)
 
