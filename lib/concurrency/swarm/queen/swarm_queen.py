@@ -75,7 +75,8 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 			Logger.error(f"Received data=None on backpropagate")
 			return
 
-		node: Node = self.__node_serializer.deserialize(data)
+		node: Node = self.__node_serializer.deserialize(data["data"])
+		self.__confirm_backpropagate(data["id"])
 		Logger.info(f"Backpropagating node: {node.id}")
 
 		old_node = self._get_current_graph().find_node_by_id(node.id)
@@ -90,6 +91,14 @@ class SwarmQueen(SIOAgent, MonteCarloAgent, ABC):
 		self._backpropagate(node)
 		if old_node in self.__queued_nodes:
 			self.__queued_nodes.remove(old_node)
+
+	def __confirm_backpropagate(self, node_id: str):
+		self._sio.emit(
+			"backpropagate-confirm",
+			data={
+				"id": node_id
+			}
+		)
 
 	def _finalize_step(self, root: 'Node'):
 		self._deactivate_simulation()
