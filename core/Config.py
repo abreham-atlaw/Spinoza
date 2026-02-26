@@ -257,7 +257,10 @@ MAX_LOSS = 1.5
 
 WEIGHTED_MSE_ALPHA = 1e-3
 TEMPERATURES = [1.0]
-AGGREGATE_ALPHAS = [0.99/2, 0.99/3, 0.99/5]
+AGGREGATE_ALPHAS = [
+    ([f]*3 + [0.99])*len(AGENT_STATIC_INSTRUMENTS)
+    for f in [0.99/2, 0.99/3, 0.99/5]
+]
 HORIZON_MODE = True
 HORIZON_H = 0.0
 HORIZON_USE_MC = True
@@ -520,7 +523,7 @@ class RunnerStatsBranches:
 		it_101_6
 	]
 
-	default = it_98_6
+	default = it_98_8
 
 
 class RunnerStatsLossesBranches:
@@ -677,7 +680,7 @@ class RunnerStatsLossesBranches:
 		it_101_1
 	]
 
-	default = it_101_0
+	default = it_101_1
 
 
 
