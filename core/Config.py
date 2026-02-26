@@ -393,6 +393,7 @@ class RunnerStatsBranches:
 	it_97_6 = "it_97_6"
 
 	it_98_6 = "it_98_6"
+	it_98_8 = "it_98_8"
 
 	it_99_6 = "it_99_6"
 
@@ -497,6 +498,7 @@ class RunnerStatsBranches:
 		it_96_6,
 		it_97_6,
 		it_98_6,
+		it_98_8,
 		it_99_6,
 		it_100_6,
 		it_101_6
@@ -582,6 +584,7 @@ class RunnerStatsLossesBranches:
 	it_99_0 = "it_99_0"
 	it_100_0 = "it_100_0"
 	it_101_0 = "it_101_0"
+	it_101_1 = "it_101_1"
 
 	all = [
 		main,
@@ -654,7 +657,8 @@ class RunnerStatsLossesBranches:
 		it_98_0,
 		it_99_0,
 		it_100_0,
-		it_101_0
+		it_101_0,
+		it_101_1
 	]
 
 	default = it_23
