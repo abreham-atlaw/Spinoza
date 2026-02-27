@@ -46,7 +46,7 @@ PCLOUD_TOKENS = [
 	"zkfNekZPR4s7ZtNbg8OCFr75xqmxaiqVxxBix9UHk",  # abreham_a@outlook.com +
 	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
 	"3dcxNVZXe7s7ZGu7OsbG6K1pvDWdl9b7TGmRDdwJ7",  # abrehamatlaw321@gmail.com -
-	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
+	"60thMkZktF97ZSPLw7HdSgWVgtrTmlWHRJk0o5tPV",  # abrehamalemu@outlook.com
 	# "lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
 ]
 PCLOUD_FOLDER = "/Apps/RTrader"
@@ -81,6 +81,7 @@ UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(EXPORT_DIR, "outs")
 UPDATE_TRAIN = False
+SESSION_MODEL_EVALUATION = False
 MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
@@ -102,13 +103,13 @@ AGENT_TRADE_MIN_SIZE = 0.5
 AGENT_TRADE_MAX_MARGIN_USED = 0.75
 AGENT_TRADE_SIZE_USE_PERCENTAGE = True
 AGENT_SUPPORT_MULTI_ACTION = True
-AGENT_USE_STOP_LOSS = False
-AGENT_STOP_LOSS_GRANULARITY = 0.001
-AGENT_TRADE_STOP_LOSS_VALUE_BOUND = (0.001, 0.005)
+AGENT_USE_STOP_LOSS = True
+AGENT_STOP_LOSS_GRANULARITY = 0.1
+AGENT_TRADE_STOP_LOSS_VALUE_BOUND = (0.0005, 0.005)
 AGENT_STOP_LOSS_ABSOLUTE_VALUE_MULTIPLIER = 1.0
-AGENT_USE_TAKE_PROFIT = False
-AGENT_TAKE_PROFIT_GRANULARITY = 0.001
-AGENT_TRADE_TAKE_PROFIT_VALUE_BOUND = (0.001, 0.005)
+AGENT_USE_TAKE_PROFIT = True
+AGENT_TAKE_PROFIT_GRANULARITY = 0.0003
+AGENT_TRADE_TAKE_PROFIT_VALUE_BOUND = (0.001, 0.00011)
 AGENT_TAKE_PROFIT_ABSOLUTE_VALUE_MULTIPLIER = 1.0
 AGENT_TRIGGER_PRICE_GRANULARITY = None
 AGENT_STOP_LOSS_CONVERSION = False
@@ -163,6 +164,7 @@ AGENT_MA_WINDOW_SIZE = 32
 AGENT_USE_LASS = False
 AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-4-it-12-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
+AGENT_TITAN_MODE = True
 AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_MCA_USE_REFLEX = True
@@ -402,6 +404,7 @@ class RunnerStatsBranches:
 	it_97_6 = "it_97_6"
 
 	it_98_6 = "it_98_6"
+	it_98_8 = "it_98_8"
 
 	it_99_6 = "it_99_6"
 
@@ -506,6 +509,7 @@ class RunnerStatsBranches:
 		it_96_6,
 		it_97_6,
 		it_98_6,
+		it_98_8,
 		it_99_6,
 		it_100_6,
 		it_101_6
@@ -591,6 +595,7 @@ class RunnerStatsLossesBranches:
 	it_99_0 = "it_99_0"
 	it_100_0 = "it_100_0"
 	it_101_0 = "it_101_0"
+	it_101_1 = "it_101_1"
 
 	all = [
 		main,
@@ -663,7 +668,8 @@ class RunnerStatsLossesBranches:
 		it_98_0,
 		it_99_0,
 		it_100_0,
-		it_101_0
+		it_101_0,
+		it_101_1
 	]
 
 	default = it_101_0
