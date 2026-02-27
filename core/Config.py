@@ -46,7 +46,7 @@ PCLOUD_TOKENS = [
 	"zkfNekZPR4s7ZtNbg8OCFr75xqmxaiqVxxBix9UHk",  # abreham_a@outlook.com +
 	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
 	"3dcxNVZXe7s7ZGu7OsbG6K1pvDWdl9b7TGmRDdwJ7",  # abrehamatlaw321@gmail.com -
-	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
+	"60thMkZktF97ZSPLw7HdSgWVgtrTmlWHRJk0o5tPV",  # abrehamalemu@outlook.com
 	# "lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
 ]
 PCLOUD_FOLDER = "/Apps/RTrader"
