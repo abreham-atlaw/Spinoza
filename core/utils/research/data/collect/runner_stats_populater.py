@@ -12,10 +12,10 @@ from core.Config import MODEL_SAVE_EXTENSION, BASE_DIR
 from core.di import ResearchProvider
 from core.utils.research.data.collect.runner_stats_repository import RunnerStatsRepository, RunnerStats
 from core.utils.research.losses import CrossEntropyLoss, ProximalMaskedLoss, MeanSquaredClassError, \
-	PredictionConfidenceScore, OutputClassesVarianceScore, OutputBatchVarianceScore, OutputBatchClassVarianceScore, \
+	PredictionConfidenceScore, \
 	SpinozaLoss, ReverseMAWeightLoss, MultiLoss, ScoreLoss, SoftConfidenceScore, ProximalMaskedLoss2, \
 	ProximalMaskedLoss3
-from core.utils.research.model.model.utils import TemperatureScalingModel, HorizonModel
+from core.utils.research.model.model.utils import TemperatureScalingModel, HorizonModel, AggregateModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.file_storage import FileStorage, FileNotFoundException
@@ -41,6 +41,7 @@ class RunnerStatsPopulater:
 			raise_exception: bool = False,
 			exception_exceptions: typing.List[typing.Type] = None,
 			temperatures: typing.Tuple[float, ...] = (1.0,),
+			aggregate_alphas: typing.Tuple[float, ...] = (None,),
 			horizon_mode: bool = False,
 			horizon_bounds: typing.List[float] = None,
 			horizon_h: float = None,
@@ -58,6 +59,7 @@ class RunnerStatsPopulater:
 		self.__shuffle_order = shuffle_order
 		self.__raise_exception = raise_exception
 		self.__temperatures = temperatures
+		self.__aggregate_alphas = aggregate_alphas
 		self.__junk = set([])
 		self.__checkpointed = checkpointed
 
@@ -334,10 +336,12 @@ class RunnerStatsPopulater:
 		self.__junk = set([])
 
 	@staticmethod
-	def __generate_id(file_path: str, temperature: float) -> str:
+	def __generate_id(file_path: str, temperature: float, aggregate_alpha) -> str:
 		id = os.path.basename(file_path).replace(MODEL_SAVE_EXTENSION, "")
 		if temperature != 1.0:
 			id = f"{id}-(T={temperature})"
+		if aggregate_alpha is not None:
+			id = f"{id}-(A={aggregate_alpha})"
 		return id
 
 	@CacheDecorators.cached_method()
@@ -347,10 +351,10 @@ class RunnerStatsPopulater:
 		self.__in_filestorage.download(path, local_path)
 		return local_path
 
-	def _process_model(self, path: str, temperature: float):
-		print(f"[+]Processing {path}(T={temperature})...")
+	def _process_model(self, path: str, temperature: float, alpha: float):
+		print(f"[+]Processing {path}(T={temperature}, A={alpha})...")
 
-		stat = self.__repository.retrieve(self.__generate_id(path, temperature))
+		stat = self.__repository.retrieve(self.__generate_id(path, temperature, alpha))
 		if stat is not None:
 			self.__sync_model_losses_size(stat)
 
@@ -361,10 +365,20 @@ class RunnerStatsPopulater:
 		if self.__horizon_mode and isinstance(model, HorizonModel):
 			Logger.warning(f"Stripping HorizonModel...")
 			model = model.model
+
+		if alpha is not None:
+			model = AggregateModel(
+				model=model,
+				bounds=self.__horizon_bounds,
+				a=alpha,
+				softmax=True
+			)
+
 		model = TemperatureScalingModel(
 			model,
 			temperature=temperature
 		)
+
 		if self.__horizon_mode:
 			model = self.__horizon_model_class(
 				model=model,
@@ -379,7 +393,7 @@ class RunnerStatsPopulater:
 
 		print(f"[+]Evaluating...")
 		losses = self.__evaluate_model(model, current_losses)
-		id = self.__generate_id(path, temperature)
+		id = self.__generate_id(path, temperature, alpha)
 
 		stats = self.__repository.retrieve(id)
 		if stats is None:
@@ -387,7 +401,8 @@ class RunnerStatsPopulater:
 			stats = RunnerStats2(
 				id=id,
 				model_name=os.path.basename(path),
-				temperature=temperature
+				temperature=temperature,
+				aggregate_alpha=alpha
 			)
 			stats.model_losses = losses
 		else:
@@ -396,8 +411,8 @@ class RunnerStatsPopulater:
 		self.__repository.store(stats)
 		self.__junk.add(local_path)
 
-	def __is_processed(self, file_path: str, temperature: float) -> bool:
-		stat_id = self.__generate_id(file_path, temperature)
+	def __is_processed(self, file_path: str, temperature: float, aggregate_alpha: float) -> bool:
+		stat_id = self.__generate_id(file_path, temperature, aggregate_alpha)
 
 		stat = self.__repository.retrieve(stat_id)
 
@@ -410,8 +425,9 @@ class RunnerStatsPopulater:
 		files = self.__in_filestorage.listdir(self.__in_path)
 		for file in files:
 			for temperature in self.__temperatures:
-				if not self.__is_processed(file, temperature):
-					return False
+				for alpha in self.__aggregate_alphas:
+					if not self.__is_processed(file, temperature, alpha):
+						return False
 
 		return True
 
@@ -422,18 +438,19 @@ class RunnerStatsPopulater:
 			random.shuffle(files)
 		for i, file in enumerate(files):
 			for temperature in self.__temperatures:
-				try:
-					if self.__is_processed(file, temperature) and not replace_existing:
-						print(f"[+]Skipping {file}(T={temperature}). Already Processed")
-						continue
-					self._process_model(file, temperature)
-				except (FileNotFoundException, ) as ex:
-					print(f"[-]Error Occurred processing {file}\n{ex}")
-					if (
-							self.__raise_exception or
-							True in [isinstance(ex, exception_class) for exception_class in self.__exception_exceptions]
-					):
-						raise ex
+				for alpha in self.__aggregate_alphas:
+					try:
+						if self.__is_processed(file, temperature, alpha) and not replace_existing:
+							print(f"[+]Skipping {file}(T={temperature}). Already Processed")
+							continue
+						self._process_model(file, temperature, alpha)
+					except (FileNotFoundException, ) as ex:
+						print(f"[-]Error Occurred processing {file}\n{ex}")
+						if (
+								self.__raise_exception or
+								True in [isinstance(ex, exception_class) for exception_class in self.__exception_exceptions]
+						):
+							raise ex
 
 			print(f"{(i+1)*100/len(files) :.2f}", end="\r")
 

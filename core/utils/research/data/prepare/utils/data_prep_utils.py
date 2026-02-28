@@ -13,7 +13,10 @@ class DataPrepUtils:
 		return np.sum(value >= np.array(bounds))
 
 	@staticmethod
-	def apply_bound_epsilon(bounds: typing.List[float], eps: float = None) -> typing.List[float]:
+	def apply_bound_epsilon(bounds: typing.List[float], eps: float = None, log: bool = False) -> typing.List[float]:
+		if log:
+			bounds = np.exp(bounds)
+
 		if eps is None:
 			eps = (bounds[1] - bounds[0] + bounds[-1] - bounds[-2]) / 2
 		Logger.info(f"Using epsilon: {eps}")
@@ -61,7 +64,9 @@ class DataPrepUtils:
 		df = df.iloc[:g*(df.shape[0] // g)]
 		df_g = df.iloc[0::g].copy()
 
-		for col, condenser in zip(["l", "h"], [np.min, np.max]):
+		for col, condenser in zip(["l", "h", "v"], [np.min, np.max, np.sum]):
+			if col not in df_g.columns:
+				continue
 			df_g[col] = condenser(df[col].to_numpy().reshape((-1, g)), axis=1)
 
 		return df_g

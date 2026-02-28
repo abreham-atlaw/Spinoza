@@ -43,12 +43,12 @@ PCLOUD_TOKENS = [
 	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"LrbFxZnvzs7ZBsXhKl0AR3plxs3YDDjYMy7x35pV",  # abreham_atlaw@outlook.com +
-	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
+	"y49ecVZkqQs7ZTAhMpK7Ro2LplM4GddvuERufUJ07",  # abrehama@outlook.com +
 	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"zkfNekZPR4s7ZtNbg8OCFr75xqmxaiqVxxBix9UHk",  # abreham_a@outlook.com +
 	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
 	"3dcxNVZXe7s7ZGu7OsbG6K1pvDWdl9b7TGmRDdwJ7",  # abrehamatlaw321@gmail.com -
-	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
+	"60thMkZktF97ZSPLw7HdSgWVgtrTmlWHRJk0o5tPV",  # abrehamalemu@outlook.com
 	# "lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
 ]
 PCLOUD_FOLDER = "/Apps/RTrader"
@@ -73,6 +73,8 @@ OANDA_SIM_TIMES_PATH = os.path.join(RES_DIR, "times/times-50.json")
 OANDA_SIM_MODEL_IN_PATH = PCLOUD_FOLDER
 TIMES_RESOURCE_MANAGER_KEY = "times"
 
+ENVIRONMENT_FETCH_CACHE_TIMEOUT = 1
+
 DEFAULT_TIME_IN_FORCE = "FOK"
 TIMEZONE = timezone("Africa/Addis_Ababa")
 
@@ -81,15 +83,22 @@ UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(EXPORT_DIR, "Data/drmca_export")
 UPDATE_TRAIN = False
+SESSION_MODEL_EVALUATION = False
 MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
-MARKET_STATE_GRANULARITY = "M30"
+MARKET_STATE_GRANULARITY = "M5"
 MARKET_STATE_USE_ANCHOR = False
-MARKET_STATE_USE_MULTI_CHANNELS = False
-MARKET_STATE_CHANNELS = ('c',)
-MARKET_STATE_SMOOTHED_CHANNELS = ('c',)
+MARKET_STATE_USE_MULTI_CHANNELS = True
+MARKET_STATE_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_SMOOTHED_CHANNELS = ()
+MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h')
+MARKET_STATE_ANCHOR_CHANNEL = None
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks/real")
+AGENT_LOSS_WEIGHT = 1.0
 TIME_PENALTY = 0
+AGENT_EPISODE_TAKE_PROFIT = None
+AGENT_EPISODE_STOP_LOSS = None
+AGENT_EPISODE_ATTACH_TAKE_PROFIT = False
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
@@ -98,8 +107,14 @@ AGENT_TRADE_SIZE_USE_PERCENTAGE = True
 AGENT_SUPPORT_MULTI_ACTION = True
 AGENT_USE_STOP_LOSS = False
 AGENT_STOP_LOSS_GRANULARITY = 0.001
-AGENT_STOP_LOSS_VALUE_BOUND = (0.001, 0.005)
-AGENT_STOP_LOSS_CONVERSION = True
+AGENT_TRADE_STOP_LOSS_VALUE_BOUND = (0.001, 0.005)
+AGENT_STOP_LOSS_ABSOLUTE_VALUE_MULTIPLIER = 1.0
+AGENT_USE_TAKE_PROFIT = False
+AGENT_TAKE_PROFIT_GRANULARITY = 0.001
+AGENT_TRADE_TAKE_PROFIT_VALUE_BOUND = (0.001, 0.005)
+AGENT_TAKE_PROFIT_ABSOLUTE_VALUE_MULTIPLIER = 1.0
+AGENT_TRIGGER_PRICE_GRANULARITY = None
+AGENT_STOP_LOSS_CONVERSION = False
 AGENT_STOP_LOSS_CONVERSION_BOUNDS = (0.9995, 1.0005)
 AGENT_STOP_LOSS_CONVERSION_ACCURACY = int(1e2)
 AGENT_DEPTH = 30  # TODO: DEPRECATED
@@ -118,6 +133,8 @@ AGENT_USE_STATIC_INSTRUMENTS = True
 AGENT_STATIC_INSTRUMENTS = [
 	("AUD", "USD"),
 ]
+AGENT_USE_MULTI_INSTRUMENT_MODEL = False
+AGENT_FOCUSED_INSTRUMENT_SIMULATION = False
 AGENT_RANDOM_SEED = random.randint(0, 1000000)
 AGENT_CURRENCY = "USD"
 AGENT_CORE_PRICING = False
@@ -146,11 +163,18 @@ AGENT_KALMAN_ALPHA = 0.05
 AGENT_KALMAN_BETA = 0.01
 AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = False
-AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-21-it-11-tot.0.zip"
+AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-4-it-12-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
 AGENT_CRA_SIZE = 5
 AGENT_CRA_DISCOUNT = 0.7
+AGENT_MCA_USE_REFLEX = True
+AGENT_REFLEX_STM_SIZE = 1000
+AGENT_PREDICTION_REFLEX_EVALUATOR_EFFECTIVE_CHANNELS = [0, 1, 2]
+AGENT_PREDICTION_REFLEX_EVALUATOR_LOG_RETURNS = False
 AGENT_DRMCA_WP = 100
+AGENT_USE_DIRECT_DISTRIBUTION = True
+AGENT_PROBABILITY_STORE_SIZE = int(1e6)
+AGENT_POSSIBLE_STATES_IMPORTANCE_THRESHOLD = 0.05
 AGENT_TOP_K_NODES = None
 AGENT_DYNAMIC_K_THRESHOLD = 0.05
 AGENT_DUMP_NODES = True
@@ -159,18 +183,19 @@ AGENT_DUMP_VISITED_ONLY = True
 AGENT_USE_AUTO_STATE_REPOSITORY = False
 AGENT_AUTO_STATE_REPOSITORY_MEMORY_SIZE = int(5e5)
 AGENT_FILESYSTEM_STATE_REPOSITORY_PATH = BASE_DIR
+AGENT_MCA_GRAPH_PLOT_RATE = 0.0
 AGENT_MIN_FREE_MEMORY = 2
 AGENT_MIN_DISK_SPACE = 0.1
 AGENT_MIN_ABS_DISK_SPACE = None
 AGENT_MODEL_USE_CACHED_MODEL = True
 AGENT_MODEL_USE_TRANSITION_ONLY = True
-AGENT_MODEL_USE_AGGREGATION = False
-AGENT_MODEL_AGGREGATION_ALPHA = 0.3
-AGENT_MODEL_EXTRA_LEN = 124
+AGENT_MODEL_USE_AGGREGATION = True
+AGENT_MODEL_AGGREGATION_ALPHA = 0.99/2
+AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/09.json"), "r") as file:
+with open(os.path.join(BASE_DIR, "res/bounds/13.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
@@ -205,7 +230,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(RES_DIR, "core_model.zip"),
+	path=os.path.join(BASE_DIR, "core_model.zip"),
 	download=False
 )
 
@@ -335,10 +360,13 @@ class RunnerStatsBranches:
 
 	it_72_6 = "it_72_6"
 	it_73_6 = "it_73_6"
+	it_73_7 = "it_73_7"
 
 	it_74_6 = "it_74_6"
 	it_75_6 = "it_75_6"
 	it_75_7 = "it_75_7"
+	it_75_8 = "it_75_8"
+	it_75_9 = "it_75_9"
 
 	it_76_6 = "it_76_6"
 
@@ -351,15 +379,41 @@ class RunnerStatsBranches:
 
 	it_85_6 = "it_85_6"
 	it_87_6 = "it_87_6"
+	it_87_7 = "it_87_7"
 
 	it_86_6 = "it_86_6"
 
 	it_88_6 = "it_88_6"
 	it_89_6 = "it_89_6"
+	it_89_7 = "it_89_7"
+	it_89_8 = "it_89_8"
 
 	it_90_6 = "it_90_6"
 
 	it_91_6 = "it_91_6"
+
+	it_92_6 = "it_92_6"
+
+	it_93_6 = "it_93_6"
+
+	it_94_6 = "it_94_6"
+
+	it_95_6 = "it_95_6"
+
+	it_96_6 = "it_96_6"
+
+	it_97_6 = "it_97_6"
+
+	it_98_6 = "it_98_6"
+	it_98_8 = "it_98_8"
+
+	it_99_6 = "it_99_6"
+
+	it_100_6 = "it_100_6"
+
+	it_101_6 = "it_101_6"
+
+	it_102_6 = "it_102_6"
 
 	all = [
 		main,
@@ -431,8 +485,11 @@ class RunnerStatsBranches:
 		it_72_6,
 		it_73_6,
 		it_74_6,
+		it_74_6,
 		it_75_6,
 		it_75_7,
+		it_75_8,
+		it_75_9,
 		it_76_6,
 		it_79_6,
 		it_80_6,
@@ -441,10 +498,25 @@ class RunnerStatsBranches:
 		it_85_6,
 		it_86_6,
 		it_87_6,
+		it_87_7,
 		it_88_6,
 		it_89_6,
+		it_89_7,
+		it_89_8,
 		it_90_6,
-		it_91_6
+		it_91_6,
+		it_92_6,
+		it_93_6,
+		it_94_6,
+		it_95_6,
+		it_96_6,
+		it_97_6,
+		it_98_6,
+		it_98_8,
+		it_99_6,
+		it_100_6,
+		it_101_6,
+		it_102_6
 	]
 
 	default = it_23_0
@@ -502,17 +574,33 @@ class RunnerStatsLossesBranches:
 	it_68_0 = "it_68_0"
 	it_70_0 = "it_70_0"
 	it_72_0 = "it_72_0"
+	it_72_1 = "it_72_1"
 	it_74_0 = "it_74_0"
+	it_74_1 = "it_74_1"
 	it_76_0 = "it_76_0"
 	it_79_0 = "it_79_0"
 	it_80_0 = "it_80_0"
 	it_82_0 = "it_82_0"
 	it_84_0 = "it_84_0"
 	it_85_0 = "it_85_0"
+	it_85_1 = "it_85_1"
 	it_86_0 = "it_86_0"
 	it_88_0 = "it_88_0"
+	it_88_1 = "it_88_1"
 	it_90_0 = "it_90_0"
 	it_91_0 = "it_91_0"
+	it_92_0 = "it_92_0"
+	it_93_0 = "it_93_0"
+	it_94_0 = "it_94_0"
+	it_95_0 = "it_95_0"
+	it_96_0 = "it_96_0"
+	it_97_0 = "it_97_0"
+	it_98_0 = "it_98_0"
+	it_99_0 = "it_99_0"
+	it_100_0 = "it_100_0"
+	it_101_0 = "it_101_0"
+	it_101_1 = "it_101_1"
+	it_102_0 = "it_102_0"
 
 	all = [
 		main,
@@ -563,6 +651,7 @@ class RunnerStatsLossesBranches:
 		it_68_0,
 		it_70_0,
 		it_72_0,
+		it_72_1,
 		it_74_0,
 		it_76_0,
 		it_79_0,
@@ -572,8 +661,21 @@ class RunnerStatsLossesBranches:
 		it_85_0,
 		it_86_0,
 		it_88_0,
+		it_88_1,
 		it_90_0,
-		it_91_0
+		it_91_0,
+		it_92_0,
+		it_93_0,
+		it_94_0,
+		it_95_0,
+		it_96_0,
+		it_97_0,
+		it_98_0,
+		it_99_0,
+		it_100_0,
+		it_101_0,
+		it_101_1,
+		it_102_0
 	]
 
 	default = it_23

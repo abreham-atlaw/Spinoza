@@ -20,6 +20,7 @@ class ProximalMaskedLoss(SpinozaLoss):
 			softmax=True,
 			epsilon=1e-9,
 			device='cpu',
+			multi_channel: bool=False,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
@@ -27,7 +28,7 @@ class ProximalMaskedLoss(SpinozaLoss):
 		self.p = p
 		self.e = e
 		self.lr = lr
-		self.activation = nn.Softmax(dim=1) if softmax else nn.Identity()
+		self.activation = nn.Softmax(dim=-1) if softmax else nn.Identity()
 		self.mask = self._generate_mask().to(device)
 		self.epsilon = epsilon
 		self.device = device
@@ -39,7 +40,8 @@ class ProximalMaskedLoss(SpinozaLoss):
 		if isinstance(weights, np.ndarray):
 			weights = torch.from_numpy(weights)
 
-		self.w = weights.to(device)
+		self.weights = weights.to(device)
+		self.multi_channel = multi_channel
 
 	def _f(self, i: int) -> torch.Tensor:
 		return (1 / (torch.abs(torch.arange(self.n) - i) + 1)) ** self.p
@@ -57,6 +59,16 @@ class ProximalMaskedLoss(SpinozaLoss):
 		return (1 / (torch.sum(y_mask * y_hat, dim=1) - self.epsilon)) - 1
 
 	def _call(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+
+		if self.multi_channel and y.ndim == 3:
+			return torch.mean(
+				torch.stack([
+					self._call(y_hat[:, i], y[:, i])
+					for i in range(y_hat.shape[1])
+				],dim=1),
+				dim=1
+			)
+
 		y_hat = self.activation(y_hat)
 		y_hat = y_hat**self.e
 
@@ -66,7 +78,7 @@ class ProximalMaskedLoss(SpinozaLoss):
 		)
 
 		loss = self._loss(y_mask, y_hat)**(1/self.lr)
-		w = torch.sum(self.w * y, dim=1)
+		w = torch.sum(self.weights * y, dim=1)
 		loss = loss*w
 
 		return loss

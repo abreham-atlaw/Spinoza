@@ -19,6 +19,7 @@ class ManualVelocityModelTest(unittest.TestCase):
 		self.model= VelocityManualModel(
 			bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
 			extra_len=124,
+			input_size=124+128
 		)
 		self.X = torch.from_numpy( np.load("/home/abrehamatlaw/Downloads/1765387111.711033.npy").astype(np.float32))
 		self.softmax = nn.Softmax(dim=-1)
@@ -30,7 +31,7 @@ class ManualVelocityModelTest(unittest.TestCase):
 
 		b = DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND)
 		y_v = self.X[..., -125] * torch.sum(y * b, dim=-1)
-		for i in np.random.randint(0, y.shape[0], 10):
+		for i in np.random.randint(0, y.shape[0], 5):
 			plt.figure()
 			plt.subplot(1, 2, 1)
 
@@ -45,7 +46,7 @@ class ManualVelocityModelTest(unittest.TestCase):
 
 	def test_save_and_load(self):
 
-		SAVE_PATH = os.path.join(Config.BASE_DIR, "temp/models/abrehamalemu-spinoza-training-cnn-1-it-69-tot.zip")
+		SAVE_PATH = os.path.join(Config.BASE_DIR, "temp/models/abrehamalemu-spinoza-training-cnn-2-it-87-tot.zip")
 		ModelHandler.save(self.model, SAVE_PATH)
 		self.model = ModelHandler.load(SAVE_PATH)
 		self.test_call()

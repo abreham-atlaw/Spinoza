@@ -16,6 +16,7 @@ class TraderAction(Action):
 	margin_used: float = None
 	units: int = None
 	stop_loss: float = None
+	take_profit: float = None
 
 	def __eq__(self, other):
 		if not isinstance(other, TraderAction):
@@ -25,6 +26,7 @@ class TraderAction(Action):
 			self.quote_currency == other.quote_currency and \
 			self.action == other.action and \
 			self.stop_loss == other.stop_loss and \
+			self.take_profit == other.take_profit and \
 			(
 				self.margin_used == other.margin_used or
 				self.units == other.units
@@ -37,8 +39,9 @@ class TraderAction(Action):
 			action=self.action,
 			margin_used=self.margin_used,
 			units=self.units,
-			stop_loss=self.stop_loss
+			stop_loss=self.stop_loss,
+			take_profit=self.take_profit
 		)
 
 	def __hash__(self):
-		return hash((self.base_currency, self.quote_currency, self.action, self.margin_used, self.units))
+		return hash((self.base_currency, self.quote_currency, self.action, self.margin_used, self.units, self.stop_loss, self.take_profit))

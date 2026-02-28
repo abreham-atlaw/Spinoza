@@ -47,7 +47,8 @@ class ResearchProvider:
 			fs=ServiceProvider.provide_file_storage(Config.OANDA_SIM_MODEL_IN_PATH),
 			rs_repo=ResearchProvider.provide_runner_stats_repository(),
 			times_repo=ResearchProvider.provide_times_repository(),
-			model_evaluator=ResearchProvider.provide_model_evaluator(),
+			model_evaluator=ResearchProvider.provide_model_evaluator() if Config.SESSION_MODEL_EVALUATION else None,
+			add_timestep_pls=Config.UPDATE_AGENT
 		)
 
 	@staticmethod
@@ -56,7 +57,7 @@ class ResearchProvider:
 		return RealTimeRSSetupManager(
 			fs=ServiceProvider.provide_file_storage(Config.OANDA_SIM_MODEL_IN_PATH),
 			rs_repo=ResearchProvider.provide_runner_stats_repository(),
-			model_evaluator=ResearchProvider.provide_model_evaluator(),
+			model_evaluator=ResearchProvider.provide_model_evaluator() if Config.SESSION_MODEL_EVALUATION else None,
 			accounts_repo=ServiceProvider.provide_resman(Config.ResourceCategories.OANDA_ACCOUNTS)
 		)
 
@@ -102,6 +103,7 @@ class ResearchProvider:
 			n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
 			p=1,
 			softmax=True,
+			multi_channel=(Config.MARKET_STATE_USE_MULTI_CHANNELS and (len(Config.MARKET_STATE_SIMULATED_CHANNELS) > 1))
 		)
 
 	@staticmethod

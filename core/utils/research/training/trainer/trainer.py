@@ -166,6 +166,14 @@ class Trainer:
 			for d in data
 		]
 
+	@staticmethod
+	def __validate_gradients(gradients: typing.List[torch.Tensor]) -> bool:
+		for gradient in gradients:
+			if torch.any(~torch.isfinite(gradient)):
+				return False
+
+		return True
+
 	def train(
 			self,
 			dataloader: DataLoader,
@@ -229,6 +237,7 @@ class Trainer:
 				y_hat = self.model(X)
 
 				cls_loss, ref_loss, loss = self.__loss(y_hat, y, w)
+
 				if cls_loss_only:
 					cls_loss.backward()
 				elif reg_loss_only:
@@ -237,6 +246,13 @@ class Trainer:
 					loss.backward()
 
 				gradients = [param.grad.clone().detach() for param in self.model.parameters() if param.grad is not None]
+
+				if not self.__validate_gradients(gradients):
+					if self.__skip_nan:
+						Logger.warning(f"Found invalid gradients. Skipping...")
+						continue
+					else:
+						raise ValueError("Gradients are not valid")
 
 				for tracker in self.__trackers:
 					tracker.on_batch_end(X, y, y_hat, self.model, loss, gradients, epoch, i)
@@ -289,9 +305,13 @@ class Trainer:
 				y_hat = self.model(X)
 				cls_loss, ref_loss, loss = self.__loss(y_hat, y, w)
 
-				total_loss += torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]]) * X.shape[0]
+				batch_loss = torch.FloatTensor([l.item() for l in [cls_loss, ref_loss, loss]]) * X.shape[0]
+
+				if self.__skip_nan and torch.isnan(batch_loss).any():
+					Logger.warning("Nan value encountered. Skipping...")
+					continue
+
+				total_loss += batch_loss
 				total_size += X.shape[0]
-				if self.__skip_nan and torch.isnan(total_loss).any():
-					Logger.error("Nan value encountered. Skipping...")
-					break
+
 		return (total_loss / total_size).tolist()
