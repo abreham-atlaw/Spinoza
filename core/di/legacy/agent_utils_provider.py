@@ -127,7 +127,7 @@ class AgentUtilsProvider:
 			model = AggregateModel(
 				model=model,
 				a=Config.AGENT_MODEL_AGGREGATION_ALPHA,
-				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
+				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND * len(Config.AGENT_STATIC_INSTRUMENTS)
 			)
 		return TorchModel(
 			model

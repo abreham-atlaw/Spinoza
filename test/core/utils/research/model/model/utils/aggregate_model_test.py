@@ -15,7 +15,7 @@ class AggregateModelTest(unittest.TestCase):
 
 
 	def setUp(self):
-		self.raw_model =ModelHandler.load(os.path.join(Config.BASE_DIR, "/home/abrehamatlaw/Downloads/Compressed/abrehamalemu-spinoza-training-cnn-0-it-89-tot_1.zip")).eval()
+		self.raw_model =ModelHandler.load(os.path.join(Config.BASE_DIR, "/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/models/dra.zip")).eval()
 		self.wrapped_model = WrappedModel(
 			TemperatureScalingModel(
 				temperature=1.0,
@@ -38,7 +38,7 @@ class AggregateModelTest(unittest.TestCase):
 		)
 
 
-		self.X = torch.from_numpy(np.load("/home/abrehamatlaw/Downloads/1766196639.72487.npy").astype(np.float32))
+		self.X = torch.from_numpy(np.load("/home/abrehamatlaw/Downloads/1768046021.603058.npy").astype(np.float32))
 
 	def test_aggregate(self):
 		with torch.no_grad():
