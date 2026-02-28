@@ -12,7 +12,7 @@ from core import Config
 from core.utils.research.data.load.dataset import BaseDataset
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import CrossEntropyLoss, MeanSquaredErrorLoss, ReverseMAWeightLoss, ProximalMaskedLoss2, \
-	ProximalMaskedPenaltyLoss2, ProximalMaskedLoss3
+	ProximalMaskedPenaltyLoss2, ProximalMaskedLoss3, ProximalMaskedLoss
 from core.utils.research.model.layers import Indicators, DynamicLayerNorm, DynamicBatchNorm, MinMaxNorm, Axis, \
 	LayerStack, Identity, NoiseInjectionLayer, IndicatorsSet, AnchoredReturnsLayer
 from core.utils.research.model.model.cnn.bridge_block import BridgeBlock
@@ -58,9 +58,9 @@ class TrainerTest(unittest.TestCase):
 
 	def _get_root_dirs(self):
 		return [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/08/train"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/12/train"
 		], [
-			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/08/test"
+			"/home/abrehamatlaw/Projects/PersonalProjects/RTrader/r_trader/temp/Data/simulation_simulator_data/12/test"
 		]
 
 	def __init_dataloader(self):
@@ -200,12 +200,12 @@ class TrainerTest(unittest.TestCase):
 		EXTRA_LEN = 0
 		EMBEDDING_SIZE = 8
 		BLOCK_SIZE = 128 + EXTRA_LEN
-		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/11.json"))) + 1
-		INPUT_CHANNELS = 3
-		OUTPUT_CHANNELS = 3
+		VOCAB_SIZE = len(load_json(os.path.join(Config.BASE_DIR, "res/bounds/15.json"))) + 1
+		INPUT_CHANNELS = 10
+		OUTPUT_CHANNELS = 10
 		Y_CHANNEL_MAP = tuple(range(OUTPUT_CHANNELS))
 
-		HORIZON_MODE = True
+		HORIZON_MODE = False
 		USE_MC_HORIZON = INPUT_CHANNELS > 1
 		HORIZON_BOUNDS = Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND
 		HORIZON_RANGE = (1.0, 0.99)
@@ -213,7 +213,7 @@ class TrainerTest(unittest.TestCase):
 		HORIZON_STEP = 5
 		HORIZON_MAX_DEPTH = 50
 
-		USE_AGGREGATE_MODEL = True
+		USE_AGGREGATE_MODEL = False
 		AGGREGATE_ALPHA = [0.99/3]*3
 		AGGREGATE_BOUNDS = load_json(os.path.join(Config.RES_DIR, "bounds/13.json"))
 
@@ -468,11 +468,9 @@ class TrainerTest(unittest.TestCase):
 
 	def _create_losses(self):
 		return (
-			ProximalMaskedLoss3(
-				bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND),
-				weighted_sample=False,
-				multi_channel=True,
-				weights=load_json(os.path.join(Config.BASE_DIR, "res/weights/07.json"))
+			ProximalMaskedLoss(
+				n=len(load_json(os.path.join(Config.RES_DIR, "bounds/15.json"))) + 1,
+				multi_channel=True
 			),
 			MeanSquaredErrorLoss(weighted_sample=False)
 		)

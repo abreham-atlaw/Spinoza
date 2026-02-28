@@ -18,7 +18,7 @@ class SimulationSimulator5Test(unittest.TestCase):
 
 	def setUp(self):
 		df = pd.read_csv(os.path.join(BASE_DIR, "temp/Data/Al-All.10k.csv"))
-		self.output_path = os.path.join(BASE_DIR, "temp/Data/simulation_simulator_data/11")
+		self.output_path = os.path.join(BASE_DIR, "temp/Data/simulation_simulator_data/12")
 
 		Logger.warning(f"Cleaning output path: {self.output_path}...")
 		os.system(f"rm -fr \"{self.output_path}\"")
@@ -27,7 +27,10 @@ class SimulationSimulator5Test(unittest.TestCase):
 
 		self.simulator = SimulationSimulator5(
 			df=df,
-			bounds=load_json(os.path.join(Config.BASE_DIR, "temp/Data/bounds/1770214702.599236.json")),
+			bounds=[
+				load_json(os.path.join(Config.RES_DIR, f"bounds/{i}.json"))
+				for i in [15, 15, 15, 15, 16]
+			],
 			seq_len=128,
 			extra_len=0,
 			batch_size=128,
