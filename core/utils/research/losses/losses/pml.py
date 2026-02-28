@@ -40,7 +40,7 @@ class ProximalMaskedLoss(SpinozaLoss):
 		if isinstance(weights, np.ndarray):
 			weights = torch.from_numpy(weights)
 
-		self.w = weights.to(device)
+		self.weights = weights.to(device)
 		self.multi_channel = multi_channel
 
 	def _f(self, i: int) -> torch.Tensor:
@@ -78,7 +78,7 @@ class ProximalMaskedLoss(SpinozaLoss):
 		)
 
 		loss = self._loss(y_mask, y_hat)**(1/self.lr)
-		w = torch.sum(self.w * y, dim=1)
+		w = torch.sum(self.weights * y, dim=1)
 		loss = loss*w
 
 		return loss

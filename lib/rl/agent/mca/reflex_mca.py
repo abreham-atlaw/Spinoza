@@ -1,3 +1,4 @@
+import typing
 from abc import ABC
 
 from lib.utils.logger import Logger
@@ -19,10 +20,9 @@ class ReflexMonteCarloAgent(MonteCarloAgent, ABC):
 		)
 		self.__reflex_stm = reflex_stm
 
-	def __get_approximate_node(self, state) -> Node:
+	def _search_approximate_node(self, state, state_nodes: typing.List[Node]):
 		self.__reflex_stm.clear()
 
-		state_nodes = self._get_current_graph().get_children()[0].get_children()
 		states = [
 			self._state_repository.retrieve(node.id)
 			for node in state_nodes
@@ -47,6 +47,10 @@ class ReflexMonteCarloAgent(MonteCarloAgent, ABC):
 
 		return node
 
+	def _approximate_node(self, state) -> Node:
+		state_nodes = self._get_current_graph().get_children()[0].get_children()
+		return self._search_approximate_node(state, state_nodes)
+
 	def _prepare_reflex_action(self):
 		Logger.info(f"Setting Reflex Node")
 		new_state = self._get_environment().get_latest_state()
@@ -54,7 +58,7 @@ class ReflexMonteCarloAgent(MonteCarloAgent, ABC):
 		if len(self._get_current_graph().get_children()) > 1:
 			raise ValueError("Found more than 1 action node on root node while using reflex mode.")
 
-		node = self.__get_approximate_node(new_state)
+		node = self._approximate_node(new_state)
 		self._set_current_graph(node)
 
 	def _monte_carlo_simulation(self, root_node: 'Node'):

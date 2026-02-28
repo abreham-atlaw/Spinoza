@@ -9,11 +9,10 @@ import pandas as pd
 import torch
 from matplotlib import pyplot as plt
 from torch import nn
-from torch.utils.data import DataLoader
 
 from core import Config
+from core.di import AgentUtilsProvider
 from core.environment.trade_state import TradeState
-from core.utils.research.data.load import BaseDataset
 from core.utils.research.data.prepare.smoothing_algorithm import SmoothingAlgorithm
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import SpinozaLoss
@@ -21,6 +20,7 @@ from core.utils.research.model.model.savable import SpinozaModule
 from core.utils.research.model.model.utils import HorizonModel, AggregateModel
 from core.utils.research.utils.model_evaluator import ModelEvaluator
 from lib.rl.agent import Node
+from lib.rl.agent.utils.state_predictor import StatePredictor
 from lib.utils.cache import Cache
 from lib.utils.cache.decorators import CacheDecorators
 from lib.utils.logger import Logger
@@ -53,7 +53,9 @@ class SessionAnalyzer:
 			model_key: str = "spinoza-training",
 			bounds: typing.Iterable[float] = None,
 			extra_len: int = 124,
-			aggregate_alpha: float = None
+			aggregate_alpha: float = None,
+			log_bounds: bool = True,
+			state_predictor: StatePredictor = None
 	):
 		self.__sessions_path = session_path
 		self.__fig_size = fig_size
@@ -69,8 +71,16 @@ class SessionAnalyzer:
 		self.__dtype = dtype
 		self.__softmax = nn.Softmax(dim=-1)
 		self.__extra_len = extra_len
+		self.__log_bounds = log_bounds
+		self.__state_predictor: StatePredictor = self.__load_state_predictor(model_key, aggregate_alpha) if state_predictor is None else state_predictor
 
-	def __load_session_model(self, model_key: str, aggregate_alpha: float) -> SpinozaModule:
+	def __load_state_predictor(self, model_key: str, aggregate_alpha: float) -> StatePredictor:
+		Config.CORE_MODEL_CONFIG.path = self.__get_model_path(model_key)
+		Config.AGENT_MODEL_USE_AGGREGATION = aggregate_alpha is not None
+		Config.AGENT_MODEL_AGGREGATION_ALPHA = aggregate_alpha
+		return AgentUtilsProvider.provide_state_predictor()
+
+	def __get_model_path(self, model_key: str):
 		model_path = os.path.join(
 			self.__sessions_path,
 			next(filter(
@@ -78,6 +88,10 @@ class SessionAnalyzer:
 				os.listdir(self.__sessions_path)
 			))
 		)
+		return model_path
+
+	def __load_session_model(self, model_key: str, aggregate_alpha: float) -> SpinozaModule:
+		model_path = self.__get_model_path(model_key)
 		Logger.info(f"Using session model: {os.path.basename(model_path)}")
 		model = ModelHandler.load(model_path)
 
@@ -106,16 +120,26 @@ class SessionAnalyzer:
 	def __db_path(self) -> str:
 		return os.path.join(self.__sessions_path, "oanda-simulation/db.sqlite3")
 
+	def __get_all_df_files(self) -> typing.List[str]:
+		files = []
+		unique_keys = []
+
+		for i, filename in enumerate(sorted(filter(lambda fn: fn.endswith(".csv"), os.listdir(self.__candlesticks_path)))):
+			filepath = os.path.join(self.__candlesticks_path, filename)
+			df = pd.read_csv(filepath)
+			key = df.iloc[-1]["time"], df.iloc[-1]["c"]
+			if key in unique_keys:
+				Logger.warning(f"Identified {filepath} as duplicate. Skipping file...")
+				continue
+			files.append(filepath)
+			unique_keys.append(key)
+
+		return files
+
 	def __get_df_files(self, instrument: typing.Tuple[str, str]) -> typing.List[str]:
 
 		idx = self.__instruments.index(instrument)
-		all_files = [
-			os.path.join(self.__candlesticks_path, file)
-			for file in filter(
-				lambda fn: fn.endswith(".csv"),
-				sorted(os.listdir(self.__candlesticks_path))
-			)
-		]
+		all_files = self.__get_all_df_files()
 		return all_files[idx::len(self.__instruments)]
 
 	@CacheDecorators.cached_method()
@@ -304,7 +328,7 @@ class SessionAnalyzer:
 		return y_hat
 
 	def __get_yv(self, y: np.ndarray) -> np.ndarray:
-		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds)
+		bounds = DataPrepUtils.apply_bound_epsilon(self.__bounds, log=self.__log_bounds)
 		return np.sum(y[:] * bounds, axis=1)
 
 	@staticmethod
@@ -443,42 +467,67 @@ loss: {l[i] if l is not None else "N/A"}
 
 		return X
 
+	@CacheDecorators.cached_method()
+	def __load_prediction_states(self) -> typing.List[TradeState]:
+		states = []
+
+		for i in range(len(os.listdir(self.__graphs_path))):
+			node, repo = self.load_node(i)
+			state: TradeState = repo.retrieve(node.id)
+			states.append(state)
+
+		Logger.success(f"Loaded {len(states)} states")
+		return states
+
 	def plot_prediction_sequence(
 			self,
 			instrument: typing.Tuple[str, str] = None,
-			channel: int = 0,
-			h: float = 0.0,
-			max_depth: int = 0,
+			channels: typing.Tuple[int] = (0,),
 			checkpoints: typing.List[int] = None,
+			channel_labels: typing.Tuple[str] = ('c', 'l', 'h', 'o', 'v')
 	):
+
+
 		if instrument is None:
 			instrument = self.__instruments[0]
 
 		if checkpoints is None:
 			checkpoints = []
 
-		X = self.__load_prediction_sequence_input_data(instrument)
-		y_hat = self.__get_y_hat(X, h=h, max_depth=max_depth)
+		states = self.__load_prediction_states()
+		y_hat = self.__state_predictor.predict(
+			states=states,
+			actions=[None]*len(states),
+			instrument=instrument
+		)[..., :-1]
 
 		y_hat = np.expand_dims(y_hat, axis=1) if y_hat.ndim == 2 else y_hat
 
-		y_hat = y_hat[:, channel]
+		y_hat = y_hat[:, channels]
 
-		y_hat_v = self.__get_yv(y_hat) - 1
+		y_hat_v = np.stack([
+			self.__get_yv(y_hat[:, c]) - 1
+			for c in channels
+		], axis=1)
 
 		labels = [str(i) for i in range(y_hat_v.shape[0])]
-		colors = ["green" if v >= 0 else "red" for v in y_hat_v]
-		max_val = max(abs(v) for v in y_hat_v)
+		colors = np.array([ ["green" if y_hat_v[i, j] >=0 else "red" for j in range(y_hat_v.shape[1])] for i in range(y_hat_v.shape[0])])
+		max_val = np.max(np.abs(y_hat_v))
 
 		plt.figure(figsize=self.__fig_size)
 
 		plt.subplot(2, 1, 1)
-		self.plot_sequence(instrument, new_figure=False, checkpoints=checkpoints)
+		self.plot_trades([channel_labels[i] for i in channels], instrument, new_figure=False)
 
 		plt.subplot(2, 1, 2)
-		plt.title(f"Prediction Sequence of {instrument} on Channel {channel}")
-		plt.bar(labels, y_hat_v, color=colors)
-		plt.xticks(rotation=90, fontsize=5)
+		plt.title(f"Prediction Sequence of {instrument} on Channels {channels}")
+
+		x = np.arange(len(labels))
+		width = 0.7 / len(channels)
+		padding = 0.1
+		for i in channels:
+			plt.bar(x + width*i+padding, y_hat_v[:, i], width=width, color=colors[:, i], label=i)
+		plt.xticks(rotation=90, fontsize=5, labels=labels, ticks=x)
 
 		plt.axhline(y=0, color="black")
 		plt.ylim(-max_val, max_val)
@@ -507,7 +556,8 @@ loss: {l[i] if l is not None else "N/A"}
 	def plot_trades(
 			self,
 			channels: typing.Tuple[str,...] = ("c",),
-			instrument: typing.Tuple[str, str] = None
+			instrument: typing.Tuple[str, str] = None,
+			new_figure: bool = True
 	):
 
 
@@ -540,5 +590,6 @@ loss: {l[i] if l is not None else "N/A"}
 			instrument=instrument,
 			channels=channels,
 			checkpoints=checkpoints,
+			new_figure=new_figure
 		)
 

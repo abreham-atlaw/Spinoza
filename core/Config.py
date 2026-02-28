@@ -41,12 +41,12 @@ PCLOUD_TOKENS = [
 	"WoSiVVZHDks7Z7kGMSCexDu8dxeB1GClFzpDx9TOk",  # abreham.atlaw@outlook.com +
 	# "bDBit7ZEWJs7ZvmomkVGYvr02Fd0DWd56ByQLbjLk",  # abreham-atlaw@outlook.com -
 	"LrbFxZnvzs7ZBsXhKl0AR3plxs3YDDjYMy7x35pV",  # abreham_atlaw@outlook.com +
-	"0q6NC7ZkqQs7Z7aVgEWJEiH7Lm9R1KWjbPpAi3b2X",  # abrehama@outlook.com +
+	"y49ecVZkqQs7ZTAhMpK7Ro2LplM4GddvuERufUJ07",  # abrehama@outlook.com +
 	# "2WjwdXZiyRs7ZTBMoqYbCS2hvTbuzYbBP6XVkEByy",  # abreham.a@outlook.com +
 	"zkfNekZPR4s7ZtNbg8OCFr75xqmxaiqVxxBix9UHk",  # abreham_a@outlook.com +
 	# "TbW8dXZPays7ZaalmkXkXb40vpl0MxsA5Fp2TVsry",  # hiwotahab12@gmail.com +
 	"3dcxNVZXe7s7ZGu7OsbG6K1pvDWdl9b7TGmRDdwJ7",  # abrehamatlaw321@gmail.com -
-	"7zoKYXZktF97Z6gm3frhMpjjU9M08A58WgRda0PHX",  # abrehamalemu@outlook.com
+	"60thMkZktF97ZSPLw7HdSgWVgtrTmlWHRJk0o5tPV",  # abrehamalemu@outlook.com
 	# "lmQOmkZWmKM7ZyodzaLpjx5S2KO1wNcPuIhrYzFUX"  # abreham-a@outlook.com
 ]
 PCLOUD_FOLDER = "/Apps/RTrader"
@@ -81,6 +81,7 @@ UPDATE_AGENT = True
 UPDATE_EXPORT_BATCH_SIZE = 2
 UPDATE_SAVE_PATH = os.path.join(EXPORT_DIR, "Data/drmca_export")
 UPDATE_TRAIN = False
+SESSION_MODEL_EVALUATION = False
 MARKET_STATE_MEMORY = 128
 MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
@@ -95,8 +96,7 @@ AGENT_LOSS_WEIGHT = 1.0
 TIME_PENALTY = 0
 AGENT_EPISODE_TAKE_PROFIT = None
 AGENT_EPISODE_STOP_LOSS = None
-AGENT_EPISODE_TAKE_PROFIT = None
-AGENT_EPISODE_STOP_LOSS = None
+AGENT_EPISODE_ATTACH_TAKE_PROFIT = False
 AGENT_TRADE_PENALTY = 0
 AGENT_TRADE_SIZE_GAP = 0.7
 AGENT_TRADE_MIN_SIZE = 0.5
@@ -357,6 +357,7 @@ class RunnerStatsBranches:
 	it_75_6 = "it_75_6"
 	it_75_7 = "it_75_7"
 	it_75_8 = "it_75_8"
+	it_75_9 = "it_75_9"
 
 	it_76_6 = "it_76_6"
 
@@ -395,10 +396,13 @@ class RunnerStatsBranches:
 	it_97_6 = "it_97_6"
 
 	it_98_6 = "it_98_6"
+	it_98_8 = "it_98_8"
 
 	it_99_6 = "it_99_6"
 
 	it_100_6 = "it_100_6"
+
+	it_101_6 = "it_101_6"
 
 	all = [
 		main,
@@ -474,6 +478,7 @@ class RunnerStatsBranches:
 		it_75_6,
 		it_75_7,
 		it_75_8,
+		it_75_9,
 		it_76_6,
 		it_79_6,
 		it_80_6,
@@ -496,8 +501,10 @@ class RunnerStatsBranches:
 		it_96_6,
 		it_97_6,
 		it_98_6,
+		it_98_8,
 		it_99_6,
-		it_100_6
+		it_100_6,
+		it_101_6
 	]
 
 	default = it_100_6
@@ -579,6 +586,8 @@ class RunnerStatsLossesBranches:
 	it_98_0 = "it_98_0"
 	it_99_0 = "it_99_0"
 	it_100_0 = "it_100_0"
+	it_101_0 = "it_101_0"
+	it_101_1 = "it_101_1"
 
 	all = [
 		main,
@@ -650,7 +659,9 @@ class RunnerStatsLossesBranches:
 		it_97_0,
 		it_98_0,
 		it_99_0,
-		it_100_0
+		it_100_0,
+		it_101_0,
+		it_101_1
 	]
 
 	default = it_100_0

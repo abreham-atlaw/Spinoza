@@ -7,22 +7,25 @@ from core.utils.research.data.prepare.smoothing_algorithm import MovingAverage
 from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.losses import ProximalMaskedLoss
 from core.utils.research.utils.analysis.session_analyzer import SessionAnalyzer
+from lib.utils.fileio import load_json
 
 
 class SessionAnalyzerTest(unittest.TestCase):
 
 	def setUp(self):
+		Config.AGENT_USE_MULTI_INSTRUMENT_MODEL = True
+		Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = load_json(os.path.join(Config.RES_DIR, "bounds/15.json"))
 		self.session_analyzer = SessionAnalyzer(
-			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/03"),
+			session_path=os.path.join(Config.BASE_DIR, "temp/session_dumps/05"),
 			instruments=[
 				("AUD", "USD"),
-				("USD", "ZAR")
+				("EUR", "USD")
 			],
 			smoothing_algorithms=[
 				MovingAverage(32),
 			],
 			plt_y_grid_count=10,
-			model_key="it-89",
+			model_key="it-98",
 			# aggregate_alpha=0.98/3
 		)
 
@@ -70,8 +73,7 @@ class SessionAnalyzerTest(unittest.TestCase):
 	def test_plot_prediction_sequence(self):
 		self.session_analyzer.plot_prediction_sequence(
 			instrument=("AUD", "USD"),
-			channel=0,
-			checkpoints=[4]
+			channels=(0, 1, 2),
 		)
 
 	def test_plot_trades(self):
