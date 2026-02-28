@@ -23,7 +23,7 @@ class SimulationSimulator5Test(unittest.TestCase):
 		Logger.warning(f"Cleaning output path: {self.output_path}...")
 		os.system(f"rm -fr \"{self.output_path}\"")
 
-		self.channels = ("c", "l", "h", "o")
+		self.channels = ("c", "l", "h", "o", "v")
 
 		self.simulator = SimulationSimulator5(
 			df=df,
@@ -45,6 +45,13 @@ class SimulationSimulator5Test(unittest.TestCase):
 			),
 			transformations=[
 			],
+			anchor_map={
+				"c": "c",
+				"l": "c",
+				"h": "c",
+				"o": "c",
+				"v": "v"
+			}
 		)
 
 	def test_functionality(self):

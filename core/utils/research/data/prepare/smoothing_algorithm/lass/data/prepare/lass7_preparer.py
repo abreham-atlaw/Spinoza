@@ -20,11 +20,11 @@ class Lass7Preparer(Lass3Preparer):
 			sa=IdentitySA(),
 			shift=0
 		)
-		self.__decomposer = decomposer
+		self._decomposer = decomposer
 		self.__vertical_align = vertical_align
 
 	def _prepare_sequence(self, sequence: np.ndarray) -> np.ndarray:
-		y = self.__decomposer.decompose(sequence)
+		y = self._decomposer.decompose(sequence)
 		return np.stack([sequence, y], axis=0)
 
 	def _prepare_sequence_stack(self, x: np.ndarray) -> np.ndarray:

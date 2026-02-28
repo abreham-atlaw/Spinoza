@@ -14,20 +14,29 @@ class SimulationSimulator5(SimulationSimulator4):
 			anchored_channels: typing.Tuple[str] = ('c', 'o', 'l', 'h'),
 			anchor_channel: str = 'c',
 			log_returns: bool = True,
+			anchor_map: typing.Dict[str, str] = None,
 			**kwargs,
 	):
 		super().__init__(*args, **kwargs)
 		self.__anchored_channels = anchored_channels
 		self.__anchor_channel = anchor_channel
 		self.__log_returns = log_returns
-		Logger.info(f"Initializing {self.__class__.__name__} with anchored_channels: {anchored_channels}, anchor_channel: {anchor_channel} and log_returns: {log_returns}")
+		self.__anchor_map = anchor_map if anchor_map is not None else {
+			channel: anchor_channel
+			for channel in anchored_channels
+		}
+		Logger.info(
+			f"Initializing {self.__class__.__name__} with anchor_map: {self.__anchor_map}"
+			f" and log_returns: {log_returns} "
+		)
 
 	def __anchor_returns(self, sequences: np.ndarray) -> np.ndarray:
 		y = sequences[..., 1:].copy()
-		anchored_channels_idxs = [i for i in range(y.shape[1]) if self._x_columns[i] in self.__anchored_channels]
-		anchor_idx = self._x_columns.index(self.__anchor_channel)
 
-		y[:, anchored_channels_idxs] /= (sequences[:, [anchor_idx], :-1] + 1e-9)
+		for anchored, anchor in self.__anchor_map.items():
+			anchored_idx, anchor_idx = self._x_columns.index(anchored), self._x_columns.index(anchor)
+			y[:, anchored_idx] /= (sequences[:, anchor_idx, :-1] + 1e-9)
+
 		return y
 
 	def _prepare_y_stack(self, sequences: np.ndarray) -> np.ndarray:
