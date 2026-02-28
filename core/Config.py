@@ -87,9 +87,9 @@ MARKET_STATE_SMOOTHING = True
 MARKET_STATE_GRANULARITY = "M30"
 MARKET_STATE_USE_ANCHOR = False
 MARKET_STATE_USE_MULTI_CHANNELS = True
-MARKET_STATE_CHANNELS = ('c', 'l', 'h', 'o')
+MARKET_STATE_CHANNELS = ('c', 'l', 'h', 'o', 'v')
 MARKET_STATE_SMOOTHED_CHANNELS = ()
-MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h', 'o')
+MARKET_STATE_SIMULATED_CHANNELS = ('c', 'l', 'h', 'o', 'v')
 MARKET_STATE_ANCHOR_CHANNEL = 'c'
 DUMP_CANDLESTICKS_PATH = os.path.join(EXPORT_DIR, "candlesticks/real")
 AGENT_LOSS_WEIGHT = 1.0
@@ -253,7 +253,7 @@ PREDICTION_MODELS = [
 	ARA_MODEL_CONFIG
 ]
 
-MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-100/"
+MAPLOSS_FS_MODELS_PATH = "/Apps/RTrader/maploss/it-102/"
 
 
 class ResourceCategories:
@@ -510,7 +510,7 @@ class RunnerStatsBranches:
 		it_102_6
 	]
 
-	default = it_100_6
+	default = it_102_6
 
 
 class RunnerStatsLossesBranches:
@@ -669,7 +669,7 @@ class RunnerStatsLossesBranches:
 		it_102_0
 	]
 
-	default = it_100_0
+	default = it_102_0
 
 
 
