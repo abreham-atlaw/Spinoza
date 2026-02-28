@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
 from core.utils.research.model.layers import ReverseSoftmax
 from core.utils.research.model.model.savable import SpinozaModule
 from lib.utils.logger import Logger
@@ -56,20 +57,8 @@ class HorizonModel(SpinozaModule):
 		self.h = h
 
 	def __prepare_bounds(self, bounds: typing.Union[typing.List[float], torch.Tensor]) -> torch.Tensor:
-		if isinstance(bounds, typing.List):
-			bounds = torch.tensor(bounds)
-
-		raw_bounds = torch.clone(bounds)
-
-		epsilon = (bounds[1] - bounds[0] + bounds[-1] - bounds[-2]) / 2
-		Logger.info(f"Using epsilon: {epsilon}")
-		bounds = torch.cat([
-			torch.Tensor([bounds[0] - epsilon]),
-			bounds,
-			torch.Tensor([bounds[-1] + epsilon])
-		])
-
-		bounds = (bounds[1:] + bounds[:-1]) / 2
+		raw_bounds = torch.Tensor(bounds).clone()
+		bounds = torch.from_numpy(DataPrepUtils.apply_bound_epsilon(bounds))
 
 		if self.value_correction:
 			self.register_buffer("raw_bounds", bounds)
