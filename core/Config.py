@@ -13,6 +13,9 @@ class ModelConfig:
 	url: str
 	path: str
 
+def load_json(path):
+	with open(path, "r") as f:
+		return json.load(f)
 
 IS_LIVE = False
 
@@ -195,8 +198,12 @@ AGENT_MODEL_EXTRA_LEN = 0
 AGENT_USE_EXTRA_DATA = AGENT_MODEL_EXTRA_LEN > 0
 AGENT_MODEL_TEMPERATURE = 1
 AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_EPSILON = 1e-5
-with open(os.path.join(BASE_DIR, "res/bounds/15.json"), "r") as file:
-	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = sorted(list(json.load(file)))
+AGENT_STATE_CHANGE_DELTA_STATIC_BOUND = [
+	load_json(os.path.join(RES_DIR, f"bounds/{i}.json"))
+	for i in [
+		"13", "13", "13"
+	]
+]
 with open(os.path.join(BASE_DIR, "res/weights/05.json"), "r") as file:
 	AGENT_STATE_CHANGE_DELTA_STATIC_BOUND_WEIGHTS = sorted(list(json.load(file)))
 MODEL_SAVE_EXTENSION = "zip"
@@ -412,6 +419,8 @@ class RunnerStatsBranches:
 
 	it_101_6 = "it_101_6"
 
+	it_102_6 = "it_102_6"
+
 	all = [
 		main,
 		ma_ews_dynamic_k_stm_it_23,
@@ -512,7 +521,8 @@ class RunnerStatsBranches:
 		it_98_8,
 		it_99_6,
 		it_100_6,
-		it_101_6
+		it_101_6,
+		it_102_6
 	]
 
 	default = it_98_6
@@ -596,6 +606,7 @@ class RunnerStatsLossesBranches:
 	it_100_0 = "it_100_0"
 	it_101_0 = "it_101_0"
 	it_101_1 = "it_101_1"
+	it_102_0 = "it_102_0"
 
 	all = [
 		main,
@@ -669,7 +680,8 @@ class RunnerStatsLossesBranches:
 		it_99_0,
 		it_100_0,
 		it_101_0,
-		it_101_1
+		it_101_1,
+		it_102_0
 	]
 
 	default = it_101_0

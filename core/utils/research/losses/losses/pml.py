@@ -21,6 +21,7 @@ class ProximalMaskedLoss(SpinozaLoss):
 			epsilon=1e-9,
 			device='cpu',
 			multi_channel: bool=False,
+			channels_weight: typing.List[float] = None,
 			**kwargs
 	):
 		super().__init__(*args, **kwargs)
@@ -42,6 +43,10 @@ class ProximalMaskedLoss(SpinozaLoss):
 
 		self.weights = weights.to(device)
 		self.multi_channel = multi_channel
+		self.channels_weight = channels_weight
+
+	def __get_channel_weight(self, i: int) -> float:
+		return self.channels_weight[i] if self.channels_weight is not None else 1
 
 	def _f(self, i: int) -> torch.Tensor:
 		return (1 / (torch.abs(torch.arange(self.n) - i) + 1)) ** self.p
@@ -63,7 +68,7 @@ class ProximalMaskedLoss(SpinozaLoss):
 		if self.multi_channel and y.ndim == 3:
 			return torch.mean(
 				torch.stack([
-					self._call(y_hat[:, i], y[:, i])
+					self._call(y_hat[:, i], y[:, i]) * self.__get_channel_weight(i)
 					for i in range(y_hat.shape[1])
 				],dim=1),
 				dim=1

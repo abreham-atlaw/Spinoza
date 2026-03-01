@@ -17,20 +17,22 @@ from lib.utils.logger import Logger
 class SimulationSimulator5Test(unittest.TestCase):
 
 	def setUp(self):
-		df = pd.read_csv(os.path.join(BASE_DIR, "temp/Data/data_sources/mit-1-test.10k.csv"))
+		df = pd.read_csv(os.path.join(BASE_DIR, "temp/Data/Al-All.10k.csv"))
 		self.output_path = os.path.join(BASE_DIR, "temp/Data/simulation_simulator_data/12")
 
 		Logger.warning(f"Cleaning output path: {self.output_path}...")
 		os.system(f"rm -fr \"{self.output_path}\"")
 
-		self.channels = ("c", "l", "h", "o")
-		self.extra_len = 12
+		self.channels = ("c", "l", "h", "o", "v")
 
 		self.simulator = SimulationSimulator5(
 			df=df,
-			bounds=load_json(os.path.join(Config.BASE_DIR, "res/bounds/15.json")),
+			bounds=[
+				load_json(os.path.join(Config.RES_DIR, f"bounds/{i}.json"))
+				for i in [15, 15, 15, 15, 16]
+			],
 			seq_len=128,
-			extra_len=self.extra_len,
+			extra_len=0,
 			batch_size=128,
 			output_path=self.output_path,
 			granularity=2,
@@ -46,6 +48,13 @@ class SimulationSimulator5Test(unittest.TestCase):
 			),
 			transformations=[
 			],
+			anchor_map={
+				"c": "c",
+				"l": "c",
+				"h": "c",
+				"o": "c",
+				"v": "v"
+			}
 		)
 
 	def test_functionality(self):
@@ -65,8 +74,6 @@ class SimulationSimulator5Test(unittest.TestCase):
 		for f in np.random.randint(0, len(X_FILES), 10):
 			plt.figure(figsize=(20, 10))
 			X, y = [np.load(files[f]) for files in [X_FILES, Y_FILES]]
-			if self.extra_len > 0:
-				X = X[..., :self.extra_len]
 			for idx, i in enumerate(np.argsort(np.mean(X[:, 0], axis=1))[:4]):
 				plt.subplot(4, 2, 2*idx+1)
 				for j in range(X.shape[1]):

@@ -47,6 +47,8 @@ class TraderDNNTransitionAgent(DNNTransitionAgent, ABC):
 		self.__state_change_delta_model_mode = state_change_delta_model_mode
 		if isinstance(state_change_delta_bounds, list):
 			state_change_delta_bounds = np.array(state_change_delta_bounds, dtype=np.float32)
+		if state_change_delta_bounds.ndim == 1:
+			state_change_delta_bounds = np.expand_dims(state_change_delta_bounds, axis=0)
 		self._state_change_delta_bounds = state_change_delta_bounds
 		self.__depth_mode = depth_mode
 		self.environment: TradeEnvironment
