@@ -53,3 +53,32 @@ class SentimentLossTest(unittest.TestCase):
 		self.assertEqual(l1, 45/3)
 		self.assertEqual(l2, 22)
 
+	def test_batch(self):
+		bounds = [-2, -1, 0, 1, 2]
+
+		loss = SentimentLoss(
+			bounds=torch.Tensor(bounds),
+			softmax=False,
+			multi_channel=True,
+			bound_neutral=0,
+			d=10,
+			channels_weight=[0, 1, 0]
+		)
+
+		y = torch.Tensor([
+			[
+				[1, 0, 0, 0, 0],
+				[0, 1, 0, 0, 0],
+				[0, 0, 0, 1, 0],
+			]
+		])
+		y_hat = torch.Tensor([
+			[
+				[0, 1, 0, 0, 0],
+				[0, 0, 0, 1, 0],
+				[0, 1, 0, 0, 0]
+			]
+		])
+
+		l = loss(torch.concatenate([y_hat for _ in range(10)]), torch.concatenate([y for _ in range(10)]))
+		self.assertEqual(l, 5 / 3)

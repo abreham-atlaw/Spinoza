@@ -97,23 +97,37 @@ class ResearchProvider:
 		#
 
 	@staticmethod
-	def provide_loss_function() -> nn.Module:
-		from core.utils.research.losses import ProximalMaskedLoss
-		return ProximalMaskedLoss(
-			n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
-			p=1,
-			softmax=True,
-			multi_channel=(Config.MARKET_STATE_USE_MULTI_CHANNELS and (len(Config.MARKET_STATE_SIMULATED_CHANNELS) > 1))
-		)
+	def provide_session_loss_functions() -> typing.List[nn.Module]:
+		from core.utils.research.losses import ProximalMaskedLoss, SentimentLoss
+		from core.utils.research.data.prepare.utils.data_prep_utils import DataPrepUtils
+		return [
+			ProximalMaskedLoss(
+				n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND[0]) + 1,
+				p=1,
+				softmax=True,
+				multi_channel=(Config.MARKET_STATE_USE_MULTI_CHANNELS and (len(Config.MARKET_STATE_SIMULATED_CHANNELS) > 1))
+			),
+			SentimentLoss(
+				bounds=DataPrepUtils.apply_bound_epsilon(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND[0], log=Config.AGENT_PREDICTION_REFLEX_EVALUATOR_LOG_RETURNS),
+				bound_neutral=1,
+				d=1,
+				softmax=True,
+				multi_channel=True,
+				channels_weight=([1] + [0]*(len(Config.MARKET_STATE_CHANNELS) - 1))*len(Config.AGENT_STATIC_INSTRUMENTS)
+			)
+		]
 
 	@staticmethod
-	def provide_model_evaluator(data_path: str = None) -> 'ModelEvaluator':
+	def provide_model_evaluator(data_path: str = None) -> typing.List['ModelEvaluator']:
 		if data_path is None:
 			data_path = Config.UPDATE_SAVE_PATH
 
 		from core.utils.research.utils.model_evaluator import ModelEvaluator
-		return ModelEvaluator(
-			data_path=data_path,
-			cls_loss_fn=ResearchProvider.provide_loss_function(),
-			batch_size=32
-		)
+		return [
+			ModelEvaluator(
+				data_path=data_path,
+				cls_loss_fn=loss,
+				batch_size=32
+			)
+			for loss in ResearchProvider.provide_session_loss_functions()
+		]

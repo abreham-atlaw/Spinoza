@@ -1,4 +1,5 @@
 import os
+import typing
 from datetime import datetime
 
 import matplotlib.pyplot as plt
@@ -26,11 +27,14 @@ class RSSetupManager:
 			times_repo: TimesRepository,
 			rs_repo: RunnerStatsRepository,
 			fs: FileStorage,
-			model_evaluator: ModelEvaluator,
+			model_evaluator: typing.Union[ModelEvaluator, typing.List[ModelEvaluator]],
 			refresh_finish: bool = True,
 			time_based_allocation: bool = True,
 			add_timestep_pls: bool = True
 	):
+		if isinstance(model_evaluator, ModelEvaluator):
+			model_evaluator = [model_evaluator]
+
 		self.__times_repo = times_repo
 		self.__rs_repo = rs_repo
 		self.__fs = fs
@@ -83,12 +87,13 @@ class RSSetupManager:
 
 	@staticmethod
 	def __load_model(path: str, temperature: float, aggregate_alpha: float) -> nn.Module:
+
 		model = ModelHandler.load(path)
 
 		if aggregate_alpha is not None:
 			model = AggregateModel(
 				model=model,
-				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND,
+				bounds=Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND * len(Config.AGENT_STATIC_INSTRUMENTS),
 				a=aggregate_alpha,
 				softmax=True
 			)
@@ -104,13 +109,13 @@ class RSSetupManager:
 		tom_model.export_config = model.export_config
 		return tom_model
 
-	def __evaluate_model_loss(self, model_path: str, temperature: float, aggregate_alpha: float) -> float:
+	def __evaluate_model_loss(self, model_path: str, temperature: float, aggregate_alpha: float) -> typing.List[float]:
 		if self.__model_evaluator is None:
 			return 0.0
 		Logger.info(f"Evaluating Model Loss...")
 		model = self.__load_model(path=model_path, temperature=temperature, aggregate_alpha=aggregate_alpha)
-		losses = self.__model_evaluator.evaluate(model)
-		return losses[0]
+		losses = [evaluator.evaluate(model) for evaluator in self.__model_evaluator]
+		return [l[0] for l in losses]
 
 	def _finish_extra(self, stat: RunnerStats):
 		pass
@@ -137,7 +142,7 @@ class RSSetupManager:
 		if self.__add_timestep_pls:
 			Logger.info(f"Extracting Timestep PLs...")
 			stat.get_active_session().timestep_pls = list(
-				SessionAnalysisUtils.get_timestep_pls(Config.UPDATE_SAVE_PATH)
+				SessionAnalysisUtils.get_timestep_pls(Config.UPDATE_SAVE_PATH, use_legacy=not Config.MARKET_STATE_USE_MULTI_CHANNELS)
 			)
 			plt.figure(figsize=(15, 7.5))
 			plt.plot(stat.get_active_session().timestep_pls)

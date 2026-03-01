@@ -15,9 +15,17 @@ class SessionAnalysisUtils:
 		return y
 
 	@staticmethod
-	def get_timestep_pls(out_path: str) -> np.ndarray:
+	def __extract_y_value_multi_channel(y: np.ndarray):
+		return y[:, 0, -1]
+
+	@staticmethod
+	def __extract_y_value_legacy(y: np.ndarray):
+		return y[:, -1]
+
+	@staticmethod
+	def get_timestep_pls(out_path: str, use_legacy: bool = False) -> np.ndarray:
 		y = SessionAnalysisUtils.__load_y(out_path)
-		values = y[:, -1]
+		values = SessionAnalysisUtils.__extract_y_value_multi_channel(y) if not use_legacy else SessionAnalysisUtils.__extract_y_value_legacy(y)
 		assert values.ndim == 1
 		pls = np.cumprod(values + 1)
 		return pls
