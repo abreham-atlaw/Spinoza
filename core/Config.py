@@ -411,6 +411,7 @@ class RunnerStatsBranches:
 	it_97_6 = "it_97_6"
 
 	it_98_6 = "it_98_6"
+	it_98_7 = "it_98_7"
 	it_98_8 = "it_98_8"
 
 	it_99_6 = "it_99_6"
@@ -518,6 +519,7 @@ class RunnerStatsBranches:
 		it_96_6,
 		it_97_6,
 		it_98_6,
+		it_98_7,
 		it_98_8,
 		it_99_6,
 		it_100_6,
