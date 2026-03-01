@@ -17,6 +17,8 @@ class ProximalMaskedLoss3Test(unittest.TestCase):
 		self.loss = ProximalMaskedLoss3(
 			bounds=DataPrepUtils.apply_bound_epsilon(load_json(os.path.join(Config.BASE_DIR, "res/bounds/05.json"))),
 			softmax=True,
+			multi_channel=True,
+			channels_weight=[2, 0, 0]
 		)
 		self.pml = ProximalMaskedLoss(
 			n=len(Config.AGENT_STATE_CHANGE_DELTA_STATIC_BOUND) + 1,
@@ -97,3 +99,39 @@ class ProximalMaskedLoss3Test(unittest.TestCase):
 
 		for i in range(len(loss.mask)):
 			self.assertTrue(torch.all(loss.mask[i] == loss_loaded.mask[i]))
+
+	def test_multi_channel(self):
+		loss = ProximalMaskedLoss3(
+			bounds=np.array([1, 2, 3, 4, 5]),
+			softmax=False,
+			multi_channel=True,
+			channels_weight=[2, 0, 0]
+		)
+
+		y = torch.Tensor(
+			[[
+				[1, 0, 0, 0, 0],
+				[1, 0, 0, 0, 0],
+				[1, 0, 0, 0, 0]
+			]]
+		)
+
+		y_hat = torch.Tensor(
+			[[
+				[1, 0, 0, 0, 0],
+				[0, 0, 0, 0, 1],
+				[0, 0, 0, 1, 0]
+			]]
+		)
+		y_hat_1 = torch.Tensor(
+			[[
+				[0, 0, 0, 0, 1],
+				[1, 0, 0, 0, 0],
+				[1, 0, 0, 0, 0]
+			]]
+		)
+
+		l = loss(y_hat, y)
+		l1 = loss(y_hat_1, y)
+		self.assertGreater(l1, l)
+		print(l, l1)
