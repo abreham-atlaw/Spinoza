@@ -1,0 +1,45 @@
+import unittest
+
+import torch
+
+from core.utils.research.losses import SentimentLoss
+
+
+class SentimentLossTest(unittest.TestCase):
+
+	def test_mock_data(self):
+		bounds = [-2, -1, 0, 1, 2]
+		loss = SentimentLoss(
+			bounds=torch.Tensor(bounds),
+			softmax=False,
+			multi_channel=True,
+			bound_neutral=0
+		)
+		loss1 = SentimentLoss(
+			bounds=torch.Tensor(bounds),
+			softmax=False,
+			multi_channel=True,
+			bound_neutral=0,
+			d=10
+		)
+
+		y = torch.Tensor([
+			[
+				[1, 0, 0, 0, 0],
+				[0, 1, 0, 0, 0],
+				[0, 0, 0, 1, 0],
+			]
+		])
+		y_hat = torch.Tensor([
+			[
+				[0, 1, 0, 0, 0],
+				[0, 0, 0, 1, 0],
+				[0, 1, 0, 0, 0]
+			]
+		])
+
+		l = loss(y_hat, y)
+		l1 = loss1(y_hat, y)
+		self.assertEqual(l, 5/3)
+		self.assertEqual(l1, 45/3)
+

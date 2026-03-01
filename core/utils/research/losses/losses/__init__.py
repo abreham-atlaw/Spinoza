@@ -8,3 +8,4 @@ from .pmpl import ProximalMaskedPenaltyLoss
 from .pmpl2 import ProximalMaskedPenaltyLoss2
 from .pml3 import ProximalMaskedLoss3
 from .pml4 import ProximalMaskedLoss4
+from .sentiment_loss import SentimentLoss
