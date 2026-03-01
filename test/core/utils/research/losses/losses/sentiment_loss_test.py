@@ -22,6 +22,14 @@ class SentimentLossTest(unittest.TestCase):
 			bound_neutral=0,
 			d=10
 		)
+		loss2 = SentimentLoss(
+			bounds=torch.Tensor(bounds),
+			softmax=False,
+			multi_channel=True,
+			bound_neutral=0,
+			d=10,
+			channels_weight=[0, 1, 0]
+		)
 
 		y = torch.Tensor([
 			[
@@ -40,6 +48,8 @@ class SentimentLossTest(unittest.TestCase):
 
 		l = loss(y_hat, y)
 		l1 = loss1(y_hat, y)
+		l2 = loss2(y_hat, y)
 		self.assertEqual(l, 5/3)
 		self.assertEqual(l1, 45/3)
+		self.assertEqual(l2, 22)
 
