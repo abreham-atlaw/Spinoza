@@ -167,7 +167,7 @@ AGENT_MA_WINDOW_SIZE = 64
 AGENT_USE_LASS = False
 AGENT_LASS_MODEL_FS_PATH = "/Apps/RTrader/abrehamalemu-spinoza-lass-training-cnn-4-it-12-tot.0.zip"
 AGENT_USE_SMOOTHING = not MARKET_STATE_SMOOTHING
-AGENT_TITAN_MODE = True
+AGENT_TITAN_MODE = False
 AGENT_CRA_SIZE = 0
 AGENT_CRA_DISCOUNT = 0.7
 AGENT_MCA_USE_REFLEX = True
@@ -235,7 +235,7 @@ CURRENCIES = [
 CORE_MODEL_CONFIG = ModelConfig(
 	id="core",
 	url="https://www.dropbox.com/s/9nvcas994dpzq3a/model.h5?dl=0&raw=0",
-	path=os.path.join(BASE_DIR, "core_model.zip"),
+	path=os.path.join(RES_DIR, "core_model.zip"),
 	download=False
 )
 
