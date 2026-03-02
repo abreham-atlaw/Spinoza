@@ -13,7 +13,7 @@ class MultiInstrumentTargetBuilder(TrainingTargetBuilder):
 	def __init__(
 			self,
 			channels: typing.Tuple[int,...],
-			bounds: typing.List[float],
+			bounds: typing.List[typing.List[float]],
 			anchor_channel: str = 'c',
 	):
 		self.__anchor_channel_idx = channels.index(anchor_channel)
@@ -25,11 +25,11 @@ class MultiInstrumentTargetBuilder(TrainingTargetBuilder):
 
 		returns = np.log(final_values / (initial_values + 1e-9))
 		classes = np.array([
-			DataPrepUtils.find_bound_index(self.__bounds, r)
-			for r in returns
+			DataPrepUtils.find_bound_index(self.__bounds[i], r)
+			for i, r in enumerate(returns)
 		])
 
-		encoded = DataPrepUtils.one_hot_encode(classes, len(self.__bounds) + 1)
+		encoded = DataPrepUtils.one_hot_encode(classes, len(self.__bounds[0]) + 1)
 		return encoded
 
 	def __build_tp_target(self, state: TradeState, final_state: TradeState) -> np.ndarray:
