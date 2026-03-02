@@ -20,7 +20,7 @@ class MultiInstrumentTargetBuilderTest(unittest.TestCase):
 			tradable_pairs=self.instruments,
 			memory_len=memory_len,
 			channels=channels,
-			currencies=["AUD", "USD", "ZAR"]
+			currencies=["AUD", "USD", "EUR"]
 		)
 
 		for base_currency, quote_currency in self.instruments:
@@ -40,9 +40,9 @@ class MultiInstrumentTargetBuilderTest(unittest.TestCase):
 		self.channels = ('c', 'l', 'h', 'o')
 		self.instruments = [
 			("AUD", "USD"),
-			("USD", "ZAR")
+			("EUR", "USD")
 		]
-		self.bounds = load_json(os.path.join(Config.RES_DIR, "bounds/15.json"))
+		self.bounds = [load_json(os.path.join(Config.RES_DIR, "bounds/15.json")) for _ in range(4)]
 		self.builder = MultiInstrumentTargetBuilder(
 			channels=self.channels,
 			bounds=self.bounds
@@ -62,4 +62,4 @@ class MultiInstrumentTargetBuilderTest(unittest.TestCase):
 		y = self.builder.build(state, action, final_state, value)
 
 		self.assertEqual(y[0, -1], value / state.get_agent_state().get_balance())
-		self.assertEqual(y.shape, (len(self.channels)*len(self.instruments), len(self.bounds)+2))
+		self.assertEqual(y.shape, (len(self.channels)*len(self.instruments), len(self.bounds[0])+2))
