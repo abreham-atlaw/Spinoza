@@ -42,6 +42,7 @@ class CNNBlock(SpinozaModule):
 
 		conv_channels = [input_channels] + conv_channels
 
+		self.kernel_sizes = kernel_sizes
 		pool_sizes = self.__prepare_arg_pool(pool_sizes)
 		dropout_rate = self.__prepare_arg_dropout(dropout_rate, kernel_sizes)
 		stride = self.__prepare_arg_stride(stride, kernel_sizes)

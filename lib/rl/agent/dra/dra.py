@@ -54,7 +54,7 @@ class DeepReinforcementAgent(ActionChoiceAgent, ABC):
 		if not self.__update_agent:
 			return
 		self.__generator.append(
-			self._prepare_dra_input(initial_state, action),
+			self._predictor.prepare_input([initial_state], [action])[0],
 			self._prepare_dra_train_output(initial_state, action, final_state, value)
 		)
 		if len(self.__generator) == 2:
